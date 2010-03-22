@@ -8,6 +8,9 @@ class Test.Foo {
 
   function testForeach () {
     foreach (var ele:i in elements) {
+      foreach (var yo:i in yos) {
+
+      }
       
     }
   }

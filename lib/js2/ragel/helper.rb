@@ -40,6 +40,11 @@ class Helper
     END
   end
 
+  def comment () 
+    return  start_node(:COMMENT, nil, true) + stop_node(nil)
+  end
+
+
   def start_member (type, idx = nil) 
     return <<-END
       close_on_semi = 1;

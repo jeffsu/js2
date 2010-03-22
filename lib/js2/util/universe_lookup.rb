@@ -1,25 +1,34 @@
 class JS2::Util::UniverseLookup
   def initialize
-    @file_lookup  = Hash.new
-    @klass_lookup = Hash.new
-    @comps = Hash.new
+    @roots    = Hash.new
+    @klasses  = Hash.new
+
+    # key: file value: dependencies
+    @affected = Hash.new
   end
 
-  def store_file (file, klasses)
-    @klass_lookup[file] = klasses
+  def store_root (root)
+    @root_lookup[root.file] = root
+
     klasses.each do |k|
-      (@file_lookup[k] ||= []) << file
+      (@klasses[k] ||= []) << root
     end
   end
 
-  def store_comp (file, klasses, files)
-    @comps[file] = [ klasses, files ]
+  def store_comp (comp)
+    comp.dependencies.each do |d|
+      if root = @klasses[d]
+        (@affected[root.file] ||= []) << comp.file
+      else
+        (@affected[d] ||= []) << comp.file
+      end
+    end
   end
 
-  def get_comp_files (file)
-
+  def files_affected_from (file)
+    return @affected[file]
   end
 
-  def missing_file
+  def has_changed?
   end
 end

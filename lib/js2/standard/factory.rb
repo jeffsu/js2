@@ -1,6 +1,14 @@
 class JS2::Standard::RootNode < JS2::Standard::Node
-  def stop
-    JS2::Standard::Foreach.reset!
+  attr_accessor :klasses, :file
+
+  def initialize (idx, string, factory)
+    @klasses = []
+    super(idx, string, factory)
+  end
+
+  def stop (idx)
+    JS2::Standard::ForeachNode.reset!
+    super(idx)
   end
 end
 
@@ -196,20 +204,29 @@ end
 
 
 class JS2::Standard::Factory
-  @@supports = [ :CLASS, :MEMBER, :METHOD, :ACCESSOR, :FOREACH, :PROPERTY, :INCLUDE, :CURRY ]
+  @@supports = [ :CLASS, :MEMBER, :METHOD, :ACCESSOR, :FOREACH, :PROPERTY, :INCLUDE, :CURRY, :ROOT ]
   @@lookup = Hash.new
-
-  def initialize ()
-  end
-
-  def new_node (type, idx, string)
-    klass = @@lookup[type] || JS2::Standard::Node
-    return klass.new(idx, string, self)
-  end
 
   @@supports.each do |v|
     name = v.to_s.downcase.sub(/(\w)/) { |m| m.upcase }
     @@lookup[v] = eval "JS2::Standard::#{name}Node"
   end
+
+  def root_node (string, file = nil)
+    @root = new_node(:ROOT, 0, string) 
+    @root.file = file
+    return @root
+  end
+
+  def new_node (type, idx, string)
+    klass = @@lookup[type] || JS2::Standard::Node
+    node = klass.new(idx, string, self)
+    if type == :CLASS || type == :MODULE
+      @root.klasses << node
+    end
+
+    return node
+  end
+
 end
 

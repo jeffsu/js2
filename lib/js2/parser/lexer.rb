@@ -16,9 +16,9 @@ class JS2::Parser::Lexer
     last.stop(idx)
   end
 
-  def parse (string, factory_klass)
+  def parse (string, factory, file = nil)
     @string = string
-    @root   = factory_klass.new.new_node(:ROOT, 0, @string)
+    @root   = factory.root_node(string, file)
     @stack  = [ @root ]
     @last_idx = 0
 
@@ -26,8 +26,8 @@ class JS2::Parser::Lexer
     @root.stop(@last_idx)
   end
 
-  def parse_file (file, factory_klass)
-    parse(File.read(file), factory_klass)
+  def parse_file (file, factory)
+    parse(File.read(file), factory, file)
     return @root
   end
 end
