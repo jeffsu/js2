@@ -10,3 +10,9 @@ Echoe.new('js2', '0.1.1') do |p|
   p.ignore_pattern = ["tmp/*", "script/*"]
   p.development_dependencies = []
 end
+
+namespace :js2 do
+  task :compile do
+    system("pushd lib/js2/ragel/; ruby helper.rb; ragel -C tokenizer.rl; mv tokenizer.c ../parser/tokenizer.rb")
+  end
+end

@@ -1,0 +1,552 @@
+# Somewhat based on http://www.mozilla.org/js/language/js20-2000-07/formal/lexer-grammar.html
+# Regular Expression Literals determined with these rules:
+#  http://www.mozilla.org/js/language/js20-1999-03-25/tokens.html
+
+ %%{
+  machine dude;
+  alphtype char;
+
+  action actionStringBegin {
+  }
+
+  action actionStringAcc {
+  }
+
+  action actionStringAccBsEscape {
+  }
+
+  action actionStringAccUtf16 {
+  }
+
+  unicodecharacter = any;
+  unicodeinitialalphabetic = alpha;
+  unicodealphanumeric = alnum;
+  whitespacecharacter = [\t\v\f ];
+  lineterminator = ('\r' | '\n');
+  asciidigit = digit;
+  ws = (whitespacecharacter | lineterminator);
+
+  literals = (
+      '=='  | '!='  | '===' | '!==' | '<='  | '>='  | '||'  | '&&'  | '++'  | '--'  | '<<'  | '<<=' | '>>'  | '>>=' | '>>>' | '>>>='| '&='  | '%='  | '^='  | '|='  | '+='  | '-='  | '*='  | '/='  
+  );
+
+  # put in class
+  # put in accessor
+  keywords = (
+    'break' | 'case' | 'catch' | 'continue' | 'default' | 'delete' | 'do' |
+    'else' | 'finally' | 'for' | 'function' | 'if' | 'in' | 'instanceof' |
+    'new' | 'return' | 'switch' | 'this' | 'throw' | 'try' | 'typeof' | 'var' | 'accessor' |
+    'void' | 'while' | 'with' | 'const' | 'true' | 'false' | 'null' | 'debugger' | 
+    'class' | 'static' | 'foreach' | 'module' | 'include' | 'property'
+  );
+
+  # took out class
+  reserved = (
+    'abstract' | 'boolean' | 'byte' | 'char' | 'double' | 'enum' | 'export' |
+    'extends' | 'final' | 'float' | 'goto' | 'implements' | 'import' | 'int' | 'interface' |
+    'long' | 'native' | 'package' | 'private' | 'protected' | 'public' | 'short' |
+    'super' | 'synchronized' | 'throws' | 'transient' | 'volatile' 
+  );
+
+  nonterminator = any - lineterminator;
+  linecommentcharacters = nonterminator*;
+  nonterminatororslash = nonterminator - '/';
+  nonterminatororastreisk = nonterminator - '*';
+  nonterminatororasteriskorslash = nonterminator - ('*' | '/');
+  blockcommentcharacters = (nonterminatororslash | (nonterminatororastreisk '/'))*;
+  multilineblockcommentcharacters = (blockcommentcharacters lineterminator)*;
+
+  linecomment = '//' linecommentcharacters;
+  singlelineblockcomment = '/*' blockcommentcharacters '*/';
+  multilineblockcomment = '/*' multilineblockcommentcharacters blockcommentcharacters '*/';
+  comment = linecomment | singlelineblockcomment | multilineblockcomment;
+  
+  string_begin = '\'' @ actionStringBegin;
+  string_end = '\'';
+  stringchar_normal = ^(['\\] | 0..0x1f) @ actionStringAcc;
+  stringchar_bs_esc = '\\'['\\/bfnrt] @ actionStringAccBsEscape;
+  stringchar_utf16 = '\\u'[0-9a-fA-F]{4} @ actionStringAccUtf16;
+  stringchar_bs_other = '\\'^(['\\/bfnrtu]|0..0x1f) @ actionStringAccBsEscape;
+  stringchar = (stringchar_normal | stringchar_bs_esc | stringchar_utf16 | stringchar_bs_other);
+  string = string_begin . stringchar* . string_end;
+
+  ds_string_begin = '"' @ actionStringBegin;
+  ds_string_end = '"';
+  ds_stringchar_normal = ^(["\\] | 0..0x1f) @ actionStringAcc;
+  ds_stringchar_bs_esc = '\\'["\\/bfnrt] @ actionStringAccBsEscape;
+  ds_stringchar_utf16 = '\\u'[0-9a-fA-F]{4} @ actionStringAccUtf16;
+  ds_stringchar_bs_other = '\\'^(["\\/bfnrtu]|0..0x1f) @ actionStringAccBsEscape;
+  ds_stringchar = (ds_stringchar_normal | ds_stringchar_bs_esc | ds_stringchar_utf16 | ds_stringchar_bs_other);
+  ds_string = ds_string_begin . ds_stringchar* . ds_string_end;
+
+  all_string = string | ds_string;
+
+  integer = '-'? . digit+;
+  float = '-'? (
+    (('0' | [1-9][0-9]*) '.' [0-9]+ ([Ee] [+\-]?[0-9]+)?)
+    | (('0' | [1-9][0-9]*) ([Ee] [+\-]?[0-9]+))
+  );
+  number = integer | float;
+
+  identifier_char = ([a-zA-Z0-9_]) | '$';
+  identifier = identifier_char+;
+
+  ordinaryregexpchar = nonterminator - ('/' | '\\');
+  regexpchars = (ordinaryregexpchar | '\\' nonterminator)+;
+  regexpbody = '/' @ {regexp_start = p;} regexpchars '/';
+  regexpflags = ('g' | 'i' | 'm')*;
+  regexpliteral = regexpbody regexpflags;
+
+  specialcasedivide = (
+    identifier '/'
+  );
+  single_char = any;
+
+  var_list   =  (identifier . ws* . ',' . ws*)* . identifier?;
+  arg_list   = '(' . ws* . var_list . ws* .')';
+
+  curry_with = 'with' . ws* . arg_list;
+  curry      = 'curry' . ws* . arg_list? . ws* . curry_with? . ws*;
+
+  foreach    = 'foreach' . ws* . '(' . ws* . 'var' . ws* . identifier . (ws* . ':' . ws* . identifier)? . ws*;
+
+  js2_include    = 'include' . ws+  . identifier;
+  js2_class      = 'class' . ws+  . identifier;
+  js2_module     = 'module' . ws+  . identifier;
+
+  property   = ws . 'property' . ws . var_list;
+  member     = ws . ('static' . ws+)? . 'var' . ws+  . identifier;
+  method     = ws . ('static' . ws+)? . 'function' . ws* . identifier;
+  private    = ws . 'private' . ws;
+  accessor   = ws . 'accessor' . ws;
+
+
+
+
+  main := |*
+
+    lineterminator => { 
+      //line_number++;
+    };
+
+    js2_class => {
+      if (in_class == 0) {
+              curlies[++curly_idx] = cb_count;;
+
+      start_argv[0] = sym_CLASS;
+      start_argv[1] = INT2FIX(ts-data);
+      start_argv[2] = INT2FIX(is_static);
+      rb_funcall2(self, start_sym, 3, start_argv);
+      is_static = 0;
+
+        in_class = curly_idx;
+      }
+    };
+
+    private => {
+      if (in_class && in_class == curly_idx) {
+              curlies[++curly_idx] = cb_count;;
+
+      start_argv[0] = sym_PRIVATE;
+      start_argv[1] = INT2FIX(ts-data);
+      start_argv[2] = INT2FIX(is_static);
+      rb_funcall2(self, start_sym, 3, start_argv);
+      is_static = 0;
+
+              if (curly_idx) curly_idx--;
+      stop_argv[0] = INT2FIX(te-data);
+      rb_funcall2(self, stop_sym, 1, stop_argv);
+
+      }
+    };
+
+    js2_module => {
+      if (in_class == 0) {
+              curlies[++curly_idx] = cb_count;;
+
+      start_argv[0] = sym_MODULE;
+      start_argv[1] = INT2FIX(ts-data);
+      start_argv[2] = INT2FIX(is_static);
+      rb_funcall2(self, start_sym, 3, start_argv);
+      is_static = 0;
+
+        in_class = curly_idx;
+      }
+    };
+
+    property => {
+      if (in_class && in_class == curly_idx) {
+              close_on_semi = 1;
+      start_argv[0] = sym_PROPERTY;
+      start_argv[1] = INT2FIX(ts-data);
+      start_argv[2] = INT2FIX(is_static);
+      rb_funcall2(self, start_sym, 3, start_argv);
+      is_static = 0;
+
+      }
+    };
+
+    accessor => {
+      if (in_class && in_class == curly_idx) {
+              close_on_semi = 1;
+      start_argv[0] = sym_ACCESSOR;
+      start_argv[1] = INT2FIX(ts-data);
+      start_argv[2] = INT2FIX(is_static);
+      rb_funcall2(self, start_sym, 3, start_argv);
+      is_static = 0;
+
+      }
+    };
+
+
+    member => {
+      if (in_class && in_class == curly_idx) {
+              close_on_semi = 1;
+      start_argv[0] = sym_MEMBER;
+      start_argv[1] = INT2FIX(ts-data);
+      start_argv[2] = INT2FIX(is_static);
+      rb_funcall2(self, start_sym, 3, start_argv);
+      is_static = 0;
+
+      }
+    };
+
+    method => {
+      if (in_class && in_class == curly_idx) {
+              curlies[++curly_idx] = cb_count;;
+
+      start_argv[0] = sym_METHOD;
+      start_argv[1] = INT2FIX(ts-data);
+      start_argv[2] = INT2FIX(is_static);
+      rb_funcall2(self, start_sym, 3, start_argv);
+      is_static = 0;
+
+      }
+    };
+
+
+    js2_include => {
+      if (in_class && in_class == curly_idx) {
+              close_on_semi = 1;
+      start_argv[0] = sym_INCLUDE;
+      start_argv[1] = INT2FIX(ts-data);
+      start_argv[2] = INT2FIX(is_static);
+      rb_funcall2(self, start_sym, 3, start_argv);
+      is_static = 0;
+
+      }
+    };
+
+    foreach => {
+            curlies[++curly_idx] = cb_count;;
+
+      start_argv[0] = sym_FOREACH;
+      start_argv[1] = INT2FIX(ts-data);
+      start_argv[2] = INT2FIX(is_static);
+      rb_funcall2(self, start_sym, 3, start_argv);
+      is_static = 0;
+
+      mark_on_br = br_count;
+      br_count++;
+    };
+
+    curry => {
+            curlies[++curly_idx] = cb_count;;
+
+      start_argv[0] = sym_CURRY;
+      start_argv[1] = INT2FIX(ts-data);
+      start_argv[2] = INT2FIX(is_static);
+      rb_funcall2(self, start_sym, 3, start_argv);
+      is_static = 0;
+
+    };
+
+    whitespacecharacter => {};
+    comment => { };
+
+    all_string => {};
+    number => {};
+    keywords => { };
+
+    literals => { };
+    reserved => { };
+    identifier => { };
+
+    '!=' ws* regexpliteral => { };
+'!==' ws* regexpliteral => { };
+'#' ws* regexpliteral => { };
+'%' ws* regexpliteral => { };
+'%=' ws* regexpliteral => { };
+'&&' ws* regexpliteral => { };
+'&&=' ws* regexpliteral => { };
+'&=' ws* regexpliteral => { };
+'*' ws* regexpliteral => { };
+'*=' ws* regexpliteral => { };
+'+' ws* regexpliteral => { };
+'+=' ws* regexpliteral => { };
+',' ws* regexpliteral => { };
+'-' ws* regexpliteral => { };
+'-=' ws* regexpliteral => { };
+'->' ws* regexpliteral => { };
+'.' ws* regexpliteral => { };
+'/' ws* regexpliteral => { };
+'/=' ws* regexpliteral => { };
+':' ws* regexpliteral => { };
+'::' ws* regexpliteral => { };
+'<' ws* regexpliteral => { };
+'<<' ws* regexpliteral => { };
+'<<=' ws* regexpliteral => { };
+'<=' ws* regexpliteral => { };
+'=' ws* regexpliteral => { };
+'==' ws* regexpliteral => { };
+'===' ws* regexpliteral => { };
+'>' ws* regexpliteral => { };
+'>=' ws* regexpliteral => { };
+'>>' ws* regexpliteral => { };
+'>>=' ws* regexpliteral => { };
+'>>>' ws* regexpliteral => { };
+'>>>=' ws* regexpliteral => { };
+'?' ws* regexpliteral => { };
+'@' ws* regexpliteral => { };
+'[' ws* regexpliteral => { };
+'^' ws* regexpliteral => { };
+'^=' ws* regexpliteral => { };
+'^^' ws* regexpliteral => { };
+'^^=' ws* regexpliteral => { };
+'|' ws* regexpliteral => { };
+'|=' ws* regexpliteral => { };
+'||' ws* regexpliteral => { };
+'||=' ws* regexpliteral => { };
+'abstract' ws* regexpliteral => { };
+'break' ws* regexpliteral => { };
+'case' ws* regexpliteral => { };
+'catch' ws* regexpliteral => { };
+'class' ws* regexpliteral => { };
+'const' ws* regexpliteral => { };
+'continue' ws* regexpliteral => { };
+'debugger' ws* regexpliteral => { };
+'default' ws* regexpliteral => { };
+'delete' ws* regexpliteral => { };
+'do' ws* regexpliteral => { };
+'else' ws* regexpliteral => { };
+'enum' ws* regexpliteral => { };
+'export' ws* regexpliteral => { };
+'extends' ws* regexpliteral => { };
+'field' ws* regexpliteral => { };
+'final' ws* regexpliteral => { };
+'finally' ws* regexpliteral => { };
+'for' ws* regexpliteral => { };
+'function' ws* regexpliteral => { };
+'goto' ws* regexpliteral => { };
+'if' ws* regexpliteral => { };
+'implements' ws* regexpliteral => { };
+'import' ws* regexpliteral => { };
+'in' ws* regexpliteral => { };
+'instanceof' ws* regexpliteral => { };
+'native' ws* regexpliteral => { };
+'new' ws* regexpliteral => { };
+'package' ws* regexpliteral => { };
+'private' ws* regexpliteral => { };
+'protected' ws* regexpliteral => { };
+'public' ws* regexpliteral => { };
+'return' ws* regexpliteral => { };
+'static' ws* regexpliteral => { };
+'switch' ws* regexpliteral => { };
+'synchronized' ws* regexpliteral => { };
+'throw' ws* regexpliteral => { };
+'throws' ws* regexpliteral => { };
+'transient' ws* regexpliteral => { };
+'try' ws* regexpliteral => { };
+'typeof' ws* regexpliteral => { };
+'var' ws* regexpliteral => { };
+'volatile' ws* regexpliteral => { };
+'while' ws* regexpliteral => { };
+'with' ws* regexpliteral => { };
+'foreach' ws* regexpliteral => { };
+'module' ws* regexpliteral => { };
+'include' ws* regexpliteral => { };
+
+
+    single_char | (('(' | '{' | ';' | '}') ws* regexpliteral) => {
+      char single = data[ts-data];
+
+      if (single == '{') {
+        in_foreach = 0;
+        cb_count++;
+      } else if (single == '}') {
+        cb_count--;
+        if (curly_idx && curlies[curly_idx] == cb_count) {
+          in_foreach = 0;
+                if (curly_idx) curly_idx--;
+      stop_argv[0] = INT2FIX(te-data);
+      rb_funcall2(self, stop_sym, 1, stop_argv);
+
+          if (curlies[in_class] == cb_count) {
+            in_class = 0;
+          }
+        }
+      } else if (single == ';' && close_on_semi == 1) {
+              close_on_semi = 0;
+      stop_argv[0] = INT2FIX(te-data);
+      rb_funcall2(self, stop_sym, 1, stop_argv);
+
+      }
+
+      if (single == ';' || single == '}') {
+        classable = 1;
+      }
+
+      if (single == '(') {
+        br_count++;
+      } else if (single == ')') {
+        br_count--;
+        if (mark_on_br == br_count) {
+                if (curly_idx) curly_idx--;
+      stop_argv[0] = INT2FIX(te-data);
+      rb_funcall2(self, stop_sym, 1, stop_argv);
+
+          mark_on_br = -1;
+        }
+      }
+    };
+
+  *|;
+}%%
+
+require 'rubygems'
+require 'inline'
+
+class JS2::Parser::Tokenizer
+  attr_accessor :data
+
+  inline do |builder|
+    builder.c_raw <<-END
+
+    int tokenize (int argc, VALUE *argv, VALUE self) {
+      // convert ruby string to char*
+      VALUE r_str     = argv[0];
+      int data_length = RSTRING(r_str)->len;
+      char* data      = STR2CSTR(r_str);
+
+      int in_class  = 0;
+      int in_module = 0;
+      int close_on_semi = 0;
+      int classable     = 1;
+      int in_foreach = 0;
+
+      // start vars
+      VALUE start_argv[3];
+      ID start_sym = rb_intern("start_node");
+
+      // stop vars
+      VALUE stop_argv[1];
+      ID stop_sym = rb_intern("stop_node");
+
+      // mark vars
+      VALUE mark_argv[1];
+      ID mark_sym = rb_intern("mark_node");
+      int mark_on_br = -1;
+
+
+      VALUE warn_intv[1];
+      ID warn_sym = rb_intern("warn_int");
+
+
+      // state vars
+      int i = 0; // iterator
+      int j = 0; // iterator
+
+      char keyword[100]; // keyword
+      char single;
+      int is_static = 0;
+      int is_private = 0;
+
+      // curly handling
+      int curlies[1000];
+      curlies[0]    = 0;
+      int curly_idx = 0; // on purpose!
+      int cb_count  = 0;
+      int br_count  = 0;
+      int close_on_br = 0;
+
+            // CLASS
+      ID  sym_CLASS = ID2SYM(rb_intern("CLASS"));
+      // METHOD
+      ID  sym_METHOD = ID2SYM(rb_intern("METHOD"));
+      // MEMBER
+      ID  sym_MEMBER = ID2SYM(rb_intern("MEMBER"));
+      // STUFF
+      ID  sym_STUFF = ID2SYM(rb_intern("STUFF"));
+      // ACCESSOR
+      ID  sym_ACCESSOR = ID2SYM(rb_intern("ACCESSOR"));
+      // COMMENT
+      ID  sym_COMMENT = ID2SYM(rb_intern("COMMENT"));
+      // FOREACH
+      ID  sym_FOREACH = ID2SYM(rb_intern("FOREACH"));
+      // MODULE
+      ID  sym_MODULE = ID2SYM(rb_intern("MODULE"));
+      // INCLUDE
+      ID  sym_INCLUDE = ID2SYM(rb_intern("INCLUDE"));
+      // CURRY
+      ID  sym_CURRY = ID2SYM(rb_intern("CURRY"));
+      // PROPERTY
+      ID  sym_PROPERTY = ID2SYM(rb_intern("PROPERTY"));
+      // PRIVATE
+      ID  sym_PRIVATE = ID2SYM(rb_intern("PRIVATE"));
+      // STATIC
+      ID  sym_STATIC = ID2SYM(rb_intern("STATIC"));
+
+      // ragel variables
+      int cs, act;
+      char *ts  = NULL;
+      char *te  = NULL;
+      char *p   = data;
+      char *pe  = p + data_length;
+      char *eof = pe;
+      char* regexp_start = NULL;
+
+            ;
+
+      start_argv[0] = sym_STUFF;
+      start_argv[1] = INT2FIX(0);
+      start_argv[2] = INT2FIX(is_static);
+      rb_funcall2(self, start_sym, 3, start_argv);
+      is_static = 0;
+
+
+      %% write data;
+      %% write init;
+      %% write exec;
+
+            if (curly_idx) curly_idx--;
+      stop_argv[0] = INT2FIX(data_length-1);
+      rb_funcall2(self, stop_sym, 1, stop_argv);
+
+    }
+
+    END
+  end
+
+  def warn_int (int)
+    puts int.to_s
+  end
+
+  def start_node (type, idx, is_static)
+    @lexer.start_node(type, idx, is_static == 1)
+  end
+
+  def stop_node (idx)
+    @lexer.stop_node(idx)
+  end
+
+  def mark_node (idx)
+    @lexer.mark_node(idx)
+  end
+
+  def tokenize! (data, lexer)
+    @data  = data
+    @lexer = JS2::Parser::Lexer.new(data)
+    self.tokenize(data)
+  end
+
+end
