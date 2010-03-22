@@ -16,7 +16,6 @@ class JS2::Standard::Node
 
   def stop (idx)
     @stop_idx = idx
-    process_elements!
   end
 
   def to_s ()
@@ -26,19 +25,21 @@ class JS2::Standard::Node
     first = true
     @children.each do |c|
       if c.start_idx > last_idx
-        str << handle_string(@string[last_idx .. c.start_idx], first)
+        str << handle_string(@string[last_idx .. c.start_idx-1], first)
         first = false
       end
 
       str << c.to_s
-      last_idx = c.stop_idx
+      last_idx = c.stop_idx + 1
     end
 
     if last_idx < @stop_idx
       str << handle_string(@string[last_idx .. @stop_idx], first)
     end
 
-    return elements
+    str = handle_ending(str)
+
+    return str
   end
 
   private
@@ -49,6 +50,10 @@ class JS2::Standard::Node
     else
       return str 
     end
+  end
+
+  def handle_ending (str)
+    return str
   end
 
   def handle_first_string (str)

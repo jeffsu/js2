@@ -3526,7 +3526,7 @@ _again:
 
   def tokenize! (data, lexer)
     @data  = data
-    @lexer = JS2::Parser::Lexer.new(data)
+    @lexer = lexer
     self.tokenize(data)
   end
 

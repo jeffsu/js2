@@ -1,0 +1,15 @@
+class Test.Foo {
+  accessor testAcc;
+  property testProp;
+
+  function testFunct () {
+
+  }
+
+  function testForeach () {
+    foreach (var ele:i in elements) {
+      
+    }
+  }
+
+}
