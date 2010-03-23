@@ -1,8 +1,8 @@
-* [Features](http://code.google.com/p/js2lang/wiki/Features) (simple documentation)
-* [Installation](http://code.google.com/p/js2lang/wiki/Installation)
+* [Features](http://github.com/jeffsu/js2/blob/master/wiki/features.md) (simple documentation)
+* [Installation](http://github.com/jeffsu/js2/blob/master/wiki/installation.md)
 * [Source Code](http://github.com/jeffsu/js2)
 
-# OO Javascript
+## OO Javascript
 
 For every Javascript developer that has ever wanted to create a library for his/her project, there comes a time when an Object Oriented approach is necessary (or extremely desired). Fortunately, there are a plethora of options to choose from:
 
@@ -27,7 +27,7 @@ For every Javascript developer that has ever wanted to create a library for his/
 >       });
 Unfortunately, these solutions are dissimilar to Java, Ruby, and C-based languages.
 
-# JS2 Solution
+## JS2 Solution
 
 JS2 language that is a superset of Javascript and the problem it tries to solve is bringing "natural" OO syntax to Javascript by adding a compilation layer.
 
@@ -60,6 +60,6 @@ One of the nice things about this solution is that it allows us to "calculate" t
 * currying
 * More Features
 
-# Inspiration
+## Inspiration
 
 HAML, SASS, Ruby, Perl, jQuery, Prototype.js
