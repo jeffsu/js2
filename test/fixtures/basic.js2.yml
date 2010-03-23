@@ -1,0 +1,5 @@
+Test.Foo:
+  make_compilation: true
+  template:
+    - class: Bar
+    - class: Foo
