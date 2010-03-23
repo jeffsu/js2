@@ -21,6 +21,11 @@ class JS2::Parser::Lexer
     @last_idx = 0
 
     @tokenizer.tokenize!(@string, self)
+
+    @page.children.each do |c|
+      c.stop(@last_idx) unless c.stop_idx
+    end
+
     @page.stop(@last_idx)
   end
 

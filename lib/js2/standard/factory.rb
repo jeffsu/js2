@@ -1,3 +1,4 @@
+# TODO: break this up into multiple files
 class JS2::Standard::PageNode < JS2::Standard::Node
   attr_accessor :klasses, :file
 
@@ -10,6 +11,10 @@ class JS2::Standard::PageNode < JS2::Standard::Node
     JS2::Standard::ForeachNode.reset!
     super(idx)
   end
+end
+
+class JS2::Standard::CommentNode < JS2::Standard::Node
+
 end
 
 class JS2::Standard::ClassNode < JS2::Standard::Node
@@ -149,7 +154,6 @@ class JS2::Standard::AccessorNode < JS2::Standard::Node
   REGEX = /(\s*)accessor(\s+)([\w+,\s]+\w)(\s*);(\s*)/
 
   def handle_first_string (str)
-    puts "{#{str}}"
     m = str.match(REGEX)
     space     = m[1]
     mid_space = m[2]
@@ -212,7 +216,7 @@ end
 
 
 class JS2::Standard::Factory
-  @@supports = [ :CLASS, :MEMBER, :METHOD, :ACCESSOR, :FOREACH, :PROPERTY, :INCLUDE, :CURRY, :PAGE ]
+  @@supports = [ :CLASS, :MEMBER, :METHOD, :ACCESSOR, :FOREACH, :PROPERTY, :INCLUDE, :CURRY, :PAGE, :COMMENT, :STUFF ]
   @@lookup = Hash.new
 
   @@supports.each do |v|
@@ -223,18 +227,25 @@ class JS2::Standard::Factory
   def page_node (string, file = nil)
     @page = new_node(:PAGE, 0, string) 
     @page.file = file
+    @comment = nil
     return @page
   end
 
   def new_node (type, idx, string)
     klass = @@lookup[type] || JS2::Standard::Node
     node = klass.new(idx, string, self)
+
     if type == :CLASS || type == :MODULE
       @page.klasses << node
     end
 
+    if type == :COMMENT
+      @comment = node
+    elsif @comment
+      node.comment = @comment
+    end
+
     return node
   end
-
 end
 

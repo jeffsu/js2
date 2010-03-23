@@ -1,5 +1,5 @@
 class JS2::Standard::Node
-  attr_accessor :type, :start_idx, :stop_idx, :children, :starting, :factory
+  attr_accessor :type, :start_idx, :stop_idx, :children, :starting, :factory, :comment
 
   def initialize (start_idx, str, factory)
     @start_idx = start_idx
@@ -21,7 +21,7 @@ class JS2::Standard::Node
   def to_s ()
     last_idx = @start_idx
     str = ''
-    
+
     first = true
     @children.each do |c|
       if c.start_idx > last_idx

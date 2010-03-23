@@ -1,7 +1,15 @@
+
+/*
+ * Comments
+ * This is a comment
+ */
 class Test.Foo {
   accessor testAcc;
   property testProp;
 
+  /*
+   * Comment
+   */
   function testFunct () {
 
   }
