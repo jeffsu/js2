@@ -1,4 +1,4 @@
-class JS2::Standard::RootNode < JS2::Standard::Node
+class JS2::Standard::PageNode < JS2::Standard::Node
   attr_accessor :klasses, :file
 
   def initialize (idx, string, factory)
@@ -29,6 +29,14 @@ class JS2::Standard::ClassNode < JS2::Standard::Node
     end
   end
 
+  def name
+    if m = @string.match(REGEX)
+      return m[2]
+    else
+      return ''
+    end
+  end
+
   def create_name
     return 'createClass'
   end
@@ -43,7 +51,7 @@ class JS2::Standard::ClassNode < JS2::Standard::Node
       pkg = pkg.join('.')
     end
 
-    return "#{str})(#{@name}, #{pkg});"
+    return str.sub(/\s*\z/, ")(#{@name}, #{pkg});")
   end
 end
 
@@ -204,7 +212,7 @@ end
 
 
 class JS2::Standard::Factory
-  @@supports = [ :CLASS, :MEMBER, :METHOD, :ACCESSOR, :FOREACH, :PROPERTY, :INCLUDE, :CURRY, :ROOT ]
+  @@supports = [ :CLASS, :MEMBER, :METHOD, :ACCESSOR, :FOREACH, :PROPERTY, :INCLUDE, :CURRY, :PAGE ]
   @@lookup = Hash.new
 
   @@supports.each do |v|
@@ -212,17 +220,17 @@ class JS2::Standard::Factory
     @@lookup[v] = eval "JS2::Standard::#{name}Node"
   end
 
-  def root_node (string, file = nil)
-    @root = new_node(:ROOT, 0, string) 
-    @root.file = file
-    return @root
+  def page_node (string, file = nil)
+    @page = new_node(:PAGE, 0, string) 
+    @page.file = file
+    return @page
   end
 
   def new_node (type, idx, string)
     klass = @@lookup[type] || JS2::Standard::Node
     node = klass.new(idx, string, self)
     if type == :CLASS || type == :MODULE
-      @root.klasses << node
+      @page.klasses << node
     end
 
     return node
