@@ -5,7 +5,7 @@
 #  http://www.mozilla.org/js/language/js20-1999-03-25/tokens.html
 
  
-#line 426 "tokenizer.rl"
+#line 423 "tokenizer.rl"
 
 
 require 'rubygems'
@@ -2470,7 +2470,7 @@ static const int dude_error = -1;
 static const int dude_en_main = 452;
 
 
-#line 530 "tokenizer.rl"
+#line 527 "tokenizer.rl"
       
 #line 2476 "tokenizer.c"
 	{
@@ -2480,7 +2480,7 @@ static const int dude_en_main = 452;
 	act = 0;
 	}
 
-#line 531 "tokenizer.rl"
+#line 528 "tokenizer.rl"
       
 #line 2486 "tokenizer.c"
 	{
@@ -2498,7 +2498,7 @@ _resume:
 	while ( _nacts-- > 0 ) {
 		switch ( *_acts++ ) {
 	case 6:
-#line 1 "NONE"
+#line 1 "tokenizer.rl"
 	{ts = p;}
 	break;
 #line 2505 "tokenizer.c"
@@ -2592,7 +2592,7 @@ _eof_trans:
 	{regexp_start = p;}
 	break;
 	case 7:
-#line 1 "NONE"
+#line 1 "tokenizer.rl"
 	{te = p+1;}
 	break;
 	case 8:
@@ -2612,23 +2612,23 @@ _eof_trans:
 	{act = 13;}
 	break;
 	case 12:
-#line 280 "tokenizer.rl"
+#line 277 "tokenizer.rl"
 	{act = 15;}
 	break;
 	case 13:
-#line 281 "tokenizer.rl"
+#line 278 "tokenizer.rl"
 	{act = 16;}
 	break;
 	case 14:
-#line 284 "tokenizer.rl"
+#line 281 "tokenizer.rl"
 	{act = 18;}
 	break;
 	case 15:
-#line 285 "tokenizer.rl"
+#line 282 "tokenizer.rl"
 	{act = 19;}
 	break;
 	case 16:
-#line 382 "tokenizer.rl"
+#line 379 "tokenizer.rl"
 	{act = 113;}
 	break;
 	case 17:
@@ -2665,15 +2665,15 @@ _eof_trans:
     }}
 	break;
 	case 19:
-#line 279 "tokenizer.rl"
+#line 276 "tokenizer.rl"
 	{te = p+1;}
 	break;
 	case 20:
-#line 283 "tokenizer.rl"
+#line 280 "tokenizer.rl"
 	{te = p+1;{ }}
 	break;
 	case 21:
-#line 382 "tokenizer.rl"
+#line 379 "tokenizer.rl"
 	{te = p+1;{
       char single = data[ts-data];
 
@@ -2837,413 +2837,410 @@ _eof_trans:
 	case 30:
 #line 265 "tokenizer.rl"
 	{te = p;p--;{ 
-            ;
-
-      start_argv[0] = sym_COMMENT;
+            start_argv[0] = sym_COMMENT;
       start_argv[1] = INT2FIX(ts-data);
       start_argv[2] = INT2FIX(is_static);
       rb_funcall2(self, start_sym, 3, start_argv);
       is_static = 0;
-      if (curly_idx) curly_idx--;
       stop_argv[0] = INT2FIX(te-data);
       rb_funcall2(self, stop_sym, 1, stop_argv);
   
     }}
 	break;
 	case 31:
-#line 280 "tokenizer.rl"
+#line 277 "tokenizer.rl"
 	{te = p;p--;}
 	break;
 	case 32:
-#line 281 "tokenizer.rl"
+#line 278 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 33:
-#line 283 "tokenizer.rl"
+#line 280 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 34:
-#line 284 "tokenizer.rl"
+#line 281 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 35:
-#line 285 "tokenizer.rl"
+#line 282 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 36:
-#line 287 "tokenizer.rl"
+#line 284 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 37:
-#line 288 "tokenizer.rl"
+#line 285 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 38:
-#line 289 "tokenizer.rl"
+#line 286 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 39:
-#line 290 "tokenizer.rl"
+#line 287 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 40:
-#line 291 "tokenizer.rl"
+#line 288 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 41:
-#line 292 "tokenizer.rl"
+#line 289 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 42:
-#line 293 "tokenizer.rl"
+#line 290 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 43:
-#line 294 "tokenizer.rl"
+#line 291 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 44:
-#line 295 "tokenizer.rl"
+#line 292 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 45:
-#line 296 "tokenizer.rl"
+#line 293 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 46:
-#line 297 "tokenizer.rl"
+#line 294 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 47:
-#line 298 "tokenizer.rl"
+#line 295 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 48:
-#line 299 "tokenizer.rl"
+#line 296 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 49:
-#line 300 "tokenizer.rl"
+#line 297 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 50:
-#line 301 "tokenizer.rl"
+#line 298 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 51:
-#line 302 "tokenizer.rl"
+#line 299 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 52:
-#line 303 "tokenizer.rl"
+#line 300 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 53:
-#line 304 "tokenizer.rl"
+#line 301 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 54:
-#line 305 "tokenizer.rl"
+#line 302 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 55:
-#line 306 "tokenizer.rl"
+#line 303 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 56:
-#line 307 "tokenizer.rl"
+#line 304 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 57:
-#line 308 "tokenizer.rl"
+#line 305 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 58:
-#line 309 "tokenizer.rl"
+#line 306 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 59:
-#line 310 "tokenizer.rl"
+#line 307 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 60:
-#line 311 "tokenizer.rl"
+#line 308 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 61:
-#line 312 "tokenizer.rl"
+#line 309 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 62:
-#line 313 "tokenizer.rl"
+#line 310 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 63:
-#line 314 "tokenizer.rl"
+#line 311 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 64:
-#line 315 "tokenizer.rl"
+#line 312 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 65:
-#line 316 "tokenizer.rl"
+#line 313 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 66:
-#line 317 "tokenizer.rl"
+#line 314 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 67:
-#line 318 "tokenizer.rl"
+#line 315 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 68:
-#line 319 "tokenizer.rl"
+#line 316 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 69:
-#line 320 "tokenizer.rl"
+#line 317 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 70:
-#line 321 "tokenizer.rl"
+#line 318 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 71:
-#line 322 "tokenizer.rl"
+#line 319 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 72:
-#line 323 "tokenizer.rl"
+#line 320 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 73:
-#line 324 "tokenizer.rl"
+#line 321 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 74:
-#line 325 "tokenizer.rl"
+#line 322 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 75:
-#line 326 "tokenizer.rl"
+#line 323 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 76:
-#line 327 "tokenizer.rl"
+#line 324 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 77:
-#line 328 "tokenizer.rl"
+#line 325 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 78:
-#line 329 "tokenizer.rl"
+#line 326 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 79:
-#line 330 "tokenizer.rl"
+#line 327 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 80:
-#line 331 "tokenizer.rl"
+#line 328 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 81:
-#line 332 "tokenizer.rl"
+#line 329 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 82:
-#line 333 "tokenizer.rl"
+#line 330 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 83:
-#line 334 "tokenizer.rl"
+#line 331 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 84:
-#line 335 "tokenizer.rl"
+#line 332 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 85:
-#line 336 "tokenizer.rl"
+#line 333 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 86:
-#line 337 "tokenizer.rl"
+#line 334 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 87:
-#line 338 "tokenizer.rl"
+#line 335 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 88:
-#line 339 "tokenizer.rl"
+#line 336 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 89:
-#line 340 "tokenizer.rl"
+#line 337 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 90:
-#line 341 "tokenizer.rl"
+#line 338 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 91:
-#line 342 "tokenizer.rl"
+#line 339 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 92:
-#line 343 "tokenizer.rl"
+#line 340 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 93:
-#line 344 "tokenizer.rl"
+#line 341 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 94:
-#line 345 "tokenizer.rl"
+#line 342 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 95:
-#line 346 "tokenizer.rl"
+#line 343 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 96:
-#line 347 "tokenizer.rl"
+#line 344 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 97:
-#line 348 "tokenizer.rl"
+#line 345 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 98:
-#line 349 "tokenizer.rl"
+#line 346 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 99:
-#line 350 "tokenizer.rl"
+#line 347 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 100:
-#line 351 "tokenizer.rl"
+#line 348 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 101:
-#line 352 "tokenizer.rl"
+#line 349 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 102:
-#line 353 "tokenizer.rl"
+#line 350 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 103:
-#line 354 "tokenizer.rl"
+#line 351 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 104:
-#line 355 "tokenizer.rl"
+#line 352 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 105:
-#line 356 "tokenizer.rl"
+#line 353 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 106:
-#line 357 "tokenizer.rl"
+#line 354 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 107:
-#line 358 "tokenizer.rl"
+#line 355 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 108:
-#line 359 "tokenizer.rl"
+#line 356 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 109:
-#line 360 "tokenizer.rl"
+#line 357 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 110:
-#line 361 "tokenizer.rl"
+#line 358 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 111:
-#line 362 "tokenizer.rl"
+#line 359 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 112:
-#line 363 "tokenizer.rl"
+#line 360 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 113:
-#line 364 "tokenizer.rl"
+#line 361 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 114:
-#line 365 "tokenizer.rl"
+#line 362 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 115:
-#line 366 "tokenizer.rl"
+#line 363 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 116:
-#line 367 "tokenizer.rl"
+#line 364 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 117:
-#line 368 "tokenizer.rl"
+#line 365 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 118:
-#line 369 "tokenizer.rl"
+#line 366 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 119:
-#line 370 "tokenizer.rl"
+#line 367 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 120:
-#line 371 "tokenizer.rl"
+#line 368 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 121:
-#line 372 "tokenizer.rl"
+#line 369 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 122:
-#line 373 "tokenizer.rl"
+#line 370 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 123:
-#line 374 "tokenizer.rl"
+#line 371 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 124:
-#line 375 "tokenizer.rl"
+#line 372 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 125:
-#line 376 "tokenizer.rl"
+#line 373 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 126:
-#line 377 "tokenizer.rl"
+#line 374 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 127:
-#line 378 "tokenizer.rl"
+#line 375 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 128:
-#line 379 "tokenizer.rl"
+#line 376 "tokenizer.rl"
 	{te = p;p--;{ }}
 	break;
 	case 129:
-#line 382 "tokenizer.rl"
+#line 379 "tokenizer.rl"
 	{te = p;p--;{
       char single = data[ts-data];
 
@@ -3330,27 +3327,27 @@ _eof_trans:
     }}
 	break;
 	case 133:
-#line 280 "tokenizer.rl"
+#line 277 "tokenizer.rl"
 	{{p = ((te))-1;}}
 	break;
 	case 134:
-#line 281 "tokenizer.rl"
+#line 278 "tokenizer.rl"
 	{{p = ((te))-1;}{ }}
 	break;
 	case 135:
-#line 283 "tokenizer.rl"
+#line 280 "tokenizer.rl"
 	{{p = ((te))-1;}{ }}
 	break;
 	case 136:
-#line 284 "tokenizer.rl"
+#line 281 "tokenizer.rl"
 	{{p = ((te))-1;}{ }}
 	break;
 	case 137:
-#line 285 "tokenizer.rl"
+#line 282 "tokenizer.rl"
 	{{p = ((te))-1;}{ }}
 	break;
 	case 138:
-#line 382 "tokenizer.rl"
+#line 379 "tokenizer.rl"
 	{{p = ((te))-1;}{
       char single = data[ts-data];
 
@@ -3395,7 +3392,7 @@ _eof_trans:
     }}
 	break;
 	case 139:
-#line 1 "NONE"
+#line 1 "tokenizer.rl"
 	{	switch( act ) {
 	case 1:
 	{{p = ((te))-1;} 
@@ -3419,14 +3416,11 @@ _eof_trans:
 	break;
 	case 13:
 	{{p = ((te))-1;} 
-            ;
-
-      start_argv[0] = sym_COMMENT;
+            start_argv[0] = sym_COMMENT;
       start_argv[1] = INT2FIX(ts-data);
       start_argv[2] = INT2FIX(is_static);
       rb_funcall2(self, start_sym, 3, start_argv);
       is_static = 0;
-      if (curly_idx) curly_idx--;
       stop_argv[0] = INT2FIX(te-data);
       rb_funcall2(self, stop_sym, 1, stop_argv);
   
@@ -3491,7 +3485,7 @@ _eof_trans:
 	}
 	}
 	break;
-#line 3495 "tokenizer.c"
+#line 3489 "tokenizer.c"
 		}
 	}
 
@@ -3501,10 +3495,10 @@ _again:
 	while ( _nacts-- > 0 ) {
 		switch ( *_acts++ ) {
 	case 5:
-#line 1 "NONE"
+#line 1 "tokenizer.rl"
 	{ts = 0;}
 	break;
-#line 3508 "tokenizer.c"
+#line 3502 "tokenizer.c"
 		}
 	}
 
@@ -3521,7 +3515,7 @@ _again:
 
 	}
 
-#line 532 "tokenizer.rl"
+#line 529 "tokenizer.rl"
 
             if (curly_idx) curly_idx--;
       stop_argv[0] = INT2FIX(data_length-1);

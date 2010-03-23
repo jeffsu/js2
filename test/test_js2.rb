@@ -27,4 +27,17 @@ class TestJs2 < Test::Unit::TestCase
 
     compare_dir(fh.out_dir, './test/compiled')
   end
+
+  def test_rdoc
+
+    config = JS2::Util::Config.new
+    fh = config.file_handler 
+    fh.js2_dir  = './test/fixtures'
+    fh.out_dir  = './test/out'
+    fh.haml_dir = './test/fixtures'
+
+    processor = JS2::Util::RDoc.new(config)
+    processor.process!
+  end
+
 end

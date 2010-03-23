@@ -8,8 +8,9 @@ class Test.Foo {
   property testProp;
 
   /*
-   * Comment
+   * hello
    */
+
   function testFunct () {
 
   }

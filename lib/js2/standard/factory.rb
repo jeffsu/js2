@@ -14,7 +14,9 @@ class JS2::Standard::PageNode < JS2::Standard::Node
 end
 
 class JS2::Standard::CommentNode < JS2::Standard::Node
-
+  def clean
+    return to_s.gsub(%r|^\s*\/?\*+\s?\/?|, '')
+  end
 end
 
 class JS2::Standard::ClassNode < JS2::Standard::Node
@@ -34,8 +36,20 @@ class JS2::Standard::ClassNode < JS2::Standard::Node
     end
   end
 
+  def methods
+    ret = []
+
+    @children.each do |c|
+      if c.is_a?(JS2::Standard::MethodNode)
+        ret << c
+      end
+    end
+
+    return ret
+  end
+
   def name
-    if m = @string.match(REGEX)
+    if m = @string[@start_idx .. @stop_idx].match(REGEX)
       return m[2]
     else
       return ''
@@ -144,6 +158,14 @@ class JS2::Standard::MethodNode < JS2::Standard::Node
     return %|#{space}K.oo('#{m}', "#{name}", function (#{args}) {#{start}|
   end
 
+  def name
+    if m = @string[@start_idx .. @stop_idx].match(REGEX)
+      return m[3]
+    end
+
+    return ''
+  end
+
   def handle_ending (str)
     return str.sub!(/(\s*)\z/) { |m| ");#{m}" }
   end
@@ -216,12 +238,17 @@ end
 
 
 class JS2::Standard::Factory
+
   @@supports = [ :CLASS, :MEMBER, :METHOD, :ACCESSOR, :FOREACH, :PROPERTY, :INCLUDE, :CURRY, :PAGE, :COMMENT, :STUFF ]
   @@lookup = Hash.new
 
   @@supports.each do |v|
     name = v.to_s.downcase.sub(/(\w)/) { |m| m.upcase }
     @@lookup[v] = eval "JS2::Standard::#{name}Node"
+  end
+
+  def get_class (type)
+    klass = @@lookup[type] || JS2::Standard::Node
   end
 
   def page_node (string, file = nil)
@@ -232,7 +259,7 @@ class JS2::Standard::Factory
   end
 
   def new_node (type, idx, string)
-    klass = @@lookup[type] || JS2::Standard::Node
+    klass = get_class(type)
     node = klass.new(idx, string, self)
 
     if type == :CLASS || type == :MODULE
@@ -243,9 +270,16 @@ class JS2::Standard::Factory
       @comment = node
     elsif @comment
       node.comment = @comment
+      @comment = nil
     end
 
+    setup_node(node)
+
     return node
+  end
+
+  def setup_node (node)
+    # virtual
   end
 end
 

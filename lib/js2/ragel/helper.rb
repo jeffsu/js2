@@ -41,7 +41,16 @@ class Helper
   end
 
   def comment () 
-    return  start_node(:COMMENT, nil, true) + stop_node(nil)
+    return <<-END
+      start_argv[0] = sym_COMMENT;
+      start_argv[1] = INT2FIX(ts-data);
+      start_argv[2] = INT2FIX(is_static);
+      rb_funcall2(self, start_sym, 3, start_argv);
+      is_static = 0;
+      stop_argv[0] = INT2FIX(te-data);
+      rb_funcall2(self, stop_sym, 1, stop_argv);
+    END
+
   end
 
 

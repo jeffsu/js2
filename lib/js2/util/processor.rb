@@ -32,8 +32,6 @@ class JS2::Util::Processor
       File.open(@file_handler.outfile(page.file), 'w') { |f| f << page.to_s }
     end
 
-    puts klasses.inspect
-
 
     @file_handler.get_files(:haml).each do |file|
       result = @haml_parser.parse(file)
