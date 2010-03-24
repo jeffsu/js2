@@ -5,7 +5,11 @@ require File.dirname(__FILE__) + '/../lib/js2'
 require 'optparse'
 require 'ostruct'
 
-options =  OpenStruct.new
+# TODO 
+# 1. refactor 
+# 2. put requires at the bottom (except for optparse and ostruct)
+# 3. config gets created at the bottom from options ostruct
+options = OpenStruct.new
 options.rails = false
 options.sleep_time = 1
 
@@ -24,6 +28,15 @@ op = OptionParser.new do |opts|
     config.load_yml(file) 
   end
 
+  opts.on('-e', '--environment ENV', "Mostly for use with rails or a yml file with multiple configurations.") do |env|
+    options.env = env
+  end
+
+  opts.on('-i', '--include-rails', "Mostly for use with rails or a yml file with multiple configurations.") do |env|
+    ENV['RAILS_ENV'] = options.env if options.env
+    require './config/environment'
+  end
+
   opts.on('-s', '--sleep N', "Defines the wait time in between directory checks.  This is only applicable to daemon mode.") do |t|
     options.sleep_time = t.to_i
   end
@@ -40,7 +53,6 @@ op = OptionParser.new do |opts|
   opts.on('-h', '--haml-dir DIR', "Direcotry where js2.haml files reside.  Defaults to current directory.") do |d|
     config.haml_dir = d
   end
-
 end
 
 main_action = ARGV.first
