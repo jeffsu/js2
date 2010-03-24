@@ -1,0 +1,48 @@
+#!/usr/bin/env ruby
+
+require 'rubygems'
+require 'js2'
+
+require 'optparse'
+require 'ostruct'
+
+options =  OpenStruct.new
+
+config = JS2::Util::Config.new
+options.rails = false
+
+
+op = OptionParser.new do |opts|
+  opts.banner = "Usage: js2 <daemon|compile|rdoc|help|config> [options]"
+
+  opts.on('-c', '--config FILE', "Use js2.yml config file (run: js2 config to generate a config file)") do |r|
+   
+  end
+
+  opts.on('-r', '--rails', "Rails (out_dir: ./public/javascript js2_dir: ./app/js2)") do |r|
+    config.rails!
+  end
+
+  opts.on('-o', '--out-dir DIR', "Output directory where javascript is written to") do |d|
+    config.out_dir = d
+  end
+
+
+end
+
+main_action = ARGV.first
+if [ 'daemon', 'compile', 'rdoc', 'help' ].include?(main_action)
+
+else
+  main_action = nil
+end
+
+if main_action == 'help' || ! main_action
+  puts op
+end
+
+if ! main_action
+  main_action = 'daemon'
+end
+
+op.parse!

@@ -1,5 +1,5 @@
 class JS2::Util::Config
-  attr_accessor :node_factory, :lexer, :file_handler, :lexer, :haml_engine, :haml_vars
+  attr_accessor :node_factory, :lexer, :file_handler, :lexer, :haml_engine, :haml_vars, :asset_dir
 
   def initialize
     @lexer        = JS2::Parser::Lexer.new
@@ -10,6 +10,25 @@ class JS2::Util::Config
   end
 
   def self.from_yml(yml, env = nil)
+    hash = YAML.load(yml)
+    hash = hash[env] if env
+    return self.from_hash(hash)
+  end
+
+  def rails!
+    self.out_dir = './public/javascript'
+    self.js2_dir = './app/js2'
+  end
+
+  def out_dir= (dir)
+    @file_handler.out_dir = dir
+  end
+
+  def js2_dir= (dir)
+    @file_handler.js2_dir = dir
+  end
+
+  def from_yml (yml, env = nil)
     hash = YAML.load(yml)
     hash = hash[env] if env
     return self.from_hash(hash)

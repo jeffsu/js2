@@ -12,7 +12,9 @@ class JS2::Util::Processor
   end
 
   def process!
-    return unless @file_handler.needs_update?
+    ret = { :processed => [], :changed => [] }
+    ret[:changed] = @file_handler.needs_update
+    return ret unless ret[:changed].any?
 
     pages = []
     klasses = Hash.new
@@ -56,41 +58,8 @@ class JS2::Util::Processor
         c.compile(klasses)
       end
     end
+
+    return ret
   end
 
-  def process_js2 (file)
-    page = @lexer.parse_file(file, @factory)
-    return page.klasses
-  end
-
-  def process_haml
-
-  end
-
-  # 1) js2 files
-  # 2) html assets
-  # 3) compilation
-  def process_all!
-    @file_handler.get_js2_files.each do |file|
-      root = @lexer.parse_file(file, @factory)
-      @lookup.store_root(root)
-      @file_handler.write_file(file, root.to_s)
-    end
-
-    @file_handler.get_haml_files.each do |file|
-      assets = @haml_parser.parse_file(file)
-
-      assets.each_pair do |key, str|
-        @lookup.store_asset(asset)
-        files = @lookup.klasses[klass]
-        if files
-          @file_handler.append_file(files[0], str)
-        end
-      end
-    end
-  end
-
-  def compilation_sanity_check
-
-  end
 end

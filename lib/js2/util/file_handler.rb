@@ -15,27 +15,23 @@ class JS2::Util::FileHandler
     @mtimes = Hash.new
   end
 
-  def needs_update?
+  def needs_update
     @found = Hash.new
 
     files = []
-    files += changed_files?(:js2)
-    files += changed_files?(:haml)
-    files += changed_files?(:yml)
-
-    if files.any?
-      return true
-    end
+    files += get_changed_files(:js2)
+    files += get_changed_files(:haml)
+    files += get_changed_files(:yml)
 
     missing = false
-    @mtimes.each_pair do |f|
+    @mtimes.keys.each do |f|
       unless @found[f]
         @mtimes.delete(f)
         missing = true
       end
     end
 
-    return missing
+    return files
   end
 
   def outfile (file)
@@ -54,7 +50,7 @@ class JS2::Util::FileHandler
     @mtimes  = Hash.new
   end
 
-  def changed_files? (ext)
+  def get_changed_files (ext)
     ret = []
     get_files(ext).each do |f|
       @found[f] = true

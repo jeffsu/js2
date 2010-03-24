@@ -23,7 +23,9 @@ class TestJs2 < Test::Unit::TestCase
     system("rm -rf #{fh.out_dir}")
 
     processor = JS2::Util::Processor.new(config)
-    processor.process!
+    ret1 = processor.process!
+    ret2 = processor.process!
+    assert_equal(ret2[:changed].any?, false)
 
     compare_dir(fh.out_dir, './test/compiled')
   end
