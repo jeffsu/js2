@@ -1,37 +1,50 @@
 #!/usr/bin/env ruby
 
-require 'rubygems'
-require 'js2'
+require File.dirname(__FILE__) + '/../lib/js2'
 
 require 'optparse'
 require 'ostruct'
 
 options =  OpenStruct.new
+options.rails = false
+options.sleep_time = 1
 
 config = JS2::Util::Config.new
-options.rails = false
 
 
 op = OptionParser.new do |opts|
   opts.banner = "Usage: js2 <daemon|compile|rdoc|help|config> [options]"
 
-  opts.on('-c', '--config FILE', "Use js2.yml config file (run: js2 config to generate a config file)") do |r|
-   
-  end
-
   opts.on('-r', '--rails', "Rails (out_dir: ./public/javascript js2_dir: ./app/js2)") do |r|
     config.rails!
+    options.rails = true
   end
 
-  opts.on('-o', '--out-dir DIR', "Output directory where javascript is written to") do |d|
+  opts.on('-c', '--config FILE', "Use js2.yml config file (run: js2 config to generate a config file)") do |file|
+    config.load_yml(file) 
+  end
+
+  opts.on('-s', '--sleep N', "Defines the wait time in between directory checks.  This is only applicable to daemon mode.") do |t|
+    options.sleep_time = t.to_i
+  end
+
+
+  opts.on('-j', '--js2-dir DIR', "Directory where js2 files reside. Defaults to current directory.") do |d|
+    config.js2_dir = d
+  end
+
+  opts.on('-o', '--out-dir DIR', "Output directory where javascript is written to. Defaults to current directory.") do |d|
     config.out_dir = d
   end
 
+  opts.on('-h', '--haml-dir DIR', "Direcotry where js2.haml files reside.  Defaults to current directory.") do |d|
+    config.haml_dir = d
+  end
 
 end
 
 main_action = ARGV.first
-if [ 'daemon', 'compile', 'rdoc', 'help' ].include?(main_action)
+if [ 'daemon', 'compile', 'rdoc', 'help', 'config' ].include?(main_action)
 
 else
   main_action = nil
@@ -39,6 +52,7 @@ end
 
 if main_action == 'help' || ! main_action
   puts op
+  exit
 end
 
 if ! main_action
@@ -46,3 +60,23 @@ if ! main_action
 end
 
 op.parse!
+ 
+if main_action == 'config'
+  puts "# run: js2 config > js2.yml to create a config file"
+  puts config.example_yml
+  exit
+end
+
+processor = JS2::Util::Processor.new(config)
+puts config
+if main_action == 'daemon'
+  puts "running in daemon mode..."
+  while 1
+    res = processor.process!
+    puts "Compiling #{Time.now}..." if res[:changed].any?
+    puts "Sleeping"
+    sleep options.sleep_time
+  end
+elsif main_action == 'compile'
+  puts "compiling once! use daemon to monitor changes and compile automatically."
+end
