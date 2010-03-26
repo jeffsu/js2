@@ -1,40 +1,34 @@
 #!/usr/bin/env ruby
 
-require File.dirname(__FILE__) + '/../lib/js2'
-
 require 'optparse'
 require 'ostruct'
 
-# TODO 
-# 1. refactor 
-# 2. put requires at the bottom (except for optparse and ostruct)
-# 3. config gets created at the bottom from options ostruct
+require 'rubygems'
+require 'js2'
+
+
 options = OpenStruct.new
 options.rails = false
 options.sleep_time = 1
-
-config = JS2::Util::Config.new
 
 
 op = OptionParser.new do |opts|
   opts.banner = "Usage: js2 <daemon|compile|rdoc|help|config> [options]"
 
   opts.on('-r', '--rails', "Rails (out_dir: ./public/javascript js2_dir: ./app/js2)") do |r|
-    config.rails!
     options.rails = true
-  end
-
-  opts.on('-c', '--config FILE', "Use js2.yml config file (run: js2 config to generate a config file)") do |file|
-    config.load_yml(file) 
   end
 
   opts.on('-e', '--environment ENV', "Mostly for use with rails or a yml file with multiple configurations.") do |env|
     options.env = env
   end
 
+  opts.on('-c', '--config FILE', "Use js2.yml config file (run: js2 config to generate a config file)") do |file|
+    options.yml = YAML.load_file(file)
+  end
+
   opts.on('-i', '--include-rails', "Mostly for use with rails or a yml file with multiple configurations.") do |env|
-    ENV['RAILS_ENV'] = options.env if options.env
-    require './config/environment'
+    options.include_rails = true
   end
 
   opts.on('-s', '--sleep N', "Defines the wait time in between directory checks.  This is only applicable to daemon mode.") do |t|
@@ -43,15 +37,15 @@ op = OptionParser.new do |opts|
 
 
   opts.on('-j', '--js2-dir DIR', "Directory where js2 files reside. Defaults to current directory.") do |d|
-    config.js2_dir = d
+    options.js2_dir = d
   end
 
   opts.on('-o', '--out-dir DIR', "Output directory where javascript is written to. Defaults to current directory.") do |d|
-    config.out_dir = d
+    options.out_dir = d
   end
 
   opts.on('-h', '--haml-dir DIR', "Direcotry where js2.haml files reside.  Defaults to current directory.") do |d|
-    config.haml_dir = d
+    options.haml_dir = d
   end
 end
 
@@ -72,7 +66,39 @@ if ! main_action
 end
 
 op.parse!
- 
+
+if options.yml && options.env
+  options.yml = options.yml[options.env]
+end
+
+if options.yml
+  options.yml.each_pair do |k,v|
+    options.send(k +'=', v) if options.send(k) == nil
+  end
+end
+
+puts options.inspect
+puts options.include_rails.inspect
+
+if options.include_rails
+  puts "loading rails environment..."
+  ENV['RAILS_ENV'] = options.env if options.env
+  require './config/environment'
+end
+
+config = JS2::Util::Config.new
+
+if options.rails
+  config.rails!
+end
+
+config.out_dir  = options.out_dir  if options.out_dir
+config.js2_dir  = options.js2_dir  if options.js2_dir
+config.haml_dir = options.haml_dir if options.haml_dir
+config.haml_engine = eval('::' + options.haml_engine_class + '.new') if options.haml_engine_class
+
+puts config
+
 if main_action == 'config'
   puts "# run: js2 config > js2.yml to create a config file"
   puts config.example_yml
@@ -80,7 +106,7 @@ if main_action == 'config'
 end
 
 processor = JS2::Util::Processor.new(config)
-puts config
+
 if main_action == 'daemon'
   puts "running in daemon mode..."
   while 1

@@ -1,7 +1,6 @@
 Manifest
-README
-Rakefile
-bin/js2.rb
+README.md
+bin/js2
 js2.gemspec
 lib/js2.rb
 lib/js2/parser/haml.rb
@@ -18,7 +17,8 @@ lib/js2/util/compilation.rb
 lib/js2/util/config.rb
 lib/js2/util/file_handler.rb
 lib/js2/util/processor.rb
-lib/js2/util/universe_lookup.rb
+lib/js2/util/rdoc.rb
+lib/js2/util/sel_decorator.rb
 test/fixtures/bar.js2
 test/fixtures/basic.js2
 test/fixtures/basic.js2.haml

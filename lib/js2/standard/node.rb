@@ -18,7 +18,7 @@ class JS2::Standard::Node
     @stop_idx = idx
   end
 
-  def to_s ()
+  def to_s (decorators = [])
     last_idx = @start_idx
     str = ''
 
@@ -29,7 +29,13 @@ class JS2::Standard::Node
         first = false
       end
 
-      str << c.to_s
+      result = c.to_s()
+
+      @factory.decorators.each do |d|
+        d.decorate(result, c) 
+      end
+
+      str << result
       last_idx = c.stop_idx + 1
     end
 

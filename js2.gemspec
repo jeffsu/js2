@@ -6,17 +6,20 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 1.2") if s.respond_to? :required_rubygems_version=
   s.authors = ["Jeff Su"]
-  s.date = %q{2010-03-21}
+  s.date = %q{2010-03-26}
+  s.default_executable = %q{js2}
   s.description = %q{}
   s.email = %q{me@jeffsu.com}
-  s.extra_rdoc_files = ["README", "lib/js2.rb"]
-  s.files = ["README", "Rakefile", "lib/js2.rb", "Manifest", "js2.gemspec"]
+  s.executables = ["js2"]
+  s.extra_rdoc_files = ["README.md", "bin/js2", "lib/js2.rb", "lib/js2/parser/haml.rb", "lib/js2/parser/haml_engine.rb", "lib/js2/parser/lexer.rb", "lib/js2/parser/tokenizer.rb", "lib/js2/ragel/helper.rb", "lib/js2/ragel/tokenizer.rl", "lib/js2/ragel/tokenizer.rl.erb", "lib/js2/standard/class_node.rb", "lib/js2/standard/factory.rb", "lib/js2/standard/node.rb", "lib/js2/util/compilation.rb", "lib/js2/util/config.rb", "lib/js2/util/file_handler.rb", "lib/js2/util/processor.rb", "lib/js2/util/rdoc.rb", "lib/js2/util/sel_decorator.rb"]
+  s.files = ["Manifest", "README.md", "bin/js2", "js2.gemspec", "lib/js2.rb", "lib/js2/parser/haml.rb", "lib/js2/parser/haml_engine.rb", "lib/js2/parser/lexer.rb", "lib/js2/parser/tokenizer.rb", "lib/js2/ragel/helper.rb", "lib/js2/ragel/tokenizer.rl", "lib/js2/ragel/tokenizer.rl.erb", "lib/js2/standard/class_node.rb", "lib/js2/standard/factory.rb", "lib/js2/standard/node.rb", "lib/js2/util/compilation.rb", "lib/js2/util/config.rb", "lib/js2/util/file_handler.rb", "lib/js2/util/processor.rb", "lib/js2/util/rdoc.rb", "lib/js2/util/sel_decorator.rb", "test/fixtures/bar.js2", "test/fixtures/basic.js2", "test/fixtures/basic.js2.haml", "test/fixtures/basic.js2.yml", "test/fixtures/foo.js2", "test/test_helper.rb", "test/test_js2.rb", "Rakefile"]
   s.homepage = %q{http://github.com/jeffsu/js2}
-  s.rdoc_options = ["--line-numbers", "--inline-source", "--title", "Js2", "--main", "README"]
+  s.rdoc_options = ["--line-numbers", "--inline-source", "--title", "Js2", "--main", "README.md"]
   s.require_paths = ["lib"]
   s.rubyforge_project = %q{js2}
   s.rubygems_version = %q{1.3.5}
   s.summary = %q{}
+  s.test_files = ["test/test_helper.rb", "test/test_js2.rb"]
 
   if s.respond_to? :specification_version then
     current_version = Gem::Specification::CURRENT_SPECIFICATION_VERSION

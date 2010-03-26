@@ -31,7 +31,7 @@ class JS2::Util::Processor
       outdir  = File.dirname(outfile)
 
       FileUtils.mkdir_p(outdir)
-      File.open(@file_handler.outfile(page.file), 'w') { |f| f << page.to_s }
+      File.open(@file_handler.outfile(page.file), 'w') { |f| f << page.to_s(@decorators) }
     end
 
 

@@ -81,7 +81,7 @@ class JS2::Standard::ModuleNode < JS2::Standard::ClassNode
 end
 
 class JS2::Standard::PrivateNode < JS2::Standard::Node
-  def handle_first_string
+  def handle_first_string (str)
     return first.sub(/private/m, '// private')
   end
 end
@@ -112,8 +112,8 @@ class JS2::Standard::CurryNode < JS2::Standard::Node
   REGEX_WITH  = %r|with\s+\(([^)]*)\)|
   REGEX_ARGS  = %r|^\s*\(([^)]*)\)|
 
-  def handle_first_string
-    m = first.match(REGEX)
+  def handle_first_string (str)
+    m = str.match(REGEX)
     @decl = m[1].strip
     @stop = m[2]
 
@@ -238,13 +238,18 @@ end
 
 
 class JS2::Standard::Factory
+  attr_accessor :decorators
 
-  @@supports = [ :CLASS, :MEMBER, :METHOD, :ACCESSOR, :FOREACH, :PROPERTY, :INCLUDE, :CURRY, :PAGE, :COMMENT, :STUFF ]
+  @@supports = [ :CLASS, :MEMBER, :METHOD, :ACCESSOR, :FOREACH, :PROPERTY, :INCLUDE, :CURRY, :PAGE, :COMMENT, :STUFF, :MODULE ]
   @@lookup = Hash.new
 
   @@supports.each do |v|
     name = v.to_s.downcase.sub(/(\w)/) { |m| m.upcase }
     @@lookup[v] = eval "JS2::Standard::#{name}Node"
+  end
+
+  def initialize 
+    @decorators = []
   end
 
   def get_class (type)
