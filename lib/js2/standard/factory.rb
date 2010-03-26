@@ -82,7 +82,7 @@ end
 
 class JS2::Standard::PrivateNode < JS2::Standard::Node
   def handle_first_string (str)
-    return first.sub(/private/m, '// private')
+    return str.sub(/private/m, '// private')
   end
 end
 
@@ -102,15 +102,16 @@ class JS2::Standard::MemberNode < JS2::Standard::Node
       s = s.sub(/static\s*/, '')
     end
 
-    return s.sub(/var\s*([\$\w]+)/) { "K.oo('#{method}', '" + $1 + "'" }.sub(/;$/, ');').sub(/\s*=/, ', ');
+    return s.sub(/var\s*([\$\w]+)/) { "K.oo('#{method}', '" + $1 + "'" }.sub(/;(\s*)$/) {  ");#{$1}" }.sub(/\s*=/, ', ');
   end
 
 end
 
 class JS2::Standard::CurryNode < JS2::Standard::Node
-  REGEX       = %r|^curry\s*([^\{]*)?\{(.*)$|m
-  REGEX_WITH  = %r|with\s+\(([^)]*)\)|
-  REGEX_ARGS  = %r|^\s*\(([^)]*)\)|
+  REGEX        = %r|^curry\s*([^\{]*)?\{(.*)$|m
+  REGEX_WITH   = %r|with\s+\(([^)]*)\)|
+  REGEX_ARGS   = %r|^\s*\(([^)]*)\)|
+  REGEX_ENDING = %r|}([^}]*)\z|
 
   def handle_first_string (str)
     m = str.match(REGEX)
@@ -138,7 +139,11 @@ class JS2::Standard::CurryNode < JS2::Standard::Node
   end
 
   def handle_ending (str)
-    return %|#{str}})(#{@in_scoped})|
+    if m = str.match(REGEX_ENDING)
+      return str.sub(REGEX_ENDING) { |str| "}})(#{@in_scoped})#{m[1]}" }
+    end
+
+    return str
   end
 end
 
@@ -220,8 +225,8 @@ end
 
 class JS2::Standard::PropertyNode < JS2::Standard::Node
   REGEX = /(\s*)property(\s+)([\w+,\s]+\w)(\s*);(\s*)/
-  def setup!
-    m = first.match(REGEX)
+  def handle_first_string (s)
+    m = s.match(REGEX)
     space     = m[1]
     mid_space = m[2]
     list      = m[3].split(/,/).collect { |i| i.strip }
@@ -240,7 +245,7 @@ end
 class JS2::Standard::Factory
   attr_accessor :decorators
 
-  @@supports = [ :CLASS, :MEMBER, :METHOD, :ACCESSOR, :FOREACH, :PROPERTY, :INCLUDE, :CURRY, :PAGE, :COMMENT, :STUFF, :MODULE ]
+  @@supports = [ :CLASS, :MEMBER, :METHOD, :ACCESSOR, :FOREACH, :PROPERTY, :INCLUDE, :CURRY, :PAGE, :COMMENT, :STUFF, :MODULE, :PRIVATE ]
   @@lookup = Hash.new
 
   @@supports.each do |v|
