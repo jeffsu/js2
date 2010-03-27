@@ -1,0 +1,300 @@
+var JS2 = {};
+JS2.createClass = function (name) {
+  var splitName = name.split('.');
+  var namespace = window;
+  while (splitName.length) {
+    var subName = splitName.shift();
+    if (! namespace[subName]) {
+      namespace = 
+        namespace[subName] = 
+        function () { if (this.initialize) this.initialize.apply(this, arguments) };
+    } else {
+      namespace = namespace[subName];
+    }
+  }
+}
+
+JS2.getClass = function (name) {
+  var splitName = name.split('.');
+  var namespace = window;
+
+  while (splitName.length) {
+    var subName = splitName.shift();
+    if (namespace[subName]) {
+      namespace = namespace[subName];
+    } else {
+      return null;
+    }
+  }
+
+  return namespace;
+}
+
+function _super () {
+  var method = arguments.callee.caller._super;
+  if (! method) return;
+  var self = arguments[0];
+  var args = [];
+  for (var i=1,len=arguments.length;i<len;i++) {
+    args.push(arguments[i]);
+  }
+  return method.apply(self, args);
+}
+
+
+class JS2.Observer {
+  function initialize (owner) {
+    this.lookupBefore = {};
+    this.lookupAfter  = {};
+
+    this.replaced       = {};
+    this.replacedValues = {};
+  }
+
+  function replaceFunction (owner, eventName) {
+    if (this.replaced[eventName]) return;
+
+    this.replacedValues[eventName] = owner[eventName];
+    this.replaced[eventName]       = true;
+    owner[eventName] = this.getTrigger(eventName);
+  }
+
+  function trigger (owner, eventName, args) {
+    var beforeChain = this.lookupBefore[eventName];
+    if (beforeChain) this.executeChain(beforeChain, args);
+
+    var funct = this.replacedValues[eventName];
+    if (funct) funct.apply(owner, args);
+
+    var afterChain = this.lookupAfter[eventName];
+    if (afterChain) this.executeChain(afterChain, args);
+  }
+
+  function addListener (eventName, funct, before) {
+    var lookup = before ? this.lookupBefore : this.lookupAfter;
+
+    var chain = lookup[eventName] = lookup[eventName] || [];  
+    chain.push(funct);
+  }
+
+  private
+
+  function getTrigger (eventName) {
+    return function () { this.__observer.trigger(this, eventName, arguments); };
+  }
+
+  function executeChain (chain, args) {
+    foreach (var f:i in chain) if (f) f.apply(this, args);
+  }
+}
+
+module JS2.Observable {
+  function addListener (eventName, funct, before) {
+    if (! this.__observer) this.__observer = new Factual.Core.Observer();
+
+    var id = this.__observer.addListener(eventName, funct, before);
+    this.__observer.replaceFunction(this, eventName);
+    return id;
+  }
+
+  function triggerEvent (eventName, args) {
+    if (this.__observer) this.__observer.trigger(this, eventName, args);
+  }
+}
+
+
+class JS2.App.Notifier {
+  var autoInc = 1;
+
+  function initialize () {
+    this.chains  = {};
+    this.autoInc = 1;
+    this.id = this['class'].prototype.autoInc;
+    this['class'].prototype.autoInc++;
+  }
+
+  function register (comp) {
+    if (! comp.__notifier_ids) {
+      comp.__notifier_ids = {};
+    }
+
+    if (! comp.__notifier_ids[this.id]) {
+      comp.__notifier_ids[this.id] = this.autoInc;
+      this.autoInc++;
+    }
+
+    for (var key in comp) {
+      if (key.indexOf('e_') == 0) {
+        var eventType = key.substr(2);
+        if (! this.chains[eventType]) this.chains[eventType] = [];
+        this.chains[eventType].push([ comp, comp[key] ]);
+      }
+    }
+
+    comp.notify = curry with (this) {
+      self.notify.apply(self, arguments);
+    };
+  }
+
+  function remove (comp) {
+    var id = comp.__notifier_id;
+    for (var key in this.chains) {
+      var newChain = [];
+      foreach (var ele:j in chain) {
+        if (ele[0].__notifier_id[this.id] != id) {
+          newChain.push(ele); 
+        }
+      }
+
+      this.chains[key] = newChain;
+    }
+  }
+
+  function registerListener (listener) {
+    for (var key in listener) {
+      var funct = listener[key];
+      if (typeof funct != 'function') continue;
+      if (! this.chains[key]) this.chains[key] = [];
+      this.chains[key].push([ listener, funct ]);
+    }
+  }
+
+  function notify () {
+    var eventType = arguments[0];
+    var args;
+
+    // optimize for 1 argument
+    if (arguments.length == 2) {
+      args = [ arguments[1] ];
+    } else {
+      args = [];
+      for (var i=1; i<=arguments.length; i++) args.push(arguments[i]);
+    }
+
+    var chain = this.chains[eventType];
+    if (chain) {
+      for (var i=0,pair; pair=chain[i++];) {
+        pair[1].apply(pair[0], args); 
+      }
+    }
+  }
+}
+
+
+
+class JS2.App {
+  include JS2.Observer;
+
+  function start (options) {
+    // hack to get notifier
+    this.getNotifier();
+
+    this.build();
+    this.notify('setOptions', options || {});
+    this.notify('initHTML');
+    this.notify('registerEvents');
+    this.notify('finalize');
+  }
+
+
+  function register (comp) {
+    this.getNotifier().register(comp);
+  }
+
+  function getNotifier () {
+    if (! this._notifier) {
+      this._notifier = new JS2.App.Notifier();
+      this._notifier.register(this);
+    }
+
+    return this._notifier;
+  }
+
+  function build () {
+    var components = { main: this };
+
+    var classes = [];
+    var klass   = this['class'];
+
+    while (klass) {
+      classes.unshift(klass);
+      klass = klass.prototype._parent;
+    }
+
+    var template = [];
+    var already  = {};
+    var runningIdx = 0;
+
+    foreach (var c:i in classes) {
+      var toAdd = c.prototype.getTemplate();
+      foreach (var t:j in toAdd) {
+        if (already[t.name] != undefined) {
+          template[already[t.name]] = t;
+        } else {
+          already[t.name] = runningIdx;
+          runningIdx += 1;
+          template.push(t);
+        }
+      }
+    }
+
+    // instantiate all components
+    components['main'] = this;
+    foreach (var config:i in template) {
+      if (!config['class']) alert("Invalid class defined for " + name + ':' + config['class']);
+      var klass = JS2.getClass(config['class']);
+
+      components[config.name] = new klass();
+      this.register(components[config.name]);
+    }
+
+    foreach (var config:i in template) {
+      var name = config.name;
+      var comp = components[name];
+
+      // inject set dependencies as an array
+      if (config.dependencies instanceof Array) {
+        foreach (var dep:j in config.dependencies) {
+          comp[dep] = components[dep];
+        }
+      }
+
+      // as a hash... for use when nickname is not the dependency name
+      else if (config.dependencies instanceof Object) {
+        for (var key in config.dependencies) {
+          comp[key] = components[config.dependencies[key]];
+        }
+      }
+    }
+
+    this.notify('initBaseHTML');
+
+    // handle selectors as root elements
+    foreach (var config:i in template) {
+      var name = config.name;
+      var comp = components[name];
+
+      if (config.selector)       comp.$root = this.htmlSelect(this.$root, config.selector);
+      if (config.globalSelector) comp.$root = this.htmlSelect(config.globalSelector);
+    }
+  }
+
+  function htmlSelect (root, text) {
+    alert('html selector not implemented');
+  }
+
+  function getTemplate () {
+    return [];
+  }
+}
+
+class JS2.App.JQuery extends JS2.App {
+  function htmlSelect ($root, text) {
+    if (text) {
+      return $root.find(text);
+    } else {
+      return $(root);
+    }
+  }
+}
+

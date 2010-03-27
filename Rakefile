@@ -8,7 +8,7 @@ Echoe.new('js2', JS2_VERSION) do |p|
   p.url            = "http://github.com/jeffsu/js2"
   p.author         = "Jeff Su"
   p.email          = "me@jeffsu.com"
-  p.ignore_pattern = ["tmp/*", "script/*"]
+  p.ignore_pattern = ["tmp/*", "script/*", "test/out" ]
   p.development_dependencies = []
 end
 

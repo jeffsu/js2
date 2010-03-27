@@ -5,7 +5,7 @@
  */
 JS2.OO.createClass("Test.Foo");  (function (K,Package) {var self=K; var _super=JS2.OO['super']; 
   K.oo('accessor', [ 'testAcc' ]);
-  property testProp;
+  K.oo('property', [ 'testProp' ]);
 
   /*
    * hello
