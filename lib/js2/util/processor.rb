@@ -31,9 +31,14 @@ class JS2::Util::Processor
       outdir  = File.dirname(outfile)
 
       FileUtils.mkdir_p(outdir)
-      File.open(@file_handler.outfile(page.file), 'w') { |f| f << page.to_s(@decorators) }
+      File.open(@file_handler.outfile(page.file), 'w') { |f| f << page.to_s() }
     end
 
+    js2_file = File.dirname(__FILE__) + '/js2bootstrap.js2'
+    js2_page = @lexer.parse_file(js2_file, @factory)
+    out_file = @file_handler.out_dir + '/js2bootstrap.js'
+    FileUtils.mkdir_p(@file_handler.out_dir)
+    File.open(out_file, 'w') { |f| f << js2_page.to_s() }
 
     @file_handler.get_files(:haml).each do |file|
       result = @haml_parser.parse(file)

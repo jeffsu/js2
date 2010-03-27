@@ -18,7 +18,7 @@ class JS2::Standard::Node
     @stop_idx = idx
   end
 
-  def to_s (decorators = [])
+  def to_s ()
     last_idx = @start_idx
     str = ''
 
