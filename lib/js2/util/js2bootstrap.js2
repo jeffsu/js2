@@ -1,106 +1,203 @@
-var JS2 = {};
-JS2.createClass = function (name) {
-  var splitName = name.split('.');
-  var namespace = window;
-  while (splitName.length) {
-    var subName = splitName.shift();
-    if (! namespace[subName]) {
-      namespace = 
-        namespace[subName] = 
-        function () { if (this.initialize) this.initialize.apply(this, arguments) };
-    } else {
-      namespace = namespace[subName];
+(function (scope) {
+  if (scope.JS2) return;
+
+  var JS2 = {};
+  scope.JS2 = JS2;
+
+  function noInit () { };
+
+  var ooUtils = {
+    'extends': function (par) {
+      this.parent  = par;
+      var newProto = par.oo('instance');
+      var proto    = this.prototype;
+
+      var members = this.oo.members;
+      for (var k in proto) {
+        if (proto.hasOwnProperty(k)) newProto[k] = proto[k];
+      }
+
+      this.prototype = newProto;
+      this.prototype['class'] = this;
+    },
+
+    'instance': function () {
+      var proto = this.prototype;
+
+      var init = null;
+      if (this.oo.members.initialize) {
+        init = proto.initialize;
+      }
+
+      this.prototype.initialize = noInit;
+      var ret = new this();
+
+      if (init) {
+        this.prototype.initialize = init;
+        ret.initialize = init;
+      } else {
+        delete this.prototype['initialize'];
+      }
+
+      return ret;
+    },
+
+    'include': function (mod) {
+      var hash       = mod.prototype;
+      var members    = this.oo.members;
+      var modMembers = mod.oo.members;
+
+      for (var k in modMembers) {
+        if (!(k in members)) {
+          this.prototype[k] = hash[k];
+        } 
+      }
+    },
+ 
+    'member': function (name, member) {
+      this.oo.members[name] = true;
+      this.prototype[name]  = member;
+    },
+
+    'method': function (name, method) {
+      this.oo.members[name] = true;
+      this.prototype[name]  = method;
+      method._name  = name;
+      method._class = this;
+    },
+
+    'modularize': function () {
+      this.isModule = true;
+    },
+
+    'staticMember': function (name, member) {
+      this[name] = member;
+    },
+
+    'setHTMLCache': function (hash) {
+      // create temp class
+      var tempClass = function () {};
+
+      // look for super htmlCache
+      var par = this.parent;
+      if (par) {
+        var parCache = par.prototype.htmlCache;
+        if (parCache) tempClass.prototype = parCache;
+      }
+
+      var htmlCache = new tempClass(); 
+      for (var k in hash) htmlCache[k] = hash[k];
+      this.oo('member', 'htmlCache', htmlCache);
+    },
+
+    'super': function (member) {
+      return this.parent.prototype[member];
+    },
+
+    'property': function (names) {
+      for (var i=0; i<names.length; i++) {
+        var name = names[i];
+        var getter = 'get' + name.charAt(0).toUpperCase() + name.substr(1);
+        var setter = 'set' + name.charAt(0).toUpperCase() + name.substr(1);
+
+        var members = this.oo.members;
+        if (! (getter in members)) 
+          this.oo('method', getter, (function (n) { return function () { return this[n] }})(name));   
+        if (! (setter in members))  
+          this.oo('method', setter, (function (n) { return function (val) { return this[n] = val }})(name));   
+      }
+    },
+
+    'accessor': function (names) {
+      for (var i=0; i<names.length; i++) {
+        var name = names[i];
+        if (! (name in this.oo.members)) 
+          this.oo('method', name, 
+            function () { 
+              if (arguments.length) { return this['_' + name] = arguments[0]; } 
+              else { return this['_' + name]; } 
+            });
+      }
+    },
+
+    'ancestors': function (names) {
+      var ret = [];
+      var k = this.parent;
+      while (k) {
+        ret.push(k);
+        k = k.parent;
+      }
+      return ret;
     }
+  };
+
+
+  function createClass (name, par) {
+    var K = function () { if (this.initialize) this.initialize.apply(this, arguments); };
+
+    K.prototype['class'] = K;
+    K.prototype['klass'] = K;
+
+    K.oo = function (method, param1, param2) { 
+      return ooUtils[method].apply(K, [ param1, param2 ]); 
+    };
+
+    K.oo.includes = [];
+    K.oo.members  = {};
+ 
+    return K;
   }
-}
+  
+  function createNamespace (space, currentScope) {
+    var currentScope = currentScope || scope;
+ 
+    var splitted = space.split('.');
+    var name = [];
+    while (splitted.length) {
+      var part = splitted.shift();
+      name.push(part);
 
-JS2.getClass = function (name) {
-  var splitName = name.split('.');
-  var namespace = window;
+      if (! currentScope[part]) {
+        var K = createClass();
+        K.package = currentScope;
+        currentScope[part] = K;
+      }
 
-  while (splitName.length) {
-    var subName = splitName.shift();
-    if (namespace[subName]) {
-      namespace = namespace[subName];
-    } else {
-      return null;
+      currentScope = currentScope[part];
+      currentScope.className = name.join('.');
     }
+
+    return currentScope;
   }
 
-  return namespace;
-}
+  JS2.OO = {};
+  JS2.OO.createClass = createNamespace;
+  JS2.OO.createModule = function (name) { createNamespace(name).oo('modularize') };
+  JS2.OO.get = function (name, scope) { 
+    scope = scope || window;
+    var cur = scope;
+    var names = name.split(/\./);
+    while (names.length) cur = cur[names.shift()];
+    return cur;
+  };
 
-function _super () {
-  var method = arguments.callee.caller._super;
-  if (! method) return;
-  var self = arguments[0];
-  var args = [];
-  for (var i=1,len=arguments.length;i<len;i++) {
-    args.push(arguments[i]);
-  }
-  return method.apply(self, args);
-}
+  JS2.OO['super'] = function () {
+    var method = arguments.callee.caller;
+    var name  = method._name;
+    var klass = method._class;
+    var self  = arguments[0];
 
+    var method = klass.parent.prototype[name];
+    if (! method) return;
 
-class JS2.Observer {
-  function initialize (owner) {
-    this.lookupBefore = {};
-    this.lookupAfter  = {};
-
-    this.replaced       = {};
-    this.replacedValues = {};
-  }
-
-  function replaceFunction (owner, eventName) {
-    if (this.replaced[eventName]) return;
-
-    this.replacedValues[eventName] = owner[eventName];
-    this.replaced[eventName]       = true;
-    owner[eventName] = this.getTrigger(eventName);
+    var args = [];
+    for (var i=1,len=arguments.length;i<len;i++) {
+      args.push(arguments[i]);
+    }
+    return method.apply(self, args);
   }
 
-  function trigger (owner, eventName, args) {
-    var beforeChain = this.lookupBefore[eventName];
-    if (beforeChain) this.executeChain(beforeChain, args);
-
-    var funct = this.replacedValues[eventName];
-    if (funct) funct.apply(owner, args);
-
-    var afterChain = this.lookupAfter[eventName];
-    if (afterChain) this.executeChain(afterChain, args);
-  }
-
-  function addListener (eventName, funct, before) {
-    var lookup = before ? this.lookupBefore : this.lookupAfter;
-
-    var chain = lookup[eventName] = lookup[eventName] || [];  
-    chain.push(funct);
-  }
-
-  private
-
-  function getTrigger (eventName) {
-    return function () { this.__observer.trigger(this, eventName, arguments); };
-  }
-
-  function executeChain (chain, args) {
-    foreach (var f:i in chain) if (f) f.apply(this, args);
-  }
-}
-
-module JS2.Observable {
-  function addListener (eventName, funct, before) {
-    if (! this.__observer) this.__observer = new Factual.Core.Observer();
-
-    var id = this.__observer.addListener(eventName, funct, before);
-    this.__observer.replaceFunction(this, eventName);
-    return id;
-  }
-
-  function triggerEvent (eventName, args) {
-    if (this.__observer) this.__observer.trigger(this, eventName, args);
-  }
-}
+})(window);
 
 
 class JS2.App.Notifier {
@@ -183,7 +280,6 @@ class JS2.App.Notifier {
 
 
 class JS2.App {
-  include JS2.Observer;
 
   function start (options) {
     // hack to get notifier
@@ -218,7 +314,7 @@ class JS2.App {
 
     while (klass) {
       classes.unshift(klass);
-      klass = klass.prototype._parent;
+      klass = klass.parent;
     }
 
     var template = [];
@@ -242,9 +338,13 @@ class JS2.App {
     components['main'] = this;
     foreach (var config:i in template) {
       if (!config['class']) alert("Invalid class defined for " + name + ':' + config['class']);
-      var klass = JS2.getClass(config['class']);
+      var klass = JS2.OO.get(config['class']);
 
-      components[config.name] = new klass();
+      if (klass) {
+        components[config.name] = new klass();
+      } else if (console) {
+        console.log('class "' + config.name + '" was not found."');
+      }
       this.register(components[config.name]);
     }
 

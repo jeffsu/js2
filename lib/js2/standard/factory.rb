@@ -111,7 +111,7 @@ class JS2::Standard::CurryNode < JS2::Standard::Node
   REGEX        = %r|^curry\s*([^\{]*)?\{(.*)$|m
   REGEX_WITH   = %r|with\s+\(([^)]*)\)|
   REGEX_ARGS   = %r|^\s*\(([^)]*)\)|
-  REGEX_ENDING = %r|}([^}]*)\z|
+  REGEX_ENDING = %r|\}([^\}]*)\z|
 
   def handle_first_string (str)
     m = str.match(REGEX)
