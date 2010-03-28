@@ -17,8 +17,9 @@ class Test::Unit::TestCase
 
     files1.each do |file|
       content1 = File.read(file)
-      content2 = File.read(file.sub(/^#{dir1}/, dir2))
-      assert_equal(content1.chomp, content2.chomp)
+      file2 = file.sub(/^#{dir1}/, dir2)
+      content2 = File.read(file2)
+      assert_equal(content1.chomp, content2.chomp, "Comparing #{file} and #{file2}")
     end
   end
 end

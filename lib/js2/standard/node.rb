@@ -6,6 +6,7 @@ class JS2::Standard::Node
     @string    = str
     @children  = []
     @factory   = factory
+    @output    = ''
   end
 
   def add_child (type, start_idx)
@@ -16,9 +17,14 @@ class JS2::Standard::Node
 
   def stop (idx)
     @stop_idx = idx
+    process!
   end
 
-  def to_s ()
+  def to_s
+    return @output
+  end
+
+  def process! ()
     last_idx = @start_idx
     str = ''
 
@@ -45,7 +51,7 @@ class JS2::Standard::Node
 
     str = handle_ending(str)
 
-    return str
+    @output = str 
   end
 
   private

@@ -1,4 +1,6 @@
 class JS2::Util::Processor
+  attr_accessor :errors
+
   def initialize (config)
     @file_handler = config.file_handler
     @lexer        = config.lexer
@@ -12,26 +14,34 @@ class JS2::Util::Processor
   end
 
   def process!
-    ret = { :processed => [], :changed => [] }
+    @errors = []
+
+    ret = { :processed => [], :changed => [], :errors => @errors, :klasses => [], :pages => [] }
     ret[:changed] = @file_handler.needs_update
     return ret unless ret[:changed].any?
 
-    pages = []
+    pages = ret[:pages]
     klasses = Hash.new
 
     @file_handler.get_files(:js2).each do |file|
-      page = @lexer.parse_file(file, @factory)
-      page.klasses.each do |k|
-        (klasses[k.name] ||= []) << page.file
+      begin
+        page = @lexer.parse_file(file, @factory)
+        page.klasses.each do |k|
+          (klasses[k.name] ||= []) << page.file
+        end
+
+        ret[:klasses] += page.klasses
+
+        pages << page
+
+        outfile = @file_handler.outfile(page.file)
+        outdir  = File.dirname(outfile)
+
+        FileUtils.mkdir_p(outdir)
+        File.open(@file_handler.outfile(page.file), 'w') { |f| f << page.to_s() }
+      rescue Exception => e
+        @errors << [ "Can't compile #{file}", e ]
       end
-
-      pages << page
-
-      outfile = @file_handler.outfile(page.file)
-      outdir  = File.dirname(outfile)
-
-      FileUtils.mkdir_p(outdir)
-      File.open(@file_handler.outfile(page.file), 'w') { |f| f << page.to_s() }
     end
 
     js2_file = File.dirname(__FILE__) + '/js2bootstrap.js2'
@@ -41,26 +51,34 @@ class JS2::Util::Processor
     File.open(out_file, 'w') { |f| f << js2_page.to_s() }
 
     @file_handler.get_files(:haml).each do |file|
-      result = @haml_parser.parse(file)
-      result.keys.each do |klass_name|
-        hash = result[klass_name]
+      begin
+        result = @haml_parser.parse(file)
+        result.keys.each do |klass_name|
+          hash = result[klass_name]
 
-        out = []
-        hash.keys.sort.each do |key|
-          out << %{"#{key}":#{hash[key]}}
-        end
+          out = []
+          hash.keys.sort.each do |key|
+            out << %{"#{key}":#{hash[key]}}
+          end
 
-        if files = klasses[klass_name]
-          outfile = @file_handler.outfile(files.first)
-          File.open(outfile, 'a') { |f| f << "#{klass_name}.oo('setHTMLCache', {#{out.join(',')}});" }
+          if files = klasses[klass_name]
+            outfile = @file_handler.outfile(files.first)
+            File.open(outfile, 'a') { |f| f << "#{klass_name}.oo('setHTMLCache', {#{out.join(',')}});" }
+          end
         end
+      rescue Exception => e
+        @errors << [ "Can't compile #{file}", e ]
       end
     end
 
     @file_handler.get_files(:yml).each do |file|
-      comps = JS2::Util::Compilation.parse(file, @file_handler)
-      comps.each do |c|
-        c.compile(klasses)
+      begin
+        comps = JS2::Util::Compilation.parse(file, @file_handler)
+        comps.each do |c|
+          c.compile(klasses, errors)
+        end
+      rescue Exception => e
+        @errors << [ "Can't compile #{file}", e ]
       end
     end
 

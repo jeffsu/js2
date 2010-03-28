@@ -28,7 +28,7 @@ class JS2::Util::Compilation
     @@already = Hash.new
   end
 
-  def compile (klasses)
+  def compile (klasses, errors = [])
     return unless @make_compilation
 
     main_file = nil
@@ -53,8 +53,14 @@ class JS2::Util::Compilation
     end
 
     file = main_file.sub(/\.js$/, '.comp.js')
-    all_files = before + [ main_file ] + after
-    str = all_files.collect { |f| File.read(f) }.join("\n")
+    str = ''
+    (before + [ main_file ] + after).each do |f|
+      if File.exist?(f)
+        str << File.read(f)
+      else
+        errors << [ "#{file} references #{f}, but js2 can't find it" ]
+      end
+    end
     File.open(file, 'w') { |f| f << str }
   end
 

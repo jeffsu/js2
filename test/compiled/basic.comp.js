@@ -24,10 +24,8 @@ JS2.OO.createClass("Test.Foo");  (function (K,Package) {var self=K; var _super=J
     }
   });
 
-})(Test.Foo, Test);Test.Foo.oo('setHTMLCache', {"main":function(){return "<div class='hello'>world</div>"}});
-JS2.OO.createClass("Bar");  (function (K,Package) {var self=K; var _super=JS2.OO['super']; 
+})(Test.Foo, Test);Test.Foo.oo('setHTMLCache', {"main":function(){return "<div class='hello'>world</div>"}});JS2.OO.createClass("Bar");  (function (K,Package) {var self=K; var _super=JS2.OO['super']; 
 
-})(Bar, null);
-JS2.OO.createClass("Foo");  (function (K,Package) {var self=K; var _super=JS2.OO['super']; 
+})(Bar, null);JS2.OO.createClass("Foo");  (function (K,Package) {var self=K; var _super=JS2.OO['super']; 
 
 })(Foo, null);

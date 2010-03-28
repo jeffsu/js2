@@ -149,26 +149,20 @@ end
 
 
 class JS2::Standard::MethodNode < JS2::Standard::Node
+  attr_accessor :name, :args, :static
+
   REGEX = /^(\s*)(static\s+)?function\s+([\$\w\.]+)\s*\(([^)]*)\)\s*\{(.*)/m
 
   def handle_first_string (s)
     m = s.match(REGEX)
     space  = m[1]
-    static = m[2]
-    name   = m[3]
-    args   = m[4]
-    start  = m[5]
+    @static = m[2]
+    @name   = m[3]
+    @args   = m[4]
+    @start  = m[5]
 
     m = static ? 'staticMember' : 'method'
-    return %|#{space}K.oo('#{m}', "#{name}", function (#{args}) {#{start}|
-  end
-
-  def name
-    if m = @string[@start_idx .. @stop_idx].match(REGEX)
-      return m[3]
-    end
-
-    return ''
+    return %|#{space}K.oo('#{m}', "#{@name}", function (#{@args}) {#{@start}|
   end
 
   def handle_ending (str)

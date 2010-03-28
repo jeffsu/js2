@@ -1,10 +1,11 @@
 class JS2::Util::FileHandler
-  attr_accessor :js2_dir, :out_dir, :haml_dir
+  attr_accessor :js2_dir, :out_dir, :haml_dir, :doc_dir
 
   def initialize 
     @js2_dir  = '.'
     @out_dir  = '.'
     @haml_dir = '.'
+    @doc_dir  = '.'
 
     @lookup = {
       :js2  => :js2_dir,
@@ -13,6 +14,10 @@ class JS2::Util::FileHandler
     }
 
     @mtimes = Hash.new
+  end
+
+  def docfile (file)
+    return file.sub(/^#{@js2_dir}/, @doc_dir).sub(/\.js2$/, '.js')
   end
 
   def needs_update

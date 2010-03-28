@@ -1,26 +1,35 @@
-class JS2::Util::RDoc < JS2::Util::Processor
+class JS2::Util::Rdoc 
 
-  def process!
-    klasses = []
-    @file_handler.get_files(:js2).each do |file|
-      page = @lexer.parse_file(file, @factory)
-      klasses += page.klasses
+  def self.build (pages, file_handler)
+
+    pages.each do |p|
+      str = ''
+      p.klasses.each do |k|
+        if k.comment
+          str << k.comment.clean.gsub(/^/, "# ") if k.comment
+        end
+        str << "class #{k.name.gsub(/\./, '::')}\n"
+        puts k.name
+
+        k.methods.each_with_index do |m,i|
+          puts ' - ' + m.name
+          str << m.comment.clean.gsub(/^/, "  # ") if m.comment
+          str << "  def #{m.name} (#{m.args})\n#{m.to_s.gsub(/^/, '  #')} end\n"
+        end
+
+        str << "end\n"
+      end
+      
+      outfile = file_handler.docfile(p.file)
+      outdir  = File.dirname(outfile)
+      FileUtils.mkdir_p(outdir)
+      File.open(outfile, 'w') { |f| f << str }
     end
 
-    klasses.each do |k|
-      str = "= #{k.name}\n" 
-      if k.comment
-        str << k.comment.clean if k.comment
-      end
-
-      k.methods.each_with_index do |m,i|
-        str << "= Methods\n" if i == 0
-        str << "== #{m.name}"
-        str << m.comment.clean if m.comment
-      end
-
-      puts str
-    end
+    # TODO make this portable
+    jamis = File.dirname(__FILE__) + '/jamis.rb'
+    system("rdoc --template #{jamis} --extension js=rb #{file_handler.doc_dir}")
   end
+
 
 end

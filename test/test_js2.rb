@@ -7,11 +7,6 @@ class TestJs2 < Test::Unit::TestCase
     @factory = JS2::Standard::Factory.new
   end
   
-  def test_basic
-    #@tree = @lexer.parse_file(js2_fixture(:basic), @factory)
-    #assert_equal(@tree.to_s, js_read_fixture(:basic))
-  end
-
   def test_processor
 
     config = JS2::Util::Config.new
@@ -37,9 +32,12 @@ class TestJs2 < Test::Unit::TestCase
     fh.js2_dir  = './test/fixtures'
     fh.out_dir  = './test/out'
     fh.haml_dir = './test/fixtures'
+    fh.doc_dir  = './test/doc'
+    system("rm -rf #{fh.out_dir}")
 
-    processor = JS2::Util::RDoc.new(config)
-    processor.process!
+    processor = JS2::Util::Processor.new(config)
+    ret = processor.process!
+    JS2::Util::Rdoc.build(ret[:pages], fh)
   end
 
 end

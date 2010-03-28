@@ -117,4 +117,7 @@ if main_action == 'daemon'
   end
 elsif main_action == 'compile'
   puts "compiling once! use daemon to monitor changes and compile automatically."
+elsif main_action == 'rdoc'
+  res = processor.process!
+  JS2::Util::Rdoc.build(res[:klasses])
 end
