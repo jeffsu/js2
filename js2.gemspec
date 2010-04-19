@@ -6,7 +6,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 1.2") if s.respond_to? :required_rubygems_version=
   s.authors = ["Jeff Su"]
-  s.date = %q{2010-03-27}
+  s.date = %q{2010-04-19}
   s.default_executable = %q{js2}
   s.description = %q{}
   s.email = %q{me@jeffsu.com}
@@ -17,7 +17,7 @@ Gem::Specification.new do |s|
   s.rdoc_options = ["--line-numbers", "--inline-source", "--title", "Js2", "--main", "README.md"]
   s.require_paths = ["lib"]
   s.rubyforge_project = %q{js2}
-  s.rubygems_version = %q{1.3.5}
+  s.rubygems_version = %q{1.3.6}
   s.summary = %q{}
   s.test_files = ["test/test_helper.rb", "test/test_js2.rb"]
 

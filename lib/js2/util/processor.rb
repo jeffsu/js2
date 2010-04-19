@@ -63,7 +63,7 @@ class JS2::Util::Processor
 
           if files = klasses[klass_name]
             outfile = @file_handler.outfile(files.first)
-            File.open(outfile, 'a') { |f| f << "#{klass_name}.oo('setHTMLCache', {#{out.join(',')}});" }
+            File.open(outfile, 'a') { |f| f << "#{klass_name}.oo('setHTMLAssets', {#{out.join(',')}});" }
           end
         end
       rescue Exception => e

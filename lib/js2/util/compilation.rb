@@ -7,7 +7,7 @@ class JS2::Util::Compilation
     @include      = config['include'] || []
     @template     = config['template'] || []
     @klass_name   = klass_name
-    @file         = file
+    @file         = yml_file
     @file_handler = file_handler
 
     @make_compilation = config['make_compilation']
@@ -61,6 +61,8 @@ class JS2::Util::Compilation
         errors << [ "#{file} references #{f}, but js2 can't find it" ]
       end
     end
+
+    str << "#{@klass_name}.oo('method', 'getTemplate', function () { return #{@template.to_json}; });"
     File.open(file, 'w') { |f| f << str }
   end
 

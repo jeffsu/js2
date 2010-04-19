@@ -112,7 +112,6 @@ if main_action == 'daemon'
   while 1
     res = processor.process!
     puts "Compiling #{Time.now}..." if res[:changed].any?
-    puts "Sleeping"
     sleep options.sleep_time
   end
 elsif main_action == 'compile'

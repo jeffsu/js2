@@ -74,20 +74,21 @@
       this[name] = member;
     },
 
-    'setHTMLCache': function (hash) {
+    'setHTMLAssets': function (hash) {
       // create temp class
       var tempClass = function () {};
 
-      // look for super htmlCache
+      // look for super htmlAssets
       var par = this.parent;
       if (par) {
-        var parCache = par.prototype.htmlCache;
+        var parCache = par.prototype.htmlAssets;
         if (parCache) tempClass.prototype = parCache;
       }
 
-      var htmlCache = new tempClass(); 
-      for (var k in hash) htmlCache[k] = hash[k];
-      this.oo('member', 'htmlCache', htmlCache);
+      var htmlAssets = new tempClass(); 
+      for (var k in hash) htmlAssets[k] = hash[k];
+      this.oo('member', 'htmlCache',  htmlCache);
+      this.oo('member', 'htmlAssets', htmlAssets);
     },
 
     'super': function (member) {
