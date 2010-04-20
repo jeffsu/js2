@@ -87,7 +87,7 @@
 
       var htmlAssets = new tempClass(); 
       for (var k in hash) htmlAssets[k] = hash[k];
-      this.oo('member', 'htmlCache',  htmlCache);
+      this.oo('member', 'htmlCache',  htmlAssets);
       this.oo('member', 'htmlAssets', htmlAssets);
     },
 

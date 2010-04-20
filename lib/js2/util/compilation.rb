@@ -54,7 +54,7 @@ class JS2::Util::Compilation
 
     file = main_file.sub(/\.js$/, '.comp.js')
     str = ''
-    (before + [ main_file ] + after).each do |f|
+    (before + [ main_file ] + after).uniq.each do |f|
       if File.exist?(f)
         str << File.read(f)
       else
