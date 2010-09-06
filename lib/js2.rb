@@ -30,3 +30,7 @@ require "#{dir}/js2/util/file_handler"
 require "#{dir}/js2/util/config"
 require "#{dir}/js2/util/compilation"
 require "#{dir}/js2/util/rdoc"
+
+if defined?(Haml)
+  require "#{dir}/js2/util/haml_filter"
+end
