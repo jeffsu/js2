@@ -2,7 +2,7 @@ require 'rubygems'
 require 'rake'
 require 'echoe'
 
-JS2_VERSION = '0.1.1'
+JS2_VERSION = '0.1.2'
 Echoe.new('js2', JS2_VERSION) do |p|
   p.description    = ""
   p.url            = "http://github.com/jeffsu/js2"

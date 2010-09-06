@@ -23,6 +23,7 @@ lib/js2/util/js2bootstrap.js2
 lib/js2/util/processor.rb
 lib/js2/util/rdoc.rb
 lib/js2/util/sel_decorator.rb
+lib/js2/util/haml_filter.rb
 test/compiled/bar.js
 test/compiled/basic.comp.js
 test/compiled/basic.js
