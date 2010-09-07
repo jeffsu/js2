@@ -120,5 +120,6 @@ elsif main_action == 'compile'
   puts "Compiling #{Time.now}..." if res[:changed].any?
 elsif main_action == 'rdoc'
   res = processor.process!
-  JS2::Util::Rdoc.build(res[:klasses])
+  config.file_handler.doc_dir = config.file_handler.js2_dir
+  JS2::Util::Rdoc.build(res[:pages], config.file_handler)
 end

@@ -492,6 +492,15 @@ SRC_PAGE = XHTML_PREAMBLE + <<HTML
 </head>
 <body bgcolor="white">
 <pre>%code%</pre>
+<script>
+  function clean () {
+    var eles = document.getElementsByClassName('ruby-comment');
+    for (var i=0,e; e=eles[i]; i++) {
+      e.innerHTML = e.innerHTML.replace(/^#/, '');
+    }
+  }
+  clean();
+</script>
 </body>
 </html>
 HTML

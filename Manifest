@@ -1,6 +1,7 @@
 Manifest
 README.md
 Rakefile
+CHANGELOG
 bin/js2
 config/js2.yml
 js2.gemspec
@@ -24,6 +25,7 @@ lib/js2/util/processor.rb
 lib/js2/util/rdoc.rb
 lib/js2/util/sel_decorator.rb
 lib/js2/util/haml_filter.rb
+lib/js2/util/jamis.rb
 test/compiled/bar.js
 test/compiled/basic.comp.js
 test/compiled/basic.js

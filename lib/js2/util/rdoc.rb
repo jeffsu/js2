@@ -28,7 +28,7 @@ class JS2::Util::Rdoc
 
     # TODO make this portable
     jamis = File.dirname(__FILE__) + '/jamis.rb'
-    system("rdoc --template #{jamis} --extension js=rb #{file_handler.doc_dir}")
+    puts `rdoc --template #{jamis} --extension js=rb #{file_handler.doc_dir}`
   end
 
 
