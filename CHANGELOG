@@ -1,5 +1,7 @@
-## Version 0.1.3
+## Version 0.1.4
+* Minor fix in doc directory
 
+## Version 0.1.3
 * Fixed "js2 rdoc" command
 * Added jamis.rb to the Manifest
 * Added javascript to rewrite rdoc to look more like javascript

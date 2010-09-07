@@ -10,6 +10,7 @@ require 'js2'
 options = OpenStruct.new
 options.rails = false
 options.sleep_time = 1
+options.rdoc_bin = 'rdoc'
 
 
 op = OptionParser.new do |opts|
@@ -44,9 +45,14 @@ op = OptionParser.new do |opts|
     options.out_dir = d
   end
 
-  opts.on('-h', '--haml-dir DIR', "Direcotry where js2.haml files reside.  Defaults to current directory.") do |d|
+  opts.on('-h', '--haml-dir DIR', "Directory where js2.haml files reside.  Defaults to current directory.") do |d|
     options.haml_dir = d
   end
+
+  opts.on('-d', '--rdoc EXECUTABLE', "Rdoc executable to use.  Defaults to 'rdoc'") do |d|
+    options.rdoc_bin = d
+  end
+
 end
 
 main_action = ARGV.first
@@ -120,6 +126,5 @@ elsif main_action == 'compile'
   puts "Compiling #{Time.now}..." if res[:changed].any?
 elsif main_action == 'rdoc'
   res = processor.process!
-  config.file_handler.doc_dir = config.file_handler.js2_dir
-  JS2::Util::Rdoc.build(res[:pages], config.file_handler)
+  JS2::Util::Rdoc.build(res[:pages], config.file_handler, options.rdoc_bin)
 end

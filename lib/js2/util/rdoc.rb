@@ -1,6 +1,7 @@
 class JS2::Util::Rdoc 
 
-  def self.build (pages, file_handler)
+  def self.build (pages, file_handler, rdoc_bin = 'rdoc')
+    file_handler.doc_dir = "./.#{Time.now.to_i.to_s}-doc-code"
 
     pages.each do |p|
       str = ''
@@ -28,7 +29,8 @@ class JS2::Util::Rdoc
 
     # TODO make this portable
     jamis = File.dirname(__FILE__) + '/jamis.rb'
-    puts `rdoc --template #{jamis} --extension js=rb #{file_handler.doc_dir}`
+    puts `#{rdoc_bin} --template #{jamis} --extension js=rb #{file_handler.doc_dir}`
+    puts `rm -rf #{file_handler.doc_dir}`
   end
 
 
