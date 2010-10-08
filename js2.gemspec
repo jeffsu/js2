@@ -2,11 +2,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{js2}
-  s.version = "0.1.4"
+  s.version = "0.1.6"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 1.2") if s.respond_to? :required_rubygems_version=
   s.authors = ["Jeff Su"]
-  s.date = %q{2010-09-07}
+  s.date = %q{2010-10-08}
   s.default_executable = %q{js2}
   s.description = %q{}
   s.email = %q{me@jeffsu.com}
@@ -26,8 +26,11 @@ Gem::Specification.new do |s|
     s.specification_version = 3
 
     if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
+      s.add_runtime_dependency(%q<RubyInline>, [">= 0"])
     else
+      s.add_dependency(%q<RubyInline>, [">= 0"])
     end
   else
+    s.add_dependency(%q<RubyInline>, [">= 0"])
   end
 end
