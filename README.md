@@ -1,65 +1,59 @@
-* [Features](http://github.com/jeffsu/js2/blob/master/wiki/features.md) (simple documentation)
+[JS2](http://github.com/jeffsu/js2) - Friendly Cross Browser Object Oriented Javascript
+=============================================================================
+
+Friendly Cross Browser Object Oriented Javascript
+-------------------------------------------------
+JS2 is a way to write classes in a more familiar way for programmers who are used to syntax in languages such as: Java, Ruby, C++, etc...
+The main motivation is to provide a clean and a less verbose syntax for creating classes, inheritance and modules in Javascript.  JS2 plays
+nicely with most of the popular frameworks including: jQuery and prototype.  It also provides some syntactic sugar for "for loops" and currying.
+
+
 * [Installation](http://github.com/jeffsu/js2/blob/master/wiki/installation.md)
-* [Source Code](http://github.com/jeffsu/js2)
+* [Language Features and Examples](http://github.com/jeffsu/js2/blob/master/wiki/features.md)
+* [Compiler Features](http://github.com/jeffsu/js2/blob/master/wiki/compiler.md)
+* [Source](http://github.com/jeffsu/js2)
 
-## OO Javascript
+Things You need to run JS2
+--------------------------
+* Ruby - language used to parse js2 and generate javascript
+* Ruby Gems - ruby package manager
+  * js2
+  * RubyInline
+  * haml (optional)
 
-For every Javascript developer that has ever wanted to create a library for his/her project, there comes a time when an Object Oriented approach is necessary (or extremely desired). Fortunately, there are a plethora of options to choose from:
+Quick Start
+-----------
+Create a js2 file (foo.js2):
+    class Person {
+      function speak() {
+        alert("Hello! I'm a person!");
+      }
 
->     using prototype (not the framework) and hashes:
->       var MyClass = function () {
->         this.member1 = "member";
->       };
->       MyClass.prototype = {
->         method1: function () { alert('method1 called'); }
->       }
->     embedding functions right in the instantiator:
->       function MyClass () {
->         this.member1 = "member1";
->         function method1 () {
->            alert("method1 called");
->         }
->       }
->     using jQuery (or any of the js OO frameworks) by passing in hashes:
->       var MyClass = Class.create({
->           member1: "member1",
->           method1: function(){ alert("method1 called") },
->       });
-Unfortunately, these solutions are dissimilar to Java, Ruby, and C-based languages.
-
-## JS2 Solution
-
-JS2 language that is a superset of Javascript and the problem it tries to solve is bringing "natural" OO syntax to Javascript by adding a compilation layer.
-
-So in myClass.js2 one could write:
-
-    class MyClass {
-      var member1 = "member1";
-
-      function method1 () {
-         alert("method1 called");
+      function walk() {
+        alert("Walking!");
       }
     }
 
-And after compilation myClass.js (notice the .js extension vs the .js2) would be:
-
-    var MyClass = function () { };
-    MyClass.prototype = {
-      member1: "member1",
-      method1: function () { alert("method1 called"); }
+    class Student extends Person {
+      function speak() {
+        alert("Hello, I'm a student!");
+      }
     }
 
-One of the nice things about this solution is that it allows us to "calculate" things like mixins and inheritance at compile time rather than runtime. This compilation layer opens the doors for features such as:
+    var person  = new Person();
+    var student = new Student();
 
-* Inheritance
-* Mixins (Ruby's multiple inheritance solution)
-* getters and setters
-* IoC (Dependency Injection)
-* AOP (Aspect Oriented Programming)
-* foreach
-* currying
-* More Features
+    person.speak();
+    student.speak();
+    person.walk();
+    student.walk();
 
-## Inspiration
+Run js2 in the same directory
+    js2 compile
 
-HAML, SASS, Ruby, Perl, jQuery, Prototype.js
+You should now see these files in that directory:
+  * foo.js2
+  * foo.js
+  * js2bootstrap.js
+
+Include these js2bootstrap.js and foo.js (make sure js2bootstrap.js is included first) in your html page.
