@@ -1,106 +1,73 @@
-## Object Oriented
+[JS2](http://github.com/jeffsu/js2) - Friendly Cross Browser Object Oriented Javascript
+=======================================================================================
 
-### Class Definition
+Classes and Methods
+--------------------
+To create a class, use the "class" keyword followed by matching curly braces.  If the class
+has an "initialize" method defined, it will run that right after an instance is created.
+Getters and setters can be created by using the "property" keyword.
 
->     class Foo {
->       function method () {
->       }
->     }
 
-### Inheritance
+Here is an example of a class:
 
->     class Vehicle {
->       function drive () {
->         alert('drive');
->       }
->     }
->
->     class Car extends Vehicle {
->     }
+    class Person {
+      // creates getName() and setName(name) methods
+      property name;
 
-### Getters and Setters
+      // creates getAge() and setAge(age) methods
+      property age;
 
->     class Duck {
->       property color; // adds getColor() and setColor()
->     }
+      // called after new Person(age) is called
+      function initialize(age) {
+        this.age = age;
+      }
+    }
 
-### Mixins (Ruby's multiple inheritance solution)
+    var p = new Person(14);
+    p.setName("Jeff");
+    var age = p.getAge(); // 14
 
->     module Flyable {
->       function fly () {
->         alert('Flying!');
->       }
->     }
->
->     class Duck {
->       include Flyable;
->     }
+Modules/Mixins/Multiple Inheritance
+-----------------------------------
+JS2 uses a Ruby-inspired methodology for multiple inheritance.  Here is an example
+of how it works:
 
-### AOP (Aspect Oriented Programming)
+    module Flyable {
+      function fly() {
+        alert("I believe I can fly!");
+      }
+    }
 
->     var me = new Human();
->     me.addListener('walk', function () { alert('walking') });
+    class Duck {
+      include Flyable;
+    }
 
-### Static Methods
+    var duck = new Duck();
+    duck.fly();
 
->     class Human {
->       static function getCount () {
->         return this.count;
->       }
->       static function create () {
->         if (this.count) {
->           this.count++;
->         } else {
->           this.count = 1;
->         }
->         return new this();
->       }
->     }
+Syntactic Sugar
+---------------
 
-## Syntactic Sugar
+*Foreach*: iterating through an array without having to manually create temp variables:
 
-### Currying
+    var items = [ 'foo', 'bar', 'baz' ]
+    foreach (var item in items) {
+      alert(item);
+    }
 
->     var nonScoped = [ ... lots of data .. ];
->     var submitBtn = new Button();
->     var ele = document.getElementById('submitBtn'); 
->     ele.onClick = curry (evt) with (submitBtn) {
->       submitBtn.click();
->     };
+    // with index
+    foreach (var item:i in items) {
+      alert(i + ':' + item);
+    }
 
-### Foreach
+*Currying*: tightly scoped anonymous functions to prevent memory leaks
+   
+    var bigData = getBigData();
+    var inScope = getSmallData();
 
->     foreach (var item in array) alert(item);
->     foreach (var item:i in array) alert(i + ' is ' + item);
->     curry (arg1, arg2) with (scopeVar1, scopeVar2) { };
+    element.onClick = curry (evt) with (inScope, this) { 
+      alert("curry" + inScope);
+      // variable "self" is available as the "this" in the outer scope
+    }
 
-##Other Features
 
-### Templating in HAML/SASS (useful for ajax applications)
-
->     //--- in uiBuilder.js2.haml
->     UIBuilder
->       button(name)
->         %div.button= "#name#"
->
->     //--- in uiBuilder.js2
->     class UIBuilder {
->       function getButton (name) {
->         this.htmlCache.button(name);
->       }
->     }
->
->     //--- in page.html
->     var ui  = new UIBuilder();
->     var ele = document.getElementById('buttonContainer');
->     ele.innerHTML = ui.button('my button');
-
-### Selenium Testing Integration
-
-... Coming soon ...
-
-This is a little bit harder to explain, and is only for Ruby Selenium RC developers. The idea is that complex javascript applications usually reference most important DOM elements in javascript for things such as altering html or adding event handlers. What selenium integration in js2 means is that one can use annotations in his/her code to "mark" DOM elements instead of using xpaths.
-
-One of the pain points in Selenium testing is that the xpaths are always changing with each iteration of the view layer. In a complex javascript application, one has to maintain the references to DOM objects in javascript anyway, so this would be an easier way to maintain the Selenium references to the DOM.
-
-While this is available, its not quite ready for public consumption.
