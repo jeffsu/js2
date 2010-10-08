@@ -1,4 +1,7 @@
-## Version 0.1.5
+## Version 0.1.7
+* Support for Ruby 1.9.x
+
+## Version 0.1.6
 * Fixed RubyInline dependency
 
 ## Version 0.1.4
