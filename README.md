@@ -1,8 +1,6 @@
 [JS2](http://github.com/jeffsu/js2) - Friendly Cross Browser Object Oriented Javascript
 =======================================================================================
 
-Friendly Cross Browser Object Oriented Javascript
--------------------------------------------------
 JS2 is a way to write classes in a more familiar way for programmers who are used to syntax in languages such as: Java, Ruby, C++, etc...
 The main motivation is to provide a clean and a less verbose syntax for creating classes, inheritance and modules in Javascript.  JS2 plays
 nicely with most of the popular frameworks including: jQuery and prototype.  It also provides some syntactic sugar on the repetative aspects
@@ -39,8 +37,8 @@ Things You need to run JS2
   * RubyInline
   * haml (optional)
 
-Quick Start
------------
+Quick Start Guide
+-----------------
 Create a js2 file (foo.js2):
     class Person {
       function speak() {

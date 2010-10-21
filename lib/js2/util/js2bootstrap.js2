@@ -399,3 +399,50 @@ class JS2.App.JQuery extends JS2.App {
   }
 }
 
+module JS2.Observable {
+  function addListener (namespace, funct) {
+    this._initializeObservable(namespace);
+
+    var id    = this._listenerCount++;
+    var chain = this._listeners[namespace];
+    var index = chain.length;
+    var info  = [ funct, id, namespace ];
+
+    this._listenerLookup[id.toString()] = info;
+    chain.push(info);
+  }
+
+  function trigger () {
+    if (! this._listeners) return;
+
+    var namespace = arguments[0];
+    var chain = this._listeners[namespace];
+    if (! chain) return;
+
+    var args = [];
+    for (var i=1; i<arguments.length; i++) {
+      args.push(arguments[i]);
+    }
+
+    if (chain) {
+      foreach (var ele in chain) {
+        ele[0].apply(this, args);
+      }
+    }
+  }
+
+  private
+
+  function _initializeObservable (namespace) {
+    if (! this._listeners) {
+      this._listeners      = {};
+      this._listenerLookup = {};
+      this._listenerCount  = 1;
+    }
+
+    if (! this._listeners[namespace]) {
+      this._listeners[namespace] = [];
+    }
+  }
+}
+
