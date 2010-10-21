@@ -23,32 +23,23 @@ class Helper
 
   def mark_node ()
     return <<-END
-      mark_argv[0] = INT2FIX(ts-data+1);
-      rb_funcall2(self, mark_sym, 1, mark_argv);
+      mark_node(ts-data+1)
     END
   end
 
   def start_node (type, idx = nil, ignore_curly = false) 
     return <<-END
-      #{ignore_curly ? '' : 'curlies[++curly_idx] = cb_count;'};
-
-      start_argv[0] = sym_#{type};
-      start_argv[1] = INT2FIX(#{idx || 'ts-data'});
-      start_argv[2] = INT2FIX(is_static);
-      rb_funcall2(self, start_sym, 3, start_argv);
-      is_static = 0;
+      #{ignore_curly ? '' : 'curly_idx += 1; curlies[curly_idx] = cb_count'};
+      start_node(:#{type}, #{idx || 'ts-data.length'}, is_static)
+      is_static = false
     END
   end
 
   def comment () 
     return <<-END
-      start_argv[0] = sym_COMMENT;
-      start_argv[1] = INT2FIX(ts-data);
-      start_argv[2] = INT2FIX(is_static);
-      rb_funcall2(self, start_sym, 3, start_argv);
-      is_static = 0;
-      stop_argv[0] = INT2FIX(te-data);
-      rb_funcall2(self, stop_sym, 1, stop_argv);
+      start_node(:COMMENT, ts-data.length, is_static)
+      is_static = false
+      stop_node(te-data.length)
     END
 
   end
@@ -56,29 +47,24 @@ class Helper
 
   def start_member (type, idx = nil) 
     return <<-END
-      close_on_semi = 1;
-      start_argv[0] = sym_#{type};
-      start_argv[1] = INT2FIX(#{idx || 'ts-data'});
-      start_argv[2] = INT2FIX(is_static);
-      rb_funcall2(self, start_sym, 3, start_argv);
-      is_static = 0;
+      close_on_semi = true
+      start_node(:#{type}, #{idx || 'ts-data.length'}, is_static)
+      is_static = false
     END
   end
 
 
   def stop_node  (idx = nil)
     return <<-END
-      if (curly_idx) curly_idx--;
-      stop_argv[0] = INT2FIX(#{idx || 'te-data'});
-      rb_funcall2(self, stop_sym, 1, stop_argv);
+      curly -= 1 if curly_idx > 0
+      stop_node(#{idx || 'te-data.length'})
     END
   end
 
   def stop_member (idx = nil)
     return <<-END
-      close_on_semi = 0;
-      stop_argv[0] = INT2FIX(#{idx || 'te-data'});
-      rb_funcall2(self, stop_sym, 1, stop_argv);
+      close_on_semi = false
+      stop_node(#{idx || 'te-data.length'})
     END
   end
 
@@ -88,24 +74,9 @@ class Helper
   end
 
   def in_module
-    return "in_class == curly_idx || in_module == curly_idx"
+    return "in_class == curly_idx"
   end
 
-  def declare_vars (types)
-    ret = ''
-    types.each do |type|
-      ret += self.declare(type)
-    end
-
-    return ret
-  end
-
-  def declare (type)
-    return <<-END
-      // #{type}
-      ID  sym_#{type} = ID2SYM(rb_intern("#{type}"));
-    END
-  end
 
 end
 

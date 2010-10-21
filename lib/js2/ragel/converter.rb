@@ -1,9 +1,62 @@
-# Somewhat based on http://www.mozilla.org/js/language/js20-2000-07/formal/lexer-grammar.html
-# Regular Expression Literals determined with these rules:
-#  http://www.mozilla.org/js/language/js20-1999-03-25/tokens.html
+
+class Converter
+  attr_accessor :file
+
+  def initialize(file, lexer)
+    @file = file
+  end
+
+  def tokenize(str)
+    data_length = str.length
+    data = str.unpack("c*")
+    eof  = str.length
+
+    in_class      = 0
+    curlies       = []
+    close_on_semi = false
+
+    is_static  = false
+    is_private = false
+
+    curly_idx = 0 # nth '{'
+    cb_count  = 0
+    br_count  = 0
+
+    <%= replacer.start_node :STUFF, 0, true %>
+
+    %% write data;
+    %% write init;
+    %% write exec;
+
+    <%= replacer.stop_node('data_length-1') %>
+
+
+
+  end
+
+  def start_node (type, idx, is_static)
+    @lexer.start_node(type, idx, is_static)
+  end
+
+  def stop_node (idx)
+    @lexer.stop_node(idx)
+  end
+
+  def mark_node (idx)
+    @lexer.mark_node(idx)
+  end
+
+  def tokenize! (data, lexer)
+    @data  = data
+    @lexer = lexer
+    self.tokenize(data)
+  end
+
+
+end
 
  %%{
-  machine dude;
+  machine js2;
   alphtype char;
 
   action actionStringBegin {
@@ -242,104 +295,4 @@
   *|;
 }%%
 
-require 'rubygems'
-require 'inline'
 
-class JS2::Parser::Tokenizer
-  attr_accessor :data
-
-  inline do |builder|
-    builder.c_raw <<-END
-
-    int tokenize (int argc, VALUE *argv, VALUE self) {
-      // convert ruby string to char*
-      VALUE r_str     = argv[0];
-      int data_length = #{RUBY_VERSION.match(/^1\.8/) ? "RSTRING(r_str)->len" : "RSTRING_LEN(r_str)"};
-      char* data      = STR2CSTR(r_str);
-
-      int in_class  = 0;
-      int in_module = 0;
-      int close_on_semi = 0;
-      int classable     = 1;
-      int in_foreach = 0;
-
-      // start vars
-      VALUE start_argv[3];
-      ID start_sym = rb_intern("start_node");
-
-      // stop vars
-      VALUE stop_argv[1];
-      ID stop_sym = rb_intern("stop_node");
-
-      // mark vars
-      VALUE mark_argv[1];
-      ID mark_sym = rb_intern("mark_node");
-      int mark_on_br = -1;
-
-
-      VALUE warn_intv[1];
-      ID warn_sym = rb_intern("warn_int");
-
-
-      // state vars
-      int i = 0; // iterator
-      int j = 0; // iterator
-
-      char keyword[100]; // keyword
-      char single;
-      int is_static = 0;
-      int is_private = 0;
-
-      // curly handling
-      int curlies[1000];
-      curlies[0]    = 0;
-      int curly_idx = 0; // on purpose!
-      int cb_count  = 0;
-      int br_count  = 0;
-      int close_on_br = 0;
-
-      <%= replacer.declare_vars [ :CLASS, :METHOD, :MEMBER, :STUFF, :ACCESSOR, :COMMENT, :FOREACH, :MODULE, :INCLUDE, :CURRY, :PROPERTY, :PRIVATE, :STATIC ] %>
-      // ragel variables
-      int cs, act;
-      char *ts  = NULL;
-      char *te  = NULL;
-      char *p   = data;
-      char *pe  = p + data_length;
-      char *eof = pe;
-      char* regexp_start = NULL;
-
-      <%= replacer.start_node :STUFF, 0, true %>
-
-      %% write data;
-      %% write init;
-      %% write exec;
-
-      <%= replacer.stop_node('data_length-1') %>
-    }
-
-    END
-  end
-
-  def warn_int (int)
-    puts int.to_s
-  end
-
-  def start_node (type, idx, is_static)
-    @lexer.start_node(type, idx, is_static == 1)
-  end
-
-  def stop_node (idx)
-    @lexer.stop_node(idx)
-  end
-
-  def mark_node (idx)
-    @lexer.mark_node(idx)
-  end
-
-  def tokenize! (data, lexer)
-    @data  = data
-    @lexer = lexer
-    self.tokenize(data)
-  end
-
-end
