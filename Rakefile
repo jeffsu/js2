@@ -16,7 +16,7 @@ end
 
 namespace :js2 do
   task :compile do
-    system("pushd lib/js2/ragel/; ruby helper.rb; ragel -C tokenizer.rl; mv tokenizer.c ../parser/tokenizer.rb")
+    system("cd ./lib/js2/ragel/; ruby helper.rb; ragel -C tokenizer.rl; mv tokenizer.c ../parser/tokenizer.rb")
   end
 
   task :install do

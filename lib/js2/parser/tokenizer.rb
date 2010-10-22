@@ -21,7 +21,7 @@ class JS2::Parser::Tokenizer
       // convert ruby string to char*
       VALUE r_str     = argv[0];
       int data_length = #{RUBY_VERSION.match(/^1\.8/) ? "RSTRING(r_str)->len" : "RSTRING_LEN(r_str)"};
-      char* data      = STR2CSTR(r_str);
+      char* data      = StringValuePtr(r_str);
 
       int in_class  = 0;
       int in_module = 0;
@@ -2498,7 +2498,7 @@ _resume:
 	while ( _nacts-- > 0 ) {
 		switch ( *_acts++ ) {
 	case 6:
-#line 1 "tokenizer.rl"
+#line 1 "NONE"
 	{ts = p;}
 	break;
 #line 2505 "tokenizer.c"
@@ -2592,7 +2592,7 @@ _eof_trans:
 	{regexp_start = p;}
 	break;
 	case 7:
-#line 1 "tokenizer.rl"
+#line 1 "NONE"
 	{te = p+1;}
 	break;
 	case 8:
@@ -3392,7 +3392,7 @@ _eof_trans:
     }}
 	break;
 	case 139:
-#line 1 "tokenizer.rl"
+#line 1 "NONE"
 	{	switch( act ) {
 	case 1:
 	{{p = ((te))-1;} 
@@ -3495,7 +3495,7 @@ _again:
 	while ( _nacts-- > 0 ) {
 		switch ( *_acts++ ) {
 	case 5:
-#line 1 "tokenizer.rl"
+#line 1 "NONE"
 	{ts = 0;}
 	break;
 #line 3502 "tokenizer.c"

@@ -434,8 +434,8 @@ class JS2::Parser::Tokenizer
     int tokenize (int argc, VALUE *argv, VALUE self) {
       // convert ruby string to char*
       VALUE r_str     = argv[0];
-      int data_length = RSTRING(r_str)->len;
-      char* data      = STR2CSTR(r_str);
+      int data_length = #{RUBY_VERSION.match(/^1\.8/) ? "RSTRING(r_str)->len" : "RSTRING_LEN(r_str)"};
+      char* data      = StringValuePtr(r_str);
 
       int in_class  = 0;
       int in_module = 0;

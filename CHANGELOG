@@ -1,5 +1,6 @@
 ## Version 0.1.8
 * Adding JS2.Observable module to boostrap
+* Fixed "STR2CSTR" bug when used in Ruby 1.9.x
 
 ## Version 0.1.7
 * Support for Ruby 1.9.x
