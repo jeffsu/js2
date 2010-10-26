@@ -4,7 +4,8 @@ require 'echoe'
 
 JS2_VERSION = '0.1.8'
 Echoe.new('js2', JS2_VERSION) do |p|
-  p.description    = ""
+  p.summary        = "Cross-Browser Object Oriented Javascript Compiler"
+  p.description    = "Cross-Browser Object Oriented Javascript Compiler"
   p.url            = "http://github.com/jeffsu/js2"
   p.author         = "Jeff Su"
   p.email          = "me@jeffsu.com"

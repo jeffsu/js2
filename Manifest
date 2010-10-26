@@ -13,9 +13,9 @@ lib/js2/parser/tokenizer.rb
 lib/js2/ragel/helper.rb
 lib/js2/ragel/tokenizer.rl
 lib/js2/ragel/tokenizer.rl.erb
-lib/js2/standard/class_node.rb
 lib/js2/standard/factory.rb
 lib/js2/standard/node.rb
+lib/js2/doc/factory.rb
 lib/js2/util/compilation.rb
 lib/js2/util/config.rb
 lib/js2/util/exec.rb

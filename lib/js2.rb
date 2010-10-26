@@ -21,8 +21,11 @@ require "#{dir}/js2/parser/haml"
 
 # standard suite
 require "#{dir}/js2/standard/node"
-require "#{dir}/js2/standard/class_node"
 require "#{dir}/js2/standard/factory"
+
+# doc suite
+require "#{dir}/js2/doc/factory"
+
 
 # util stuff
 require "#{dir}/js2/util/processor"

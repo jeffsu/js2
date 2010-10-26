@@ -103,6 +103,11 @@ config.js2_dir  = options.js2_dir  if options.js2_dir
 config.haml_dir = options.haml_dir if options.haml_dir
 config.haml_engine = eval('::' + options.haml_engine_class + '.new') if options.haml_engine_class
 
+if main_action == 'ydoc'
+  config.node_factory = JS2::Doc::Factory.new
+  config.file_handler = JS2::Doc::FileHandler.new
+end
+
 puts config
 
 if main_action == 'config'
@@ -127,4 +132,8 @@ elsif main_action == 'compile'
 elsif main_action == 'rdoc'
   res = processor.process!
   JS2::Util::Rdoc.build(res[:pages], config.file_handler, options.rdoc_bin)
+
+elsif main_action == 'ydoc'
+  res = processor.process!
+  JS2::Util::Ydoc.build(res[:pages], config.file_handler, options.rdoc_bin)
 end

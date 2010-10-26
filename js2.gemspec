@@ -8,7 +8,7 @@ Gem::Specification.new do |s|
   s.authors = ["Jeff Su"]
   s.date = %q{2010-10-21}
   s.default_executable = %q{js2}
-  s.description = %q{}
+  s.description = %q{Cross-Browser Object Oriented Javascript Compiler}
   s.email = %q{me@jeffsu.com}
   s.executables = ["js2"]
   s.extra_rdoc_files = ["README.md", "CHANGELOG", "bin/js2", "lib/js2.rb", "lib/js2/parser/haml.rb", "lib/js2/parser/haml_engine.rb", "lib/js2/parser/lexer.rb", "lib/js2/parser/tokenizer.rb", "lib/js2/ragel/helper.rb", "lib/js2/ragel/tokenizer.rl", "lib/js2/ragel/tokenizer.rl.erb", "lib/js2/standard/class_node.rb", "lib/js2/standard/factory.rb", "lib/js2/standard/node.rb", "lib/js2/util/compilation.rb", "lib/js2/util/config.rb", "lib/js2/util/exec.rb", "lib/js2/util/file_handler.rb", "lib/js2/util/js2bootstrap.js2", "lib/js2/util/processor.rb", "lib/js2/util/rdoc.rb", "lib/js2/util/sel_decorator.rb", "lib/js2/util/haml_filter.rb", "lib/js2/util/jamis.rb"]
@@ -18,7 +18,7 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
   s.rubyforge_project = %q{js2}
   s.rubygems_version = %q{1.3.7}
-  s.summary = %q{}
+  s.summary = %q{Cross-Browser Object Oriented Javascript Compiler}
   s.test_files = ["test/test_js2.rb", "test/test_helper.rb"]
 
   if s.respond_to? :specification_version then
