@@ -3,8 +3,8 @@
 require 'optparse'
 require 'ostruct'
 
-require 'rubygems'
-require 'js2'
+#require 'rubygems'
+require './lib/js2'
 
 
 options = OpenStruct.new
@@ -14,7 +14,7 @@ options.rdoc_bin = 'rdoc'
 
 
 op = OptionParser.new do |opts|
-  opts.banner = "Usage: js2 <daemon|compile|rdoc|help|config> [options]"
+  opts.banner = "Usage: js2 <daemon|compile|rdoc|help|config|ydoc> [options]"
 
   opts.on('-r', '--rails', "Rails (out_dir: ./public/javascript js2_dir: ./app/js2)") do |r|
     options.rails = true
@@ -56,7 +56,7 @@ op = OptionParser.new do |opts|
 end
 
 main_action = ARGV.first
-if [ 'daemon', 'compile', 'rdoc', 'help', 'config' ].include?(main_action)
+if [ 'daemon', 'compile', 'rdoc', 'help', 'config', 'ydoc' ].include?(main_action)
 
 else
   main_action = nil
@@ -134,6 +134,6 @@ elsif main_action == 'rdoc'
   JS2::Util::Rdoc.build(res[:pages], config.file_handler, options.rdoc_bin)
 
 elsif main_action == 'ydoc'
+  puts "Creating YAML Documentation"
   res = processor.process!
-  JS2::Util::Ydoc.build(res[:pages], config.file_handler, options.rdoc_bin)
 end

@@ -20,6 +20,7 @@ lib/js2/util/compilation.rb
 lib/js2/util/config.rb
 lib/js2/util/exec.rb
 lib/js2/util/file_handler.rb
+lib/js2/doc/file_handler.rb
 lib/js2/util/js2bootstrap.js2
 lib/js2/util/processor.rb
 lib/js2/util/rdoc.rb

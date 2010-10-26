@@ -1,6 +1,9 @@
+class JS2::Doc::Node < JS2::Standard::Node
+
+end
 
 # TODO: break this up into multiple files
-class JS2::Doc::PageNode < JS2::Standard::Node
+class JS2::Doc::PageNode < JS2::Doc::Node
   attr_accessor :klasses, :file
 
   def initialize (idx, string, factory)
@@ -10,35 +13,34 @@ class JS2::Doc::PageNode < JS2::Standard::Node
 
 end
 
-class JS2::Doc::CommentNode < JS2::Standard::Node
+class JS2::Doc::CommentNode < JS2::Doc::Node
   def clean
     return to_s.gsub(%r|^\s*\/?\*+\s?\/?|, '')
   end
 end
 
-class JS2::Doc::ClassNode < JS2::Standard::Node
+class JS2::Doc::ClassNode < JS2::Doc::Node
   REGEX = /^(\s*class|module)\s+([\w\.]+)\s+(extends\s+([\w\.]+))?\s*\{(.*)/m
-
 end
 
 class JS2::Doc::ModuleNode < JS2::Doc::ClassNode
 end
 
-class JS2::Doc::PrivateNode < JS2::Standard::Node
+class JS2::Doc::PrivateNode < JS2::Doc::Node
 end
 
-class JS2::Doc::IncludeNode < JS2::Standard::Node
-end
-
-
-class JS2::Doc::MemberNode < JS2::Standard::Node
-end
-
-class JS2::Doc::CurryNode < JS2::Standard::Node
+class JS2::Doc::IncludeNode < JS2::Doc::Node
 end
 
 
-class JS2::Doc::MethodNode < JS2::Standard::Node
+class JS2::Doc::MemberNode < JS2::Doc::Node
+end
+
+class JS2::Doc::CurryNode < JS2::Doc::Node
+end
+
+
+class JS2::Doc::MethodNode < JS2::Doc::Node
   REGEX = /^(\s*)(static\s+)?function\s+([\$\w\.]+)\s*\(([^)]*)\)\s*\{(.*)/m
 
   def handle_first_string (s)
@@ -53,7 +55,7 @@ class JS2::Doc::MethodNode < JS2::Standard::Node
 
 end
 
-class JS2::Doc::AccessorNode < JS2::Standard::Node
+class JS2::Doc::AccessorNode < JS2::Doc::Node
   REGEX = /(\s*)accessor(\s+)([\w+,\s]+\w)(\s*);(\s*)/
 
   def handle_first_string (str)
@@ -68,10 +70,10 @@ class JS2::Doc::AccessorNode < JS2::Standard::Node
   end
 end
 
-class JS2::Doc::ForeachNode < JS2::Standard::Node
+class JS2::Doc::ForeachNode < JS2::Doc::Node
 end
 
-class JS2::Doc::PropertyNode < JS2::Standard::Node
+class JS2::Doc::PropertyNode < JS2::Doc::Node
   REGEX = /(\s*)property(\s+)([\w+,\s]+\w)(\s*);(\s*)/
   def handle_first_string (s)
     return s
@@ -79,7 +81,7 @@ class JS2::Doc::PropertyNode < JS2::Standard::Node
 end
 
 
-class JS2::Doc::StuffNode < JS2::Standard::Node
+class JS2::Doc::StuffNode < JS2::Doc::Node
 end
 
 
@@ -99,7 +101,7 @@ class JS2::Doc::Factory
   end
 
   def get_class (type)
-    klass = @@lookup[type] || JS2::Standard::Node
+    klass = @@lookup[type] || JS2::Doc::Node
   end
 
   def page_node (string, file = nil)

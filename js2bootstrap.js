@@ -1,0 +1,447 @@
+(function (scope) {
+  if (scope.JS2) return;
+
+  var JS2 = {};
+  scope.JS2 = JS2;
+
+  function noInit () { };
+
+  var ooUtils = {
+    'extends': function (par) {
+      this.parent  = par;
+      var newProto = par.oo('instance');
+      var proto    = this.prototype;
+
+      var members = this.oo.members;
+      for (var k in proto) {
+        if (proto.hasOwnProperty(k)) newProto[k] = proto[k];
+      }
+
+      this.prototype = newProto;
+      this.prototype['class'] = this;
+    },
+
+    'instance': function () {
+      var proto = this.prototype;
+
+      var init = null;
+      if (this.oo.members.initialize) {
+        init = proto.initialize;
+      }
+
+      this.prototype.initialize = noInit;
+      var ret = new this();
+
+      if (init) {
+        this.prototype.initialize = init;
+        ret.initialize = init;
+      } else {
+        delete this.prototype['initialize'];
+      }
+
+      return ret;
+    },
+
+    'include': function (mod) {
+      var hash       = mod.prototype;
+      var members    = this.oo.members;
+      var modMembers = mod.oo.members;
+
+      for (var k in modMembers) {
+        if (!(k in members)) {
+          this.prototype[k] = hash[k];
+        } 
+      }
+    },
+ 
+    'member': function (name, member) {
+      this.oo.members[name] = true;
+      this.prototype[name]  = member;
+    },
+
+    'method': function (name, method) {
+      this.oo.members[name] = true;
+      this.prototype[name]  = method;
+      method._name  = name;
+      method._class = this;
+    },
+
+    'modularize': function () {
+      this.isModule = true;
+    },
+
+    'staticMember': function (name, member) {
+      this[name] = member;
+    },
+
+    'setHTMLAssets': function (hash) {
+      // create temp class
+      var tempClass = function () {};
+
+      // look for super htmlAssets
+      var par = this.parent;
+      if (par) {
+        var parCache = par.prototype.htmlAssets;
+        if (parCache) tempClass.prototype = parCache;
+      }
+
+      var htmlAssets = new tempClass(); 
+      for (var k in hash) htmlAssets[k] = hash[k];
+      this.oo('member', 'htmlCache',  htmlAssets);
+      this.oo('member', 'htmlAssets', htmlAssets);
+    },
+
+    'super': function (member) {
+      return this.parent.prototype[member];
+    },
+
+    'property': function (names) {
+      for (var i=0; i<names.length; i++) {
+        var name = names[i];
+        var getter = 'get' + name.charAt(0).toUpperCase() + name.substr(1);
+        var setter = 'set' + name.charAt(0).toUpperCase() + name.substr(1);
+
+        var members = this.oo.members;
+        if (! (getter in members)) 
+          this.oo('method', getter, (function (n) { return function () { return this[n] }})(name));   
+        if (! (setter in members))  
+          this.oo('method', setter, (function (n) { return function (val) { return this[n] = val }})(name));   
+      }
+    },
+
+    'accessor': function (names) {
+      for (var i=0; i<names.length; i++) {
+        var name = names[i];
+        if (! (name in this.oo.members)) 
+          this.oo('method', name, 
+            function () { 
+              if (arguments.length) { return this['_' + name] = arguments[0]; } 
+              else { return this['_' + name]; } 
+            });
+      }
+    },
+
+    'ancestors': function (names) {
+      var ret = [];
+      var k = this.parent;
+      while (k) {
+        ret.push(k);
+        k = k.parent;
+      }
+      return ret;
+    }
+  };
+
+
+  function createClass (name, par) {
+    var K = function () { if (this.initialize) this.initialize.apply(this, arguments); };
+
+    K.prototype['class'] = K;
+    K.prototype['klass'] = K;
+
+    K.oo = function (method, param1, param2) { 
+      return ooUtils[method].apply(K, [ param1, param2 ]); 
+    };
+
+    K.oo.includes = [];
+    K.oo.members  = {};
+ 
+    return K;
+  }
+  
+  function createNamespace (space, currentScope) {
+    var currentScope = currentScope || scope;
+ 
+    var splitted = space.split('.');
+    var name = [];
+    while (splitted.length) {
+      var part = splitted.shift();
+      name.push(part);
+
+      if (! currentScope[part]) {
+        var K = createClass();
+        K.package = currentScope;
+        currentScope[part] = K;
+      }
+
+      currentScope = currentScope[part];
+      currentScope.className = name.join('.');
+    }
+
+    return currentScope;
+  }
+
+  JS2.OO = {};
+  JS2.OO.createClass = createNamespace;
+  JS2.OO.createModule = function (name) { createNamespace(name).oo('modularize') };
+  JS2.OO.get = function (name, scope) { 
+    scope = scope || window;
+    var cur = scope;
+    var names = name.split(/\./);
+    while (names.length) cur = cur[names.shift()];
+    return cur;
+  };
+
+  JS2.OO['super'] = function () {
+    var method = arguments.callee.caller;
+    var name  = method._name;
+    var klass = method._class;
+    var self  = arguments[0];
+
+    var method = klass.parent.prototype[name];
+    if (! method) return;
+
+    var args = [];
+    for (var i=1,len=arguments.length;i<len;i++) {
+      args.push(arguments[i]);
+    }
+    return method.apply(self, args);
+  }
+
+})(window);
+
+
+class JS2.App.Notifier {
+  var autoInc = 1;
+
+  function initialize () {
+    this.chains  = {};
+    this.autoInc = 1;
+    this.id = this['class'].prototype.autoInc;
+    this['class'].prototype.autoInc++;
+  }
+
+  function register (comp) {
+    if (! comp.__notifier_ids) {
+      comp.__notifier_ids = {};
+    }
+
+    if (! comp.__notifier_ids[this.id]) {
+      comp.__notifier_ids[this.id] = this.autoInc;
+      this.autoInc++;
+    }
+
+    for (var key in comp) {
+      if (key.indexOf('e_') == 0) {
+        var eventType = key.substr(2);
+        if (! this.chains[eventType]) this.chains[eventType] = [];
+        this.chains[eventType].push([ comp, comp[key] ]);
+      }
+    }
+
+    comp.notify = curry with (this) {
+      self.notify.apply(self, arguments);
+    };
+  }
+
+  function remove (comp) {
+    var id = comp.__notifier_id;
+    for (var key in this.chains) {
+      var newChain = [];
+      foreach (var ele:j in chain) {
+        if (ele[0].__notifier_id[this.id] != id) {
+          newChain.push(ele); 
+        }
+      }
+
+      this.chains[key] = newChain;
+    }
+  }
+
+  function registerListener (listener) {
+    for (var key in listener) {
+      var funct = listener[key];
+      if (typeof funct != 'function') continue;
+      if (! this.chains[key]) this.chains[key] = [];
+      this.chains[key].push([ listener, funct ]);
+    }
+  }
+
+  function notify () {
+    var eventType = arguments[0];
+    var args;
+
+    // optimize for 1 argument
+    if (arguments.length == 2) {
+      args = [ arguments[1] ];
+    } else {
+      args = [];
+      for (var i=1; i<=arguments.length; i++) args.push(arguments[i]);
+    }
+
+    var chain = this.chains[eventType];
+    if (chain) {
+      for (var i=0,pair; pair=chain[i++];) {
+        pair[1].apply(pair[0], args); 
+      }
+    }
+  }
+}
+
+
+
+class JS2.App {
+
+  function start (options) {
+    // hack to get notifier
+    this.getNotifier();
+
+    this.build();
+    this.notify('setOptions', options || {});
+    this.notify('initHTML');
+    this.notify('registerEvents');
+    this.notify('finalize');
+  }
+
+
+  function register (comp) {
+    this.getNotifier().register(comp);
+  }
+
+  function getNotifier () {
+    if (! this._notifier) {
+      this._notifier = new JS2.App.Notifier();
+      this._notifier.register(this);
+    }
+
+    return this._notifier;
+  }
+
+  function build () {
+    var components = { main: this };
+
+    var classes = [];
+    var klass   = this['class'];
+
+    while (klass) {
+      classes.unshift(klass);
+      klass = klass.parent;
+    }
+
+    var template = [];
+    var already  = {};
+    var runningIdx = 0;
+
+    foreach (var c:i in classes) {
+      var toAdd = c.prototype.getTemplate();
+      foreach (var t:j in toAdd) {
+        if (already[t.name] != undefined) {
+          template[already[t.name]] = t;
+        } else {
+          already[t.name] = runningIdx;
+          runningIdx += 1;
+          template.push(t);
+        }
+      }
+    }
+
+    // instantiate all components
+    components['main'] = this;
+    foreach (var config:i in template) {
+      if (!config['class']) alert("Invalid class defined for " + name + ':' + config['class']);
+      var klass = JS2.OO.get(config['class']);
+
+      if (klass) {
+        components[config.name] = new klass();
+      } else if (console) {
+        console.log('class "' + config.name + '" was not found."');
+      }
+      this.register(components[config.name]);
+    }
+
+    foreach (var config:i in template) {
+      var name = config.name;
+      var comp = components[name];
+
+      // inject set dependencies as an array
+      if (config.dependencies instanceof Array) {
+        foreach (var dep:j in config.dependencies) {
+          comp[dep] = components[dep];
+        }
+      }
+
+      // as a hash... for use when nickname is not the dependency name
+      else if (config.dependencies instanceof Object) {
+        for (var key in config.dependencies) {
+          comp[key] = components[config.dependencies[key]];
+        }
+      }
+    }
+
+    this.notify('initBaseHTML');
+
+    // handle selectors as root elements
+    foreach (var config:i in template) {
+      var name = config.name;
+      var comp = components[name];
+
+      if (config.selector)       comp.$root = this.htmlSelect(this.$root, config.selector);
+      if (config.globalSelector) comp.$root = this.htmlSelect(config.globalSelector);
+    }
+  }
+
+  function htmlSelect (root, text) {
+    alert('html selector not implemented');
+  }
+
+  function getTemplate () {
+    return [];
+  }
+}
+
+class JS2.App.JQuery extends JS2.App {
+  function htmlSelect ($root, text) {
+    if (text) {
+      return $root.find(text);
+    } else {
+      return $(root);
+    }
+  }
+}
+
+module JS2.Observable {
+  function addListener (namespace, funct) {
+    this._initializeObservable(namespace);
+
+    var id    = this._listenerCount++;
+    var chain = this._listeners[namespace];
+    var index = chain.length;
+    var info  = [ funct, id, namespace ];
+
+    this._listenerLookup[id.toString()] = info;
+    chain.push(info);
+  }
+
+  function trigger () {
+    if (! this._listeners) return;
+
+    var namespace = arguments[0];
+    var chain = this._listeners[namespace];
+    if (! chain) return;
+
+    var args = [];
+    for (var i=1; i<arguments.length; i++) {
+      args.push(arguments[i]);
+    }
+
+    if (chain) {
+      foreach (var ele in chain) {
+        ele[0].apply(this, args);
+      }
+    }
+  }
+
+  private
+
+  function _initializeObservable (namespace) {
+    if (! this._listeners) {
+      this._listeners      = {};
+      this._listenerLookup = {};
+      this._listenerCount  = 1;
+    }
+
+    if (! this._listeners[namespace]) {
+      this._listeners[namespace] = [];
+    }
+  }
+}

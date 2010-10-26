@@ -10,6 +10,10 @@ end
 module JS2::Util
 end
 
+module JS2::Doc
+end
+
+
 
 dir = File.dirname(__FILE__)
 
@@ -23,9 +27,6 @@ require "#{dir}/js2/parser/haml"
 require "#{dir}/js2/standard/node"
 require "#{dir}/js2/standard/factory"
 
-# doc suite
-require "#{dir}/js2/doc/factory"
-
 
 # util stuff
 require "#{dir}/js2/util/processor"
@@ -34,6 +35,12 @@ require "#{dir}/js2/util/config"
 require "#{dir}/js2/util/compilation"
 require "#{dir}/js2/util/rdoc"
 
+# doc suite
+require "#{dir}/js2/doc/factory"
+require "#{dir}/js2/doc/file_handler"
+
+
 if defined?(Haml)
   require "#{dir}/js2/util/haml_filter"
 end
+
