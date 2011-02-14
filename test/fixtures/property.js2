@@ -1,4 +1,0 @@
-class TestProperty {
-  property foo;
-  property foo, bar;
-}

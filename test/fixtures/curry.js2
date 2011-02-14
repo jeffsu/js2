@@ -1,5 +1,0 @@
-curry (hello) with (this)  {
-
-}
-
-hello.foo(curry (hello) with (this) { });
