@@ -11,7 +11,7 @@ esc "\\"
 "'"("\\"["bfnrt/{esc}]|"\\u"[a-fA-F0-9]{4}|[^\0-\x08\x0a-\x1f"{esc}])*"'" { return 'S_STRING';}
 "/"("\\"["bfnrt/{esc}]|"\\u"[a-fA-F0-9]{4}|[^\0-\x08\x0a-\x1f"{esc}])*"/"[gms]* { return 'REGEX';}
 
-[=?|<>%+*-]  return 'OPERATOR'
+[=?|<>%+*;.-]  return 'OPERATOR'
 
 '{'      return 'OPEN_CURLY'
 '}'      return 'CLOSE_CURLY'
