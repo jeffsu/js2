@@ -1,0 +1,9 @@
+class Test1 {
+  var member = "member";
+  var regexMember = /member/;
+
+  function method() {
+    alert('method');
+  }
+
+}
