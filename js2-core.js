@@ -20,6 +20,40 @@ var GenericContent = JS2.Class.extend({
     }
   },
 
+  tokenString: function() {
+    var ret = [];
+    for (var i=0; i<this.content.length; i++) {
+      var val = this.content[i];
+      if (typeof val == 'string') {
+        if (val.match(/^\s/)) {
+          ret.push('SPACE');
+        } else {
+          ret.push('IDENT');
+        } 
+      } else {
+        ret.push(val.klass);
+      }
+    }
+    return ret.join(' ');
+  },
+
+  extractTokens: function(str) {
+    var regex = new RegExp(str);
+    var tokenString = this.tokenString();
+    var match = tokenString.match(regex);
+
+    if (! match) return false;
+    var ret = [];
+    var j=0;
+    for (var i=1; i<match.length; i++) {
+      if (match[i]) {
+        ret.push(this.content[j++]);
+      } else {
+        ret.push(''); 
+      }
+    }
+  },
+
   pop: function() {
     this.content.pop(); 
   },
@@ -154,6 +188,8 @@ var Method = GenericContent.extend({
   addContent: function(token) {
     if (token == '{') {
       this.block = this.newContent(Block, token);
+    } else if (token == '(') {
+      this.brace = this.newContent(Braces, token);
     } else {
       this.content.push(token);
     } 
@@ -162,11 +198,9 @@ var Method = GenericContent.extend({
   },
 
   toString: function() {
-    this.shiftOff('function');
-    var space = this.shift();
-    var name  = this.shift();
-
-    return space + '"' + name + '":function' + this.super() + ',';
+    var tokens = this.extractTokens("(IDENT)(SPACE)(IDENT)(SPACE)?(Braces)(SPACE)?(Block)");
+    if (!tokens) return "";
+    return tokens[2] + ':' + tokens[0] + tokens[4] + tokens[6];
   }  
 });
 
@@ -246,9 +280,9 @@ var Member = GenericContent.extend({
 
 var Parser = JS2.Class.extend({
   initialize: function () {
-    this.js2_tokenizer = require('./js2-tokenizer').parser;
+    this.js2Tokenizer = require('./js2-tokenizer').parser;
     this.reset();
-    this.js2_tokenizer.yy = this;
+    this.js2Tokenizer.yy = this;
   },
 
   reset: function () {
@@ -259,7 +293,7 @@ var Parser = JS2.Class.extend({
   },
 
   parse: function(str) {
-    this.js2_tokenizer.parse(str);
+    this.js2Tokenizer.parse(str);
   },
   
   append: function (str) {
@@ -278,16 +312,11 @@ Parser.parse = function (str) {
   return parser.root;
 }
 
+Parser.parseFile = function (str) {
+  var fs = require('fs'); 
+  return this.parse(fs.readFileSync(str, 'utf8'));
+}
 
-var test1 = "class FooBar {\n" +
-"  var foo = 'hello';\n " +
-"  function foobar() {\n " +
-"    console('hi');\n " +
-"    foreach (var i in j) {\n " +
-"    }\n " +
-"  }\n " +
-"}";
-var test2 = "foreach (var k in x) { foreach (var i in j) { hello } }";
-var root = Parser.parse(test1);
-console.log(root.toString());
+
+console.log(Parser.parseFile("./tests/test1.js2").toString());
 

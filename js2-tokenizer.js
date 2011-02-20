@@ -1,5 +1,5 @@
 /* Jison generated parser */
-var js2_tokenizer = (function(){
+var js2Tokenizer = (function(){
 var parser = {trace: function trace() { },
 yy: {},
 symbols_: {"error":2,"program":3,"tokens":4,"EOF":5,"token":6,"token_place":7,"IDENT":8,"OPEN_CURLY":9,"CLOSE_CURLY":10,"OPEN_BRACE":11,"CLOSE_BRACE":12,"SPACE":13,"D_STRING":14,"S_STRING":15,"REGEX":16,"OPERATOR":17,"$accept":0,"$end":1},
@@ -353,8 +353,8 @@ parser.lexer = lexer;
 return parser;
 })();
 if (typeof require !== 'undefined' && typeof exports !== 'undefined') {
-exports.parser = js2_tokenizer;
-exports.parse = function () { return js2.parse.apply(js2, arguments); }
+exports.parser = js2Tokenizer;
+exports.parse = function () { return js2Tokenizer.parse.apply(js2Tokenizer, arguments); }
 exports.main = function commonjsMain(args) {
     if (!args[1])
         throw new Error('Usage: '+args[0]+' FILE');
