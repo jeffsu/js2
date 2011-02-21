@@ -26,9 +26,9 @@ var GenericContent = JS2.Class.extend({
       var val = this.content[i];
       if (typeof val == 'string') {
         if (val.match(/^\s/)) {
-          ret.push('SPACE');
+          ret.push('S');
         } else {
-          ret.push('IDENT');
+          ret.push('I');
         } 
       } else {
         ret.push(val.klass);
@@ -40,8 +40,8 @@ var GenericContent = JS2.Class.extend({
   extractTokens: function(regexStr) {
     var cleaned = regexStr.replace(/(\w+)/g, "($1)")
       .replace(/([^\s]+)/g, "($1)")
-      .replace(/\b([A-Z]{2,})\b/g, function (m) { return (m.indexOf('SPACE') >= 0) ? "SPACE" : "IDENT"; })
-      .replace(/\b([a-z]{2,})\b/g, 'IDENT')
+      .replace(/\b([A-Z]{2,})\b/g, function (m) { return (m.indexOf('SPACE') >= 0) ? "S" : "I"; })
+      .replace(/\b([a-z]{2,})\b/g, 'I')
       .replace(/\s+/g, '');
 
     var regex = new RegExp("^" + cleaned + "$");
@@ -53,13 +53,25 @@ var GenericContent = JS2.Class.extend({
     var j=0;
     for (var i=1; i<match.length; i+=2) {
       if (match[i]) {
-        ret.push(this.content[j++]);
+        var n = match[i].length;
+        if (n > 1) {
+          var found = [];
+          for (var k=0; k<n; k++) found.push(this.content[j++]); 
+          ret.push(found.join(''));
+        } else {
+          ret.push(this.content[j++]); 
+        }
       } else {
         ret.push('');
       }
     }
 
-    ret.push(j);
+    var tail = [];
+    for (j; j<this.content.length; j++) {
+      tail.push(this.content[j]);
+    }
+
+    ret.push(tail);
     return ret;
   },
 
@@ -119,9 +131,13 @@ var GenericContent = JS2.Class.extend({
   },
 
   toString: function() {
+    return this.stringify(this.content);
+  },
+
+  stringify: function(arr) {
     var ret = [];
-    for (var i=0; i<this.content.length; i++) {
-      ret.push(this.content[i].toString());
+    for (var i=0; i<arr.length; i++) {
+      ret.push(arr[i].toString());
     }
     return ret.join('');
   },
@@ -215,7 +231,7 @@ var Method = GenericContent.extend({
   }  
 });
 
-var Foreach = GenericContent.extend({
+var Foreach = Method.extend({
   counter: 0,
   klass: "Foreach",
   markerTokens: {},
@@ -230,7 +246,6 @@ var Foreach = GenericContent.extend({
 
     else {
       this.content.push(token);
-      if (this.curlies && this.curlies.closed) this.closed = true;
     }
   },
 
@@ -271,12 +286,8 @@ var Member = GenericContent.extend({
 
   toString: function() {
     this.collapse();
-    this.shift(); 
-    var name = this.shift();
-    this.shift();
-    this.pop();
-
-    return '"' + name + '":' + this.super() + ',';
+    var tokens = this.extractTokens("var name SPACE? equals IDENT+ terminator");
+    return '"' + tokens[1] + '":' + tokens[4] + ',';
   }
 });
 

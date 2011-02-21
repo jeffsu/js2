@@ -6,6 +6,7 @@ class Test1 {
     foreach (var i in j.stuffs) {
       alert('method');
     }
+    alert('hi');
   }
 
 }
