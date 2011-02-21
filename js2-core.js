@@ -94,7 +94,8 @@ var GenericContent = JS2.Class.extend({
     if (this.next) {
       this.next.push(token);
       if (this.next.closed) this.next = null;
-    } 
+      if (this.block && this.block.closed) this.closed = true;
+    }  
 
     else if (token in this.markerTokens) {
       var klass = eval(this.markerTokens[token]);
