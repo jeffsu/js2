@@ -3,7 +3,9 @@ class Test1 {
   var regexMember = /member/;
 
   function method() {
-    alert('method');
+    foreach (var i in j.stuffs) {
+      alert('method');
+    }
   }
 
 }

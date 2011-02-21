@@ -34,24 +34,33 @@ var GenericContent = JS2.Class.extend({
         ret.push(val.klass);
       }
     }
-    return ret.join(' ');
+    return ret.join('');
   },
 
-  extractTokens: function(str) {
-    var regex = new RegExp(str);
+  extractTokens: function(regexStr) {
+    var cleaned = regexStr.replace(/(\w+)/g, "($1)")
+      .replace(/([^\s]+)/g, "($1)")
+      .replace(/\b([A-Z]{2,})\b/g, function (m) { return (m.indexOf('SPACE') >= 0) ? "SPACE" : "IDENT"; })
+      .replace(/\b([a-z]{2,})\b/g, 'IDENT')
+      .replace(/\s+/g, '');
+
+    var regex = new RegExp("^" + cleaned + "$");
     var tokenString = this.tokenString();
     var match = tokenString.match(regex);
 
     if (! match) return false;
     var ret = [];
     var j=0;
-    for (var i=1; i<match.length; i++) {
+    for (var i=1; i<match.length; i+=2) {
       if (match[i]) {
         ret.push(this.content[j++]);
       } else {
-        ret.push(''); 
+        ret.push('');
       }
     }
+
+    ret.push(j);
+    return ret;
   },
 
   pop: function() {
@@ -185,6 +194,10 @@ var Klass = GenericContent.extend({
 
 var Method = GenericContent.extend({ 
   klass: "Method",
+  push: function(content) {
+    this.super(content);
+    if (this.block && this.block.closed) this.closed = true;
+  },
   addContent: function(token) {
     if (token == '{') {
       this.block = this.newContent(Block, token);
@@ -194,13 +207,11 @@ var Method = GenericContent.extend({
       this.content.push(token);
     } 
 
-    if (this.block && this.block.closed) this.closed = true;
   },
 
   toString: function() {
-    var tokens = this.extractTokens("(IDENT)(SPACE)(IDENT)(SPACE)?(Braces)(SPACE)?(Block)");
-    if (!tokens) return "";
-    return tokens[2] + ':' + tokens[0] + tokens[4] + tokens[6];
+    var tokens = this.extractTokens("function SPACE name SPACE? Braces SPACE? Block");
+    return tokens[2] + ':function' + tokens[4] + tokens[6];
   }  
 });
 
@@ -224,26 +235,17 @@ var Foreach = GenericContent.extend({
   },
 
   toString: function () {
+    var tokens = this.extractTokens("foreach SPACE? Braces SPACE? Block");
     this.counter++;
 
     this.braces.collapse();
-    this.braces.shift();
-    this.braces.pop();
+    var leftPart = this.braces.extractTokens("leftbrace var IDENT in IDENT+ rightbrace");
 
-    var holder = this.braces.shift();
-    var temp   = this.braces.shift();
-    var iterator = null;
-
-    if (temp == ':') {
-      iterator = this.braces.shift();
-    } else {
-      iterator = '_it' + this.counter;
-    }
-
-    this.braces.shift();
-
+    var holder   = leftPart[2];
+    var iterator = '_it' + this.counter;
     var len = '_len' + this.counter;
-    var rest = this.braces.content.join('');
+    var rest = leftPart[4];
+
     var container = '_con' + this.counter;
 
     var ret = "for (var " + iterator + "=0," + 
