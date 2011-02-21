@@ -211,10 +211,7 @@ var Klass = GenericContent.extend({
 
 var Method = GenericContent.extend({ 
   klass: "Method",
-  push: function(content) {
-    this.super(content);
-    if (this.block && this.block.closed) this.closed = true;
-  },
+
   addContent: function(token) {
     if (token == '{') {
       this.block = this.newContent(Block, token);
@@ -233,7 +230,7 @@ var Method = GenericContent.extend({
 });
 
 var Foreach = Method.extend({
-  counter: 0,
+  store: { counter: 0 },
   klass: "Foreach",
   markerTokens: {},
   addContent: function(token) {
@@ -242,7 +239,7 @@ var Foreach = Method.extend({
     } 
 
     else if (token == '{') {
-      this.curlies = this.newContent(Block, token);
+      this.block = this.newContent(Block, token);
     } 
 
     else {
@@ -252,26 +249,26 @@ var Foreach = Method.extend({
 
   toString: function () {
     var tokens = this.extractTokens("foreach SPACE? Braces SPACE? Block");
-    this.counter++;
+    var counter = this.store.counter++;
 
     this.braces.collapse();
     var leftPart = this.braces.extractTokens("leftbrace var IDENT in IDENT+ rightbrace");
 
     var holder   = leftPart[2];
-    var iterator = '_it' + this.counter;
-    var len = '_len' + this.counter;
+    var iterator = '_it' + counter;
+    var len = '_len' + counter;
     var rest = leftPart[4];
 
-    var container = '_con' + this.counter;
+    var container = '_con' + counter;
 
     var ret = "for (var " + iterator + "=0," + 
                container + "=" + rest + "," + 
                len + "=" + container + ".length," + holder + ";" + 
                holder + "=" + container + '[' + iterator + ']||' + 
                iterator + "<" + len + ";" + iterator + "++)" + 
-               this.curlies.toString();
+               this.block.toString();
     
-    this.counter--;
+    this.store.counter--;
     return ret;
   }
 });
