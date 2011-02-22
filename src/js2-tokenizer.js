@@ -347,7 +347,7 @@ case 10:return 5
 break;
 }
 };
-lexer.rules = [/^\s+/,/^[a-zA-Z0-9]+/,/^"(\\["bfnrt/\\]|\\u[a-fA-F0-9]{4}|[^\0-\x08\x0a-\x1f"\\])*"/,/^'(\\["bfnrt/\\]|\\u[a-fA-F0-9]{4}|[^\0-\x08\x0a-\x1f"\\])*'/,/^\/(\\["bfnrt/\\]|\\u[a-fA-F0-9]{4}|[^\0-\x08\x0a-\x1f"\\])*\/[gms]*/,/^[=?|<>%+*;.-]/,/^\{/,/^\}/,/^\(/,/^\)/,/^$/];
+lexer.rules = [/^\s+/,/^[a-zA-Z0-9]+/,/^"(\\["bfnrt/\\]|\\u[a-fA-F0-9]{4}|[^\0-\x08\x0a-\x1f"\\])*"/,/^'(\\["bfnrt/\\]|\\u[a-fA-F0-9]{4}|[^\0-\x08\x0a-\x1f"\\])*'/,/^\/(\\["bfnrt/\\]|\\u[a-fA-F0-9]{4}|[^\0-\x08\x0a-\x1f"\\])*\/[gms]*/,/^[:=?|<>%+*;.-]/,/^\{/,/^\}/,/^\(/,/^\)/,/^$/];
 lexer.conditions = {"INITIAL":{"rules":[0,1,2,3,4,5,6,7,8,9,10],"inclusive":true}};return lexer;})()
 parser.lexer = lexer;
 return parser;

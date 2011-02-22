@@ -328,6 +328,4 @@ Parser.parseFile = function (str) {
   return this.parse(fs.readFileSync(str, 'utf8'));
 }
 
-
-console.log(Parser.parseFile("./tests/test1.js2").toString());
-
+exports.parser = Parser;
