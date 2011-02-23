@@ -158,4 +158,4 @@ var Foreach = Content.extend({
 });
 
 
-console.log(Parser.parse("foreach(){} foo").toString());
+//console.log(Parser.parse("foreach(){} foo").toString());
