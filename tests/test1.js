@@ -10,6 +10,10 @@ var Test1=JS2.Class.extend({
       }
     }
     alert('hi');
+
+    (function(){return function(foo) {
+
+    };})(scope)
   }
 
 });

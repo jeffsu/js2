@@ -1,0 +1,3 @@
+curry (hello) with (world) {
+  alert('hi');
+}

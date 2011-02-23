@@ -10,6 +10,10 @@ class Test1 {
       }
     }
     alert('hi');
+
+    curry (foo) with (scope) {
+
+    }
   }
 
 }

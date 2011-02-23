@@ -5,7 +5,11 @@ var GenericContent = JS2.Class.extend({
   sanityShift: 20,
   markerTokens: {
     'class' : 'Klass',
-    'foreach' : 'Foreach'
+    'foreach' : 'Foreach',
+    'curry' : 'Curry',
+    '->' : 'ShortFunction',
+    '=>' : 'ShortFunction',
+    '<<' : 'HereDoc'
   },
 
   initialize: function (tokenizer) {
@@ -103,17 +107,22 @@ var GenericContent = JS2.Class.extend({
   push: function(token) {
     if (this.next && this.next.closed) this.next = null;
 
+    var cleaned = token;
+    if (cleaned.indexOf('<<') == 0) {
+      cleaned = "<<";
+    }
+
     if (this.next) {
       this.next.push(token);
       if (this.next.closed) this.next = null;
       if (this.block && this.block.closed) this.closed = true;
     }  
 
-    else if (token in this.markerTokens) {
-      var klass = eval(this.markerTokens[token]);
+    else if (cleaned in this.markerTokens) {
+      var klass = eval(this.markerTokens[cleaned]);
       this.newContent(klass, token);
     } 
-   
+    
     else {
       this.addContent(token);    
     }
@@ -128,7 +137,7 @@ var GenericContent = JS2.Class.extend({
   },
 
   addContent: function(token) {
-    this.content.push(token);
+      this.content.push(token);
   },
 
   toString: function() {
@@ -176,6 +185,23 @@ var Block = GenericContent.extend({
     }
   }
 });
+
+var InterBlock = Block.extend({
+  klass: "Block",
+  addContent: function(token) {
+    this.content.push(token);
+    if (!this.started && token == '{') {
+      this.started = true;
+    } else if (this.started && token == '}' && this.curlyMatch()) {
+      this.closed = true;
+    }
+  },
+  toString: function () {
+    var content = this.super();
+    return content.replace(/}$/, '+"') .replace(/^{/, '"+');
+  }
+});
+
 
 var Klass = GenericContent.extend({
   klass: "Klass",
@@ -229,6 +255,68 @@ var Method = GenericContent.extend({
   }  
 });
 
+var Curry = GenericContent.extend({ 
+  klass: "Curry",
+  markerTokens: {},
+  addContent: function(token) {
+    if (token == '{') {
+      this.block = this.newContent(Block, token);
+    } 
+    
+    else if (token == 'with') {
+      this.hasWith = true;
+      this.content.push(token);
+    } 
+    
+    else if (token == '(') {
+      if (this.hasWith) {
+        this.scopeVars = this.newContent(Braces, token);
+      } else {
+        this.params = this.newContent(Braces, token);
+      }
+    } else {
+      this.content.push(token);
+    }
+  },
+
+  toString: function() {
+    this.collapse();
+    var tokens = this.extractTokens("curry Braces? with? Braces? Block");
+    return "(function(){return function" + (this.params ? this.params.toString() : "($1,$2,$3)") + " " + this.block.toString() + ";})" + (this.scopeVars ? this.scopeVars.toString() : "()");
+  }  
+});
+
+var ShortFunction = Curry.extend({ 
+  klass: "ShortFunction",
+
+  addContent: function(token) {
+    if (token == '{') {
+      this.block = this.newContent(Block, token);
+    } 
+    
+    else if (token == '(') {
+      this.params = this.newContent(Braces, token);
+    } 
+
+    else {
+      if (token == '=>') {
+        this.putEquals = true;
+      }
+ 
+      this.content.push(token);
+    }
+  },
+
+
+  toString: function() {
+    this.collapse();
+    var tokens = this.extractTokens("marker SPACE? Braces? SPACE? Block");
+    return (this.putEquals ? '=' : '') + tokens[1] + "function" + (this.params ? this.params.toString() : "($1,$2,$3)") + " " + this.block.toString();
+  }  
+});
+
+
+
 var Foreach = Method.extend({
   store: { counter: 0 },
   klass: "Foreach",
@@ -273,6 +361,41 @@ var Foreach = Method.extend({
   }
 });
 
+var NiceString = GenericContent.extend({
+  klass: "NiceString",
+  markerTokens: {},
+  replacerize: function(str) {
+    return str.replace(/#\{([^\}]+)\}/, "+$1+")
+              .replace(/\n\r?/s, "\\n")
+              .replace(/^/, '"')
+              .replace(/$/, '"');
+  },
+
+  toString: function() {
+    var content = this.super();
+    return this.replacerize(content);
+  }
+});
+
+var HereDoc = NiceString.extend({
+  klass: "HereDoc",
+  markerTokens: {},
+  addContent: function(token) {
+    if (token.indexOf('<<') >= 0) {
+      this.ending = token.substr(2); 
+    } else if (this.ending && this.ending == token && this.content[this.content.length-1].match(/\n\r?$/s)) {
+      this.closed = true;
+    } else {
+      this.content.push(token);
+    }
+  },
+
+  toString: function() {
+    var content = this.content.join('').replace(/^\n\r?/, '').replace(/\n\r?$/, '');
+    return this.replacerize(content);
+  }
+});
+
 var Member = GenericContent.extend({ 
   klass: "Member",
   addContent: function(token) {
@@ -291,9 +414,8 @@ var Member = GenericContent.extend({
 
 var Parser = JS2.Class.extend({
   initialize: function () {
-    this.js2Tokenizer = require('./js2-tokenizer').parser;
+    this.js2Tokenizer = require('./js2-lexer').tokenizer;
     this.reset();
-    this.js2Tokenizer.yy = this;
   },
 
   reset: function () {
@@ -304,11 +426,16 @@ var Parser = JS2.Class.extend({
   },
 
   parse: function(str) {
-    this.js2Tokenizer.parse(str);
+    this.js2Tokenizer.tokenize(str, this);
   },
   
   append: function (str) {
     if (str == "\n") this.line++;
+    if (str == '{') this.curlyCount++;
+    if (str == '}') this.curlyCount--;
+    if (str == '(') this.braceCount++;
+    if (str == ')') this.braceCount--;
+
     this.root.push(str);
   },
 
