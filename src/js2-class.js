@@ -1,4 +1,4 @@
-var JS2 = (function (undefined) {
+JS2 = (function (undefined) {
   var JS2   = function () {};
   JS2.Class = function () { this.initialize.apply(this, arguments) };
 
@@ -6,6 +6,7 @@ var JS2 = (function (undefined) {
     var s = arguments.callee.caller._super;
     if (s) return s.apply(this, arguments);
   };
+  JS2.Class.prototype.initialize = function () {};
 
   JS2.Class.extend = function (klassDef, name) {
     // TODO make more efficient
@@ -64,7 +65,7 @@ var JS2 = (function (undefined) {
       if (mixinProto.hasOwnProperty(k)) {
         if (!proto.hasOwnProperty(k)) {
           ret.prototype[k] = mixinProto[k];
-	}
+	      }
       } 
     }  
 
@@ -79,5 +80,3 @@ var JS2 = (function (undefined) {
 
   return JS2;
 })();
-
-exports.JS2 = JS2;

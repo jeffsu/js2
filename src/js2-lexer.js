@@ -1,66 +1,114 @@
-var tokenizer = {
-  order: [ 'getString', 'getRegex', 'getIdent', 'getSpecials', 'getHereDoc', 'getOp' ],
-  SSTRING: /^'[^\\']*(?:\\.[^\\']*)*'/s,
-  DSTRING: /^"[^\\"]*(?:\\.[^\\']*)*"/s,
-  REGEX:   /^\/(?!\s)[^[\/\n\\]*(?:(?:\\[\s\S]|\[[^\]\n\\]*(?:\\[\s\S][^\]\n\\]*)*])[^[\/\n\\]*)*\/[imgy]{0,4}(?!\w)/s,
+JS2.Lexer = (function () {
+  var SSTRING_REGEX = /^'[^\\']*(?:\\.[^\\']*)*'/s;
+  var DSTRING_REGEX = /^"[^\\"]*(?:\\.[^\\']*)*"/s;
+  var REGEX_REGEX   = /^\/(?!\s)[^[\/\n\\]*(?:(?:\\[\s\S]|\[[^\]\n\\]*(?:\\[\s\S][^\]\n\\]*)*])[^[\/\n\\]*)*\/[imgy]{0,4}(?!\w)/s;
 
-  getSpace: function (str) {
-    var m = str.match(/^\s+/s);
-    if (m) return m[0];
-  },
+  var TOKENS = [ 
+    [ 'NEWLINE', "\\n\\r?" ],
+    [ 'SPACE', " |\\t" ],
+    [ 'REGEX', "\\/", function(str) { var m = REGEX_REGEX.exec(str); if (m) return m[0] } ],
+    [ 'CLASS', "class" ],
+    [ 'SHORT_FUNCT', "->" ],
+    [ 'FOREACH', "foreach" ],
+    [ 'CURRY', "curry" ],
+    [ 'IDENT', "[\\w$]+" ],
+    [ 'HERE_DOC', "<<[A-Z_]+" ],
+    [ 'DSTRING', '"', function(str) { var m = DSTRING_REGEX.exec(str); if (m) return m[0]; } ],
+    [ 'SSTRING', "'", function(str) { var m = SSTRING_REGEX.exec(str); if (m) return m[0]; } ],
+    [ 'OPERATOR', "." ]
+  ];
 
-  getHereDoc: function(str) {
-    var m = str.match(/<<([A-Z]+)/);
-    if (m) return m[0];
-  }, 
+  var IDS = {};
+  var REGEX_TOKENS = [];
+  for (var i=0,token; token=TOKENS[i++];) {
+    IDS[token[0]] = i;
+    REGEX_TOKENS.push("(" + token[1] + ")");
+  }
 
-  getString: function(str) {
-    m = str.match(this.SSTRING);
-    if (m) return m[0];
+  var PRIMARY_REGEX = new RegExp("^(" + REGEX_TOKENS.join('|') + ")");
 
-    m = str.match(this.DSTRING);
-    if (m) return m[0];
-  },
+  var Tokens = JS2.Class.extend({
+    initialize: function() {
+      this.tokens = [];
+      this.curlyCount = 0;
+      this.braceCount = 0;
+    },
 
-  getRegex: function(str) {
-    if (str.charAt(0) != '/') return;
-    var m = str.match(this.REGEX);
-    if (m) return m[0];
-  },
+    peak: function() {
+      return this.tokens[0];
+    },
 
-  getIdent: function(str) {
-    var m = str.match(/^[\w$]+/);
-    if (m) return m[0];
-  },
+    shift: function() {
+      var item = this.tokens.shift(item);
+      if (item[0] == '{') {
+        this.curlyCount++;
+      } else if (item[0] == '}') {
+        this.curlyCount--;
+      } else if (item[0] == '(') {
+        this.braceCount++;
+      } else if (item[0] == ')') {
+        this.braceCount--;
+      }
+      return item;
+    },
 
-  getSpecials: function(str) {
-    var m = str.match(/^(=|-)>/);
-    if (m) return m[0];
-  },
+    push: function(item) {
+      this.tokens.push(item);
+    },
 
-  getOp: function(str) {
-    var m = str.match(/^[^\w]/);
-    if (m) return m[0];
-  },
+    pop: function() {
+      return this.tokens.pop();
+    },
 
-  tokenize: function(str, parser) {
-    var n      = this.order.length;
-    var tokens = [];
+    freeze: function(obj) {
+      obj.curlyCount = this.curlyCount;
+      obj.braceCount = this.braceCount;
+    },
 
-    while (str.length > 0) {
-      var found = false;
-      for (var i=0; i<n; i++) {
-        var res = this[this.order[i]](str, parser);
+    isBalancedCurly: function(obj) {
+      return obj.curlyCount == this.curlyCount;
+    },
+
+    isBalancedBrace: function(obj) {
+      return obj.braceCount == this.braceCount;
+    },
+
+    empty: function() {
+      return this.tokens.length <= 0;
+    }
+
+  });
+
+  var Lexer = JS2.Class.extend({
+    tokenize: function(str, parser) {
+      var m, res, type, tokens = new Tokens();
+      while (str.length > 0) {
+        m    = PRIMARY_REGEX.exec(str);
+        res  = null;
+        type = null;
+
+        for (var i=0,token;token=TOKENS[i++];) {
+          if (m[0] == m[i+1]) {
+            res  = token[2] ? token[2](str,parser) : m[0];
+            type = i;
+            if (res) break;
+          }
+        }
+
         if (res) {
-          found = true;
-          parser.append(res);
+          tokens.push([ res, type ]); 
           str = str.substr(res.length);
-          break;
+        } else {
+          return [];
         }
       }
 
+      return tokens;
     }
-  }
-};
+  });
 
-exports.tokenizer = tokenizer;
+  Lexer.IDS = IDS;
+
+  return Lexer;
+})();
+
