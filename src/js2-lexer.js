@@ -1,11 +1,18 @@
 JS2.Lexer = (function () {
   var SSTRING_REGEX = /^'[^\\']*(?:\\.[^\\']*)*'/s;
   var DSTRING_REGEX = /^"[^\\"]*(?:\\.[^\\']*)*"/s;
+  var ISTRING_REGEX = /^(%\{)[^\\"]*(?:\\.[^\\']*)*(#\{|})/s;
   var REGEX_REGEX   = /^\/(?!\s)[^[\/\n\\]*(?:(?:\\[\s\S]|\[[^\]\n\\]*(?:\\[\s\S][^\]\n\\]*)*])[^[\/\n\\]*)*\/[imgy]{0,4}(?!\w)/s;
 
+  function istring(str) {
+    var ret = [];
+    var m = ISTRING_REGEX.exec(str);
+    if (m[2] == '#{') {
+    }
+  }
+
   var TOKENS = [ 
-    [ 'NEWLINE', "\\n\\r?" ],
-    [ 'SPACE', " |\\t" ],
+    [ 'SPACE', "\\s+" ],
     [ 'REGEX', "\\/", function(str) { var m = REGEX_REGEX.exec(str); if (m) return m[0] } ],
     [ 'CLASS', "class" ],
     [ 'SHORT_FUNCT', "->" ],
@@ -15,6 +22,7 @@ JS2.Lexer = (function () {
     [ 'HERE_DOC', "<<[A-Z_]+" ],
     [ 'DSTRING', '"', function(str) { var m = DSTRING_REGEX.exec(str); if (m) return m[0]; } ],
     [ 'SSTRING', "'", function(str) { var m = SSTRING_REGEX.exec(str); if (m) return m[0]; } ],
+    [ 'ISTRING', "%{", istring,
     [ 'OPERATOR', "." ]
   ];
 
@@ -34,7 +42,7 @@ JS2.Lexer = (function () {
       this.braceCount = 0;
     },
 
-    peak: function() {
+    peek: function() {
       return this.tokens[0];
     },
 
