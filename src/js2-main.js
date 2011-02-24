@@ -191,7 +191,7 @@ var Member = Content.extend({
     while (token = it.next()) {
       tokens.push(token[0]);
     }
-    return '"' + name + '":' + tokens.join('') + ',';
+    return '"' + name + '":' + tokens.join('').replace(/;$/, ',');
   }
 });
 
@@ -270,4 +270,5 @@ var ShortFunct = Content.extend({
   }
 });
 
-console.log(Parser.parse("class Foobar { function foo () { } var bar = 'hello'; } foreach(var ele in foo){} foo %{foobar#{bar} #{foo}} yo").toString());
+//console.log(Parser.parse("class Foobar { function foo () { } var bar = 'hello'; } foreach(var ele in foo){} foo %{foobar#{bar} #{foo}} yo").toString());
+console.log(Parser.parse("%{foobar#{bar} #{foo}} yo").toString());

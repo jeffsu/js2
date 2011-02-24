@@ -31,7 +31,7 @@ JS2.Lexer = (function () {
         if (curlyCount == 0) {
           lexer.tokens.push([')+', IDS.DSTRING]);
           istring(lexer.str, lexer);
-          return;
+          break;
         } else {
           lexer.tokens.push(res);
           lexer.chomp(res[0]);
@@ -131,7 +131,6 @@ JS2.Lexer = (function () {
       var res;
 
       while (res = this.next(this.str)) {
-        if (res == null) return this.tokens;
         if (res == -1) continue;
 
         this.tokens.push(res); 
@@ -159,6 +158,7 @@ JS2.Lexer = (function () {
         }
       }
 
+      if (res == -1) return res;
       return res ? [ res, type ] : null;
     }
   });
