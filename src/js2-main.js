@@ -7,6 +7,7 @@ IDS['NODE'] = -1;
 var CHOMP_SPACE = true;
 var REQUIRED    = true;
 
+
 var ContentIterator = JS2.Class.extend({
   initialize: function(content) {
     this.idx = 0;
@@ -69,15 +70,15 @@ var Content = JS2.Class.extend({
     while (!this.tokens.empty() && !this.closed) {
       var token = this.tokens.peek();
       var klass = this.handOff(token);
-      if (this.closed) break;
 
       if (klass) {
         this.handOffs.push(this.newNode(klass, this.tokens));
       } else {
         this.content.push(token);
         this.handleToken(this.tokens.shift());
-        if (this.closed) return;
       }
+
+      if (this.closed) break;
     }    
   },
 
@@ -94,6 +95,7 @@ var Content = JS2.Class.extend({
     switch (token[1]) {
       case IDS.CLASS: return Klass;
       case IDS.FOREACH: return Foreach;
+      case IDS.SHORT_FUNCT: return ShortFunct;
     }
   },
 
@@ -111,7 +113,6 @@ var Klass = Content.extend({
   name: 'Klass',
   handOff: function(token) {
     if (this.started) this.closed = true;
-
     switch (token[0]) {
       case '{': this.started = true; return KlassBlock;
     }
@@ -119,8 +120,7 @@ var Klass = Content.extend({
 
   toString: function() {
     var klass = this.it.next(CHOMP_SPACE);
-    var name  = this.it.next();
-    var space = this.it.nextSpace();
+    var name  = this.it.next(CHOMP_SPACE);
     var block = this.it.next();
 
     return "var " + name[0] + "=(function() { return JS2.Class.extend(" + block[0].toString() + ")();";
@@ -246,5 +246,28 @@ var Foreach = Content.extend({
   }
 });
 
+var ShortFunct = Content.extend({
+  name: "ShortFunct",
+  handOff: function(token) {
+    switch (token[0]) {
+      case '(': this.hasBrace = true; return Braces;
+      case '{': this.started = true; return Block;
+    }
+  },
 
-console.log(Parser.parse("class Foobar { function hello() { } var foo='bar' } foreach(var ele in foo){} foo %{foobar#{bar} #{foo}} \"").toString());
+  toString: function() {
+    var ret = ['function']; 
+    var i = 0;
+    if (this.hasBrace) {
+      ret.push(this.handOffs[i++].toString());
+    } else {
+      ret.push("($1,$2,$3)");
+    }
+
+    ret.push(this.handOffs[i].toString());
+    return '';
+    return ret.join('');
+  }
+});
+
+console.log(Parser.parse("class Foobar { function foo () { } var bar = 'hello'; } foreach(var ele in foo){} foo %{foobar#{bar} #{foo}} yo").toString());

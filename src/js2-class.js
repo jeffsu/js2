@@ -6,6 +6,7 @@ JS2 = (function (undefined) {
     var s = arguments.callee.caller._super;
     if (s) return s.apply(this, arguments);
   };
+
   JS2.Class.prototype.initialize = function () {};
 
   JS2.Class.extend = function (klassDef, name) {
@@ -13,7 +14,10 @@ JS2 = (function (undefined) {
     var ret   = function () { this.initialize.apply(this, arguments) };
     var proto = Object.create(this.prototype);
     ret.prototype = proto;
-    ret.__proto__ = this;
+
+    for (var k in this) {
+      if (this.hasOwnProperty(k)) ret[k] = this[k];
+    }
 
     for (var k in klassDef) {
       if (klassDef.hasOwnProperty(k)) {

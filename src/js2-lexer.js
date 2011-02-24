@@ -51,6 +51,7 @@ JS2.Lexer = (function () {
     [ 'SPACE', "\\s+" ],
     [ 'REGEX', "\\/", function(str) { var m = REGEX_REGEX.exec(str); if (m) return m[0] } ],
     [ 'CLASS', "class" ],
+    [ 'SHORT_FUNCT_ASSIGN', "=>" ],
     [ 'SHORT_FUNCT', "->" ],
     [ 'FOREACH', "foreach" ],
     [ 'CURRY', "curry" ],
