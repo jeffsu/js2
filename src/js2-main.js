@@ -21,12 +21,16 @@ var ContentIterator = JS2.Class.extend({
     return this.tokens[this.idx] || [];
   },
 
-  next: function(chompSpace) {
-    var ret = this.tokens[this.idx++];
+  next: function(chompSpace, n) {
+    n = n || 1;
 
-    if (chompSpace) {
-      var peek = this.peek(); 
-      while (peek = this.peek() && peek[1] == IDS.SPACE && this.idx++) { }
+    var ret;
+    while (n-- > 0) {
+      ret = this.tokens[this.idx++];
+      if (chompSpace) {
+        var peek = this.peek(); 
+        while (peek = this.peek() && peek[1] == IDS.SPACE && this.idx++) { }
+      }
     }
 
     return ret;
@@ -45,7 +49,7 @@ var Parser = {
     var tokens  = lexer.tokenize(str);
     var root    = new Content(tokens);
     return root;
-  } 
+  }
 };
 
 var Content = JS2.Class.extend({
@@ -109,7 +113,7 @@ var Klass = Content.extend({
     if (this.started) this.closed = true;
 
     switch (token[0]) {
-      case '{': this.started = true; return Block;
+      case '{': this.started = true; return KlassBlock;
     }
   }, 
 
@@ -132,6 +136,67 @@ var Block = Content.extend({
   } 
 });
 
+var KlassBlock = Block.extend({
+  name: 'KlassBlock',
+  handOff: function(token) {
+    switch (token[0]) {
+      case 'var': return Member;
+      case 'function': return Method;
+    }
+  },
+
+  handleToken: function(token) {
+    if (this.tokens.isBalancedCurly(this) && token[0] == '}') {
+      this.closed = true;
+    }
+  },
+
+  toString: function() {
+    var str = this.super();
+    return str.replace(/,(\s+\})$/, "$1");
+  } 
+});
+
+var Method = Content.extend({
+  name: 'Method',
+  handOff: function(token) {
+    if (this.started) this.closed = true;
+    if (token[0] == '(') {
+      return Braces;
+    } else if (token[0] == '{') {
+      this.started = true;
+      return Block;
+    }
+  },
+
+  toString: function () {
+    var it = this.it;
+    var name = it.next(CHOMP_SPACE, 2)[0];
+    return name + ':' + "function" + this.handOffs[0].toString() + this.handOffs[1].toString() + ',';
+  }
+});
+
+var Member = Content.extend({
+  name: 'Member',
+  handleToken: function(token) {
+    if (token[0] == ';') this.closed = true;
+  },
+
+  toString: function () {
+    var it = this.it;
+    var name = it.next(CHOMP_SPACE, 2)[0];
+    var token;
+    var tokens = []
+    it.next(CHOMP_SPACE);
+    while (token = it.next()) {
+      tokens.push(token[0]);
+    }
+    return '"' + name + '":' + tokens.join('') + ',';
+  }
+});
+
+
+
 var Braces = Content.extend({
   name: 'Braces',
   handleToken: function(token) {
@@ -141,8 +206,8 @@ var Braces = Content.extend({
   } 
 });
 
-
 var Foreach = Content.extend({
+  cache: { count: 1 },
   name: 'Foreach',
   handOff: function(token) {
     if (this.started) this.closed = true;
@@ -153,9 +218,33 @@ var Foreach = Content.extend({
   },
 
   toString: function() {
-    return "for" + this.handOffs[0].toString() + this.handOffs[1].toString();
+    var brace = this.getBrace(this.handOffs[0]);
+    return "for" + brace + this.handOffs[1].toString();
+  },
+
+  getBrace: function(brace) {
+    var n = this.cache.count++;
+    var iteratorName   = "_i" + n;
+    var collectionName = "_c" + n;
+    var l = "_l" + n;
+
+    var holder = brace.it.next(CHOMP_SPACE, 3)[0];
+    brace.it.next(CHOMP_SPACE, 1);
+
+    var temp = [];
+    for (var ele; ele=brace.it.next(); temp.push(ele[0])) {};
+    temp.pop();
+    var collection = temp.join('');
+
+    return "(var " + iteratorName + "=0," +
+            collectionName + "=" + collection + "," +
+            l + "=" + collectionName + ".length," +
+            holder + ";" +
+            holder + '=' + collectionName + '[' + iteratorName + ']||' +
+            iteratorName + '<' + l + ';' +
+            iteratorName + '++)';
   }
 });
 
 
-//console.log(Parser.parse("foreach(){} foo").toString());
+console.log(Parser.parse("class Foobar { function hello() { } var foo='bar' } foreach(var ele in foo){} foo %{foobar#{bar} #{foo}} \"").toString());

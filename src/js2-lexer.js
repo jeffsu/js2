@@ -1,52 +1,50 @@
 JS2.Lexer = (function () {
   var SSTRING_REGEX = /^'[^\\']*(?:\\.[^\\']*)*'/s;
   var DSTRING_REGEX = /^"[^\\"]*(?:\\.[^\\']*)*"/s;
-  var ISTRING_REGEX_INTER = /^(%\{|})([^\\"]*(?:\\.[^\\']*)*)(#\{)/s;
-  var ISTRING_REGEX_FIN   = /^(%\{|})[^\\"]*(?:\\.[^\\']*)*(})/s;
   var REGEX_REGEX   = /^\/(?!\s)[^[\/\n\\]*(?:(?:\\[\s\S]|\[[^\]\n\\]*(?:\\[\s\S][^\]\n\\]*)*])[^[\/\n\\]*)*\/[imgy]{0,4}(?!\w)/s;
 
-  function istring(str) {
-    var ret = [];
-    var m = ISTRING_REGEX_INTER.exec(str);
-    if (m) {
-      var lexer  = new Lexer();
-      var tokens = [ [ '"' + m[2] + '"', IDS.DSTRING ], [ '+(', IDS.OPERATOR ] ];
-      var token  = null;
-      var curlyCount = 1;
-      str = str.substr(m[0].length);
+  var ISTRING_REGEX     = /^(%\{|})([^\\{]*(?:\\.[^\\']*)*)(#\{|})/s;
+  var ISTRING_REGEX_FIN = /^(%\{|})[^\\"]*(?:\\.[^\\']*)*(})/s;
 
-      while (token = lexer.chomp(str)) {
-        if (token[0] == '{') {
-          curlyCount++;
-        } else if (token[0] == '}') {
-          curlyCount--;
-        }
+  function istring(str, lexer) {
+    var tokens = [];
+    var m = ISTRING_REGEX.exec(str);
+
+    // found it!
+    if (!m) return null;
+
+    if (m[3] == '#{') {
+      lexer.tokens.push([ '"' + m[2] + '"+(', IDS.DSTRING ]);
+
+      var curlyCount = 1;
+      var res = null;
+      lexer.chomp(m[0]);
+
+      while (res = lexer.next(lexer.str)) {
+        if (res == -1) return res;
+        if (res[0] == '{') {
+          ++curlyCount;
+        } else if (res[0] == '}') {
+          --curlyCount;
+        } 
 
         if (curlyCount == 0) {
-          break;          
+          lexer.tokens.push([')+', IDS.DSTRING]);
+          istring(lexer.str, lexer);
+          return;
         } else {
-          tokens.push(token);
-        }
-        str = str.substr(token[0].length);
-      }
-
-      tokens.push([ [ ')+', IDS.OPERATOR ] ]);
-      if (str.length) {
-        var val = istring(str);
-        var ending = val[1];
-        var tail   = val[0];
-        for (var i=0; i<tail.length; i++) {
-          tokens.push(tail[i]);
+          lexer.tokens.push(res);
+          lexer.chomp(res[0]);
         }
       }
-      return [ tokens, ending ];
     }
 
-    m = ISTRING_REGEX_FIN.exec(str);
-    if (m) {
-      var ending = str.substr(m[0].length);
-      return [ [ [ m[0].replace(/"/, "\\\"").replace(/^(%\{|})/, '"').replace(/\}$/, '"'), IDS.DSTRING ] ], ending ];
-    } 
+    else if (m[3] == '}') {
+      lexer.chomp(m[0]);
+      lexer.tokens.push([ '"' + m[2] + '"', IDS.DSTRING ]);
+    }
+
+    return -1;
   }
 
   var TOKENS = [ 
@@ -60,13 +58,13 @@ JS2.Lexer = (function () {
     [ 'HERE_DOC', "<<[A-Z_]+" ],
     [ 'DSTRING', '"', function(str) { var m = DSTRING_REGEX.exec(str); if (m) return m[0]; } ],
     [ 'SSTRING', "'", function(str) { var m = SSTRING_REGEX.exec(str); if (m) return m[0]; } ],
-    [ 'ISTRING', "%{", istring ],
+    [ 'ISTRING', "%\\{", istring ],
     [ 'OPERATOR', "." ]
   ];
 
   var IDS = {};
   var REGEX_TOKENS = [];
-  for (var i=0,token; token=TOKENS[i++];) {
+  for (var i=0,token; token=TOKENS[i]; i++) {
     IDS[token[0]] = i;
     REGEX_TOKENS.push("(" + token[1] + ")");
   }
@@ -127,41 +125,39 @@ JS2.Lexer = (function () {
 
   var Lexer = JS2.Class.extend({
     tokenize: function(str) {
-      str = str || this.str;
-      var m, res, type, tokens = new Tokens();
-      while (str.length > 0) {
-        res = this.chomp(str);
-        if (!res) return [];
+      this.tokens = new Tokens();
+      this.str    = str;
+      var res;
 
-        if (res[1] == IDS.ISTRING) {
-          var stuff = res[0];
-          var stokens = stuff[0];
-          var ending  = stuff[1];
-          for (var i=0; i<stokens.length; i++) {
-            tokens.push(stokens[i]);
-          }
-          str = ending;
-        } else {
-          tokens.push(res); 
-          str = str.substr(res[0].length);
-        } 
+      while (res = this.next(this.str)) {
+        if (res == null) return this.tokens;
+        if (res == -1) continue;
+
+        this.tokens.push(res); 
+        this.chomp(res[0]);
       }
 
-      return tokens;
+      return this.tokens;
     },
 
     chomp: function(str) {
+      this.str = this.str.substr(str.length);
+    },
+
+    next: function(str) {
+      if (str.length == 0) return null;
       var m = PRIMARY_REGEX.exec(str);
       var res   = null;
       var type  = null;
 
       for (var i=0,token;token=TOKENS[i]; i++) {
         if (m[0] == m[i+2]) {
-          res  = token[2] ? token[2](str) : m[0];
+          res  = token[2] ? token[2](str, this) : m[0];
           type = i;
           if (res) break;
         }
       }
+
       return res ? [ res, type ] : null;
     }
   });
@@ -169,7 +165,6 @@ JS2.Lexer = (function () {
   Lexer.IDS = IDS;
 
   var l = new Lexer();
-  console.log(l.tokenize("begin %{hell#{o}world} end"));
   return Lexer;
 })();
 
