@@ -1,5 +1,19 @@
+
 require('./js2-class');
 require('./js2-lexer');
+
+Parser = {
+  parse: function(str) {
+    var lexer   = new JS2.Lexer();
+    var tokens  = lexer.tokenize(str);
+    var root    = new Content(tokens);
+    return root;
+  },
+
+  parseFile: function(file) {
+    return this.parse(require('fs').readFileSync(file, 'utf8'));
+  }
+};
 
 var IDS = JS2.Lexer.IDS;
 IDS['NODE'] = -1;
@@ -20,6 +34,14 @@ var ContentIterator = JS2.Class.extend({
 
   peek: function() {
     return this.tokens[this.idx] || [];
+  },
+
+  toString: function() {
+    var next, ret = [];
+    while(next = this.next()) {
+      ret.push(next[0].toString());
+    }
+    return ret.join('');
   },
 
   next: function(chompSpace, n) {
@@ -43,15 +65,6 @@ var ContentIterator = JS2.Class.extend({
     return isSpace ? this.next() : '';
   }
 });
-
-var Parser = {
-  parse: function (str) {
-    var lexer   = new JS2.Lexer();
-    var tokens  = lexer.tokenize(str);
-    var root    = new Content(tokens);
-    return root;
-  }
-};
 
 var Content = JS2.Class.extend({
   name: 'Content',
@@ -210,7 +223,9 @@ var Foreach = Content.extend({
   cache: { count: 1 },
   name: 'Foreach',
   handOff: function(token) {
-    if (this.started) this.closed = true;
+    if (this.started) {
+      this.closed = true;
+    }
     switch (token[0]) {
       case '(': return Braces;
       case '{': this.started = true; return Block;
@@ -218,8 +233,8 @@ var Foreach = Content.extend({
   },
 
   toString: function() {
-    var brace = this.getBrace(this.handOffs[0]);
-    return "for" + brace + this.handOffs[1].toString();
+    var brace = this.getBrace(this.it.next(CHOMP_SPACE, 2)[0]);
+    return "for" + brace + this.it.toString();
   },
 
   getBrace: function(brace) {
@@ -270,5 +285,3 @@ var ShortFunct = Content.extend({
   }
 });
 
-//console.log(Parser.parse("class Foobar { function foo () { } var bar = 'hello'; } foreach(var ele in foo){} foo %{foobar#{bar} #{foo}} yo").toString());
-console.log(Parser.parse("%{foobar#{bar} #{foo}} yo").toString());
