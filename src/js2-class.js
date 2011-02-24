@@ -13,10 +13,7 @@ JS2 = (function (undefined) {
     var ret   = function () { this.initialize.apply(this, arguments) };
     var proto = Object.create(this.prototype);
     ret.prototype = proto;
-
-    for (var k in this) {
-      if (this.hasOwnProperty(k)) ret[k] = this[k];
-    }
+    ret.__proto__ = this;
 
     for (var k in klassDef) {
       if (klassDef.hasOwnProperty(k)) {
@@ -43,7 +40,7 @@ JS2 = (function (undefined) {
     this[name] = method;
   };
 
-  JS2.Class.$addMethod = function (name, method) {
+  JS2.Class.addMethod = function (name, method) {
     // method exists, override
     if (this.prototype.hasOwnProperty(name)) {
       method._super = this.prototype[name]._super;
