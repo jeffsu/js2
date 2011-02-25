@@ -1,13 +1,14 @@
 [JS2](http://github.com/jeffsu/js2) - Javascript Object Oriented Sugar
 ======================================================================
 
-Sample Syntax:
+JS2 is just javascript with added functionality.  You can think of it as just a superset of javascript.
+
     class Person {
       var first = "John";
       var last  = "Doe";
 
       function name() {
-        return this.first + ' ' + this.last;
+        return "#{this.first} #{this.last}";
       }
     }
 
@@ -21,17 +22,53 @@ Sample Syntax:
 
 Object Oriented Programming
 ===========================
-Methods
--------
-Members
--------
+
+Methods, Members and Properties
+-------------------------------
+  class Rectangle {
+    var height = 10;
+    var width  = 5;
+
+    function setDimensions(h, w) {
+      this.height = h;
+      this.width  = w;
+    }
+
+    function area() {
+      return this.height * this.width;
+    }
+  }
+
 Inheritence
 -----------
+  class Square extends Rectangle {
+    function setDimensions(side) {
+      this.height = this.width = side;
+    }
+  }
+
 Mixins
 ------
+  module TalkableShape {
+    function sayArea() {
+      alert(this.aread());
+    }
+  }
+
+  class Square extends Rectangle {
+    include TalkableShape;
+    function setDimensions(side) {
+      this.height = this.width = side;
+    }
+  }
 
 Syntactic Sugar
 ===============
+Interpolated Strings
+--------------------
+  var name    = "John Doe";
+  var message = "Welcome #{name}";
+
 Foreach
 -------
     var things = [ 'hello', 'world' ];
