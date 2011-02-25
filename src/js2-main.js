@@ -17,51 +17,70 @@ Parser = {
 
 var IDS = JS2.Lexer.IDS;
 IDS['NODE'] = -1;
+var KEYWORDS = { 'var': null, 'class': null, 'function': null, 'in': null, 'with': null };
 
-var CHOMP_SPACE = true;
-var REQUIRED    = true;
 
-var ContentIterator = JS2.Class.extend({
+var Validator = JS2.Class.extend({
   initialize: function(content) {
-    this.idx = 0;
-    this.tokens = content;
+    this.content = content;
   },
 
-  isa: function(type) {
-    return this.peek()[1] == type ? true : this.peek()[0] == type; 
-  },
+  validate: function(regex, n) {
+    var str = this.getString(n);
+    var m   = regex.exec(str);
+    if (!m) return false;
 
-  peek: function() {
-    return this.tokens[this.idx] || [];
-  },
+    var ret = [ m ];
+    var cIdx = 0;
+    for (var i=1; i<=m.length; i++) {
+      while (this.content[cIdx] && this.content[cIdx][1] == IDS.COMMENT) cIdx++;
 
-  toString: function() {
-    var next, ret = [];
-    while(next = this.next()) {
-      ret.push(next[0].toString());
-    }
-    return ret.join('');
-  },
-
-  next: function(chompSpace, n) {
-    n = n || 1;
-
-    var ret;
-    while (n-- > 0) {
-      ret = this.tokens[this.idx++];
-      if (chompSpace) {
-        var peek = this.peek(); 
-        while (peek = this.peek() && peek[1] == IDS.SPACE && this.idx++) { }
+      if (!m[i] || m[i].length == 0) {
+        ret.push('');
+      } else {
+        ret.push(this.content[cIdx++][0]);
       }
     }
 
+    if (n == null) {
+      var last = [];
+      while (cIdx<this.content.length) {
+        last.push(this.content[cIdx++][0].toString()); 
+      }
+
+      ret.last = last.join('');
+    }
     return ret;
   },
 
-  nextSpace: function(req) {
-    var isSpace = this.peek()[1] == IDS.SPACE;
-    if (req) console.log('Space required, but does not exist.');
-    return isSpace ? this.next() : '';
+  getString: function(n) {
+    n = n ? n : this.content.length;
+    var ret = [];
+
+    for (var i=0; i<n; i++) {
+      var token = this.content[i];
+      if (! token) break;
+      var str = this.getTokenString(token);
+      if (str != null) ret.push(str);
+    }
+
+    return ret.join('');
+  },
+
+  getTokenString: function(token) {
+    if (token[1] == IDS.COMMENT) {
+      return null;
+    } else if (token[0] in KEYWORDS) {
+      return token[0];
+    } else if (token[1] == IDS.SPACE) {
+      return token[0];
+    } else if (token[1] == IDS.IDENT) {
+      return 'I';
+    } else if (typeof token[0] == 'object') {
+      return token[0].name;
+    } else if (typeof token[0] == 'string') {
+      return token[0];
+    }  
   }
 });
 
@@ -71,7 +90,6 @@ var Content = JS2.Class.extend({
     this.curlyCount = tokens.curlyCount;
     this.braceCount = tokens.braceCount;
     this.content = [];
-    this.it = new ContentIterator(this.content);
     this.tokens = tokens;
     this.handOffs = [];
 
@@ -82,6 +100,7 @@ var Content = JS2.Class.extend({
     while (!this.tokens.empty() && !this.closed) {
       var token = this.tokens.peek();
       var klass = this.handOff(token);
+      if (this.closed) break;
 
       if (klass) {
         this.handOffs.push(this.newNode(klass, this.tokens));
@@ -94,13 +113,16 @@ var Content = JS2.Class.extend({
     }    
   },
 
-  handleToken: function(token) {
-  },
+  handleToken: function(token) {},
 
   newNode: function(klass, tokens) {
     var node = new klass(tokens); 
     this.content.push([ node, IDS.NODE ]);
     return node;
+  },
+
+  validate: function(regex) {
+    return (new Validator(this.content)).validate(regex);
   },
 
   handOff: function(token) {
@@ -114,9 +136,8 @@ var Content = JS2.Class.extend({
 
   toString: function() {
     var ret = [];
-    var token = null;
-    while (token = this.it.next()) {
-      ret.push(token[0].toString()); 
+    for (var i=0; i<this.content.length; i++) {
+      ret.push(this.content[i][0].toString()); 
     }
     return ret.join('');
   }
@@ -132,11 +153,8 @@ var Klass = Content.extend({
   }, 
 
   toString: function() {
-    var klass = this.it.next(CHOMP_SPACE);
-    var name  = this.it.next(CHOMP_SPACE);
-    var block = this.it.next();
-
-    return "var " + name[0] + "=(function() { return JS2.Class.extend(" + block[0].toString() + ")();";
+    var v  = this.validate(/(class)(\s+)(I)(\s*)/);
+    return "var " + v[3] + "=(function() { return JS2.Class.extend(" + v.last + ")();";
   }
 });
 
@@ -183,9 +201,8 @@ var Method = Content.extend({
   },
 
   toString: function () {
-    var it = this.it;
-    var name = it.next(CHOMP_SPACE, 2)[0];
-    return name + ':' + "function" + this.handOffs[0].toString() + this.handOffs[1].toString() + ',';
+    var v  = this.validate(/(function)(\s+)(I)(\s*)/);
+    return v[1] + ':' + "function" + v.last + ',';
   }
 });
 
@@ -196,15 +213,8 @@ var Member = Content.extend({
   },
 
   toString: function () {
-    var it = this.it;
-    var name = it.next(CHOMP_SPACE, 2)[0];
-    var token;
-    var tokens = []
-    it.next(CHOMP_SPACE);
-    while (token = it.next()) {
-      tokens.push(token[0]);
-    }
-    return '"' + name + '":' + tokens.join('').replace(/;$/, ',');
+    var v = this.validate(/(var)(\s+)(I)(\s*)=(\s*)/);
+    return '"' + v[3] + '":' + v.last + ',';
   }
 });
 
@@ -233,8 +243,8 @@ var Foreach = Content.extend({
   },
 
   toString: function() {
-    var brace = this.getBrace(this.it.next(CHOMP_SPACE, 2)[0]);
-    return "for" + brace + this.it.toString();
+    var v = this.validate(/(foreach)(\s*)(Braces)(\s*)(Block)/);
+    return "for" + this.getBrace(v[3]) + v[5].toString();
   },
 
   getBrace: function(brace) {
@@ -243,13 +253,11 @@ var Foreach = Content.extend({
     var collectionName = "_c" + n;
     var l = "_l" + n;
 
-    var holder = brace.it.next(CHOMP_SPACE, 3)[0];
-    brace.it.next(CHOMP_SPACE, 1);
+    var v = brace.validate(/(\()(\s*)(var)(\s+)(I)(\s+)(in)(\s+)/);
+    if (!v) return '';
 
-    var temp = [];
-    for (var ele; ele=brace.it.next(); temp.push(ele[0])) {};
-    temp.pop();
-    var collection = temp.join('');
+    var holder = v[5];
+    var collection = v.last.replace(/\)$/, '');
 
     return "(var " + iteratorName + "=0," +
             collectionName + "=" + collection + "," +
@@ -288,7 +296,12 @@ var ShortFunct = Content.extend({
 var Curry = Content.extend({
   name: "Curry",
   handOff: function(token) {
-    if (this.started) this.closed = true;
+    if (this.started) {
+      var v = (new Validator(this.tokens.toArray())).validate(/^(\s*)([\w$]+)/, 2);
+      if (v) this.addSemiColon = true;
+      this.closed = true;
+    }
+
     if (this.nbraces == null) this.nbraces = 0;
 
     switch (token[0]) {
@@ -299,22 +312,26 @@ var Curry = Content.extend({
   },
 
   toString: function() {
-    var ret = ['(function () { return function']; 
-    this.it.next(CHOMP_SPACE, this.nbraces+2);
-    var block = this.it.next(CHOMP_SPACE)[0];
+    var v = this.validate(/(curry)(\s*)(Braces)?(\s*)(with)?(\s*)(Braces)?(\s*)(Block)/);
+    var ret = [ '(function(){return function'];
 
-    var i = 0;
-    if ((this.nbraces == 1 && !this.hasWith) | (this.nbraces == 2)) {
-      ret.push(this.handOffs[i++].toString());
-    } else {
-      ret.push("($1,$2,$3)");
-    }
+    // args
+    ret.push(v[3] ? v[3].toString() : '($1,$2,$3)');
 
-    ret.push(block.toString());
+    // block
+    ret.push(v[9].toString());
+
+    // close outer block
     ret.push("})");
-    ret.push(this.hasWith ? this.handOffs[i].toString() : "()");
+
+    // scope
+    ret.push(v[5] ? v[7].toString() : "()");
+
+    if (this.addSemiColon) ret.push(';');
 
     return ret.join('');
   }
 });
 
+//console.log(Parser.parse("class Foobar { function foo () { } var bar = 'hello'; } foreach(var ele in foo){} foo %{foobar#{bar} #{foo}} yo").toString());
+//console.log(Parser.parse("class Foobar { }").toString());
