@@ -1,6 +1,5 @@
-JS2 = (function () {
+var JS2 = (function () {
   var JS2 = {};
-  JS2.MODE = 'node';
   // CLASS HELPERS
 (function (undefined, JS2) {
   JS2.Class = function () { this.initialize.apply(this, arguments) };

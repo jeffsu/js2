@@ -1,4 +1,6 @@
-(function () {
+var JS2 = (function () {
+  var JS2 = {};
+  JS2.MODE = 'web';
   // CLASS HELPERS
 (function (undefined, JS2) {
   JS2.Class = function () { this.initialize.apply(this, arguments) };
@@ -83,4 +85,5 @@
   return JS2;
 })(undefined, JS2);
 
+  return JS2;
 });

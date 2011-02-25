@@ -210,8 +210,11 @@
     },
 
     toString: function () {
-      var v = this.validate(/(var)(\s+)(I)(\s*)=(\s*)/);
-      return '"' + v[3] + '":' + v.last + ',';
+      var v = this.validate(/(var)(\s+)(I)(\s*)(=)?(\s*)/);
+      var last = v.last.replace(/;$/, '');
+      if (last.length == 0) last = 'null';
+
+      return '"' + v[3] + '":' + last + ',';
     }
   });
 
@@ -330,4 +333,8 @@
     }
   });
   JS2.Parser = Parser;
-)(undefined, JS2);
+  JS2.require = function(file) {
+    var str = JS2.Parser.parseFile(file).toString(); 
+    eval(str);
+  }
+})(undefined, JS2);

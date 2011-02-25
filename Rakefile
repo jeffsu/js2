@@ -1,23 +1,17 @@
 require 'erb'
 namespace :test do
-  task :default => :run
-
   desc "test everything"
-  task :run do
-    Dir["./tests/*.js2"].each do |file|
-      js2 = `node scripts/compile.js #{file}`
-      js  = `cat #{file.chop}`
-      puts "#{file} #{js2 == js ? 'PASSED' : 'FAILED'}"
-    end
+  task :run => :dist  do
+    sh "node scripts/run.js ./tests/#{ENV['TEST']}.js2"
   end
 
   desc "show compilation TEST=test1"
-  task :compile do
+  task :compile => :dist do
     sh "node scripts/compile.js ./tests/#{ENV['TEST']}.js2"
   end
 
   desc "freeze test compilation"
-  task :freeze do
+  task :freeze => :dist do
     sh "node scripts/compile.js ./tests/#{ENV['TEST']}.js2 > ./tests/#{ENV['TEST']}.js"
   end
 end
