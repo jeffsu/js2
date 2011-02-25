@@ -47,6 +47,12 @@ JS2.Lexer = (function () {
     return -1;
   }
 
+  var KEYWORDS = {
+    'var': null,
+    'function': null,
+    'curry': null
+  }
+
   var TOKENS = [ 
     [ 'SPACE', "\\s+" ],
     [ 'REGEX', "\\/", function(str) { var m = REGEX_REGEX.exec(str); if (m) return m[0] } ],

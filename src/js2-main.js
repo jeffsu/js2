@@ -3,44 +3,61 @@ require('./js2-lexer');
 
 var IDS = JS2.Lexer.IDS;
 IDS['NODE'] = -1;
+var KEYWORDS = { 'var': null, 'class': null };
+
 
 var CHOMP_SPACE = true;
 var REQUIRED    = true;
 
-
-var ContentIterator = JS2.Class.extend({
+var Validator = JS2.Class.extend({
   initialize: function(content) {
-    this.idx = 0;
-    this.tokens = content;
+    this.content = content;
   },
 
-  isa: function(type) {
-    return this.peek()[1] == type ? true : this.peek()[0] == type; 
-  },
+  validate: function(regex) {
+    var str = this.getString();
+    var m   = regex.exec(str);
+    if (!m) return false;
 
-  peek: function() {
-    return this.tokens[this.idx] || [];
-  },
-
-  next: function(chompSpace, n) {
-    n = n || 1;
-
-    var ret;
-    while (n-- > 0) {
-      ret = this.tokens[this.idx++];
-      if (chompSpace) {
-        var peek = this.peek(); 
-        while (peek = this.peek() && peek[1] == IDS.SPACE && this.idx++) { }
+    var ret = [ m ];
+    var cIdx = 0;
+    for (var i=1; i<=m.length; i++) {
+      if (!m[i] || m[i].length == 0) {
+        ret.push('');
+      } else {
+        ret.push(this.content[cIdx++][0]);
       }
     }
 
+    var last = [];
+    while (cIdx<this.content.length) {
+      last.push(this.content[cIdx++][0].toString()); 
+    }
+
+    ret.last = last.join('');
     return ret;
   },
 
-  nextSpace: function(req) {
-    var isSpace = this.peek()[1] == IDS.SPACE;
-    if (req) console.log('Space required, but does not exist.');
-    return isSpace ? this.next() : '';
+  getString: function() {
+    var ret = [];
+
+    for (var i=0; i<this.content.length; i++) {
+      ret.push(this.getTokenString(this.content[i]));
+    }
+
+    return ret.join('');
+  },
+
+  getTokenString: function(token) {
+    if (token[0] in KEYWORDS) {
+      return token[0];
+    } else if (token[1] == IDS.SPACE) {
+      return token[0];
+    } else if (token[1] == IDS.IDENT) {
+      return 'I';
+    } else {
+      return token[0];
+    }  
   }
 });
 
@@ -59,7 +76,6 @@ var Content = JS2.Class.extend({
     this.curlyCount = tokens.curlyCount;
     this.braceCount = tokens.braceCount;
     this.content = [];
-    this.it = new ContentIterator(this.content);
     this.tokens = tokens;
     this.handOffs = [];
 
@@ -91,6 +107,10 @@ var Content = JS2.Class.extend({
     return node;
   },
 
+  validate: function(regex) {
+    return (new Validator(this.content)).validate(regex);
+  },
+
   handOff: function(token) {
     switch (token[1]) {
       case IDS.CLASS: return Klass;
@@ -101,9 +121,8 @@ var Content = JS2.Class.extend({
 
   toString: function() {
     var ret = [];
-    var token = null;
-    while (token = this.it.next()) {
-      ret.push(token[0].toString()); 
+    for (var i=0; i<this.content.length; i++) {
+      ret.push(this.content[i][0].toString()); 
     }
     return ret.join('');
   }
@@ -119,11 +138,8 @@ var Klass = Content.extend({
   }, 
 
   toString: function() {
-    var klass = this.it.next(CHOMP_SPACE);
-    var name  = this.it.next(CHOMP_SPACE);
-    var block = this.it.next();
-
-    return "var " + name[0] + "=(function() { return JS2.Class.extend(" + block[0].toString() + ")();";
+    var v  = this.validate(/(class)(\s+)(I)(\s*)/);
+    return "var " + v[3] + "=(function() { return JS2.Class.extend(" + v.last + ")();";
   }
 });
 
@@ -270,4 +286,5 @@ var ShortFunct = Content.extend({
   }
 });
 
-console.log(Parser.parse("class Foobar { function foo () { } var bar = 'hello'; } foreach(var ele in foo){} foo %{foobar#{bar} #{foo}} yo").toString());
+//console.log(Parser.parse("class Foobar { function foo () { } var bar = 'hello'; } foreach(var ele in foo){} foo %{foobar#{bar} #{foo}} yo").toString());
+console.log(Parser.parse("class Foobar { }").toString());
