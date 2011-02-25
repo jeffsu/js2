@@ -1,4 +1,4 @@
-JS2.Lexer = (function () {
+(function (undefined, JS2) {
   var SSTRING_REGEX = /^'[^\\']*(?:\\.[^\\']*)*'/s;
   var DSTRING_REGEX = /^"[^\\"]*(?:\\.[^\\']*)*"/s;
   var REGEX_REGEX   = /^\/(?!\s)[^[\/\n\\]*(?:(?:\\[\s\S]|\[[^\]\n\\]*(?:\\[\s\S][^\]\n\\]*)*])[^[\/\n\\]*)*\/[imgy]{0,4}(?!\w)/s;
@@ -63,12 +63,6 @@ JS2.Lexer = (function () {
     }
 
     return -1;
-  }
-
-  var KEYWORDS = {
-    'var': null,
-    'function': null,
-    'curry': null
   }
 
   var TOKENS = [ 
@@ -193,8 +187,6 @@ JS2.Lexer = (function () {
   });
 
   Lexer.IDS = IDS;
-
-  var l = new Lexer();
-  return Lexer;
-})();
+  JS2.Lexer = Lexer;
+})(undefined, JS2);
 

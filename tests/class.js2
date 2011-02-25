@@ -1,0 +1,18 @@
+class Test1 {
+  var member = "member";
+  var regexMember = /member/;
+
+  function method() {
+    foreach (var i in j.stuffs) {
+      alert('method');
+      foreach (var f in k.stuffs) {
+
+      }
+    }
+    alert('hi');
+    curry (foo) with (scope) {
+
+    }
+  }
+
+}

@@ -1,0 +1,11 @@
+curry with (scope) {
+
+}
+
+curry (arg1) with (scope) {
+
+}
+
+curry (arg1) {
+
+}

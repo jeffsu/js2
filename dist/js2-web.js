@@ -1,4 +1,5 @@
-// CLASS HELPERS
+(function () {
+  // CLASS HELPERS
 (function (undefined, JS2) {
   JS2.Class = function () { this.initialize.apply(this, arguments) };
 
@@ -81,3 +82,5 @@
 
   return JS2;
 })(undefined, JS2);
+
+});
