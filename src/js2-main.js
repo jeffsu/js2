@@ -21,7 +21,6 @@ IDS['NODE'] = -1;
 var CHOMP_SPACE = true;
 var REQUIRED    = true;
 
-
 var ContentIterator = JS2.Class.extend({
   initialize: function(content) {
     this.idx = 0;
@@ -109,6 +108,7 @@ var Content = JS2.Class.extend({
       case IDS.CLASS: return Klass;
       case IDS.FOREACH: return Foreach;
       case IDS.SHORT_FUNCT: return ShortFunct;
+      case IDS.CURRY: return Curry;
     }
   },
 
@@ -281,6 +281,39 @@ var ShortFunct = Content.extend({
 
     ret.push(this.handOffs[i].toString());
     return '';
+    return ret.join('');
+  }
+});
+
+var Curry = Content.extend({
+  name: "Curry",
+  handOff: function(token) {
+    if (this.started) this.closed = true;
+    if (this.nbraces == null) this.nbraces = 0;
+
+    switch (token[0]) {
+      case '(': this.nbraces++; return Braces;
+      case '{': this.started = true; return Block;
+      case 'with': this.hasWith = true;
+    }
+  },
+
+  toString: function() {
+    var ret = ['(function () { return function']; 
+    this.it.next(CHOMP_SPACE, this.nbraces+2);
+    var block = this.it.next(CHOMP_SPACE)[0];
+
+    var i = 0;
+    if ((this.nbraces == 1 && !this.hasWith) | (this.nbraces == 2)) {
+      ret.push(this.handOffs[i++].toString());
+    } else {
+      ret.push("($1,$2,$3)");
+    }
+
+    ret.push(block.toString());
+    ret.push("})");
+    ret.push(this.hasWith ? this.handOffs[i].toString() : "()");
+
     return ret.join('');
   }
 });

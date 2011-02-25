@@ -10,8 +10,6 @@ class Test1 {
       }
     }
     alert('hi');
-    yo
-
     curry (foo) with (scope) {
 
     }
