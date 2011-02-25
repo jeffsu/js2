@@ -3,7 +3,7 @@ require('./js2-lexer');
 
 var IDS = JS2.Lexer.IDS;
 IDS['NODE'] = -1;
-var KEYWORDS = { 'var': null, 'class': null };
+var KEYWORDS = { 'var': null, 'class': null, 'function': null, 'in': null };
 
 
 var CHOMP_SPACE = true;
@@ -186,9 +186,8 @@ var Method = Content.extend({
   },
 
   toString: function () {
-    var it = this.it;
-    var name = it.next(CHOMP_SPACE, 2)[0];
-    return name + ':' + "function" + this.handOffs[0].toString() + this.handOffs[1].toString() + ',';
+    var v  = this.validate(/(function)(\s+)(I)(\s*)/);
+    return v[1] + ':' + "function" + v.last + ',';
   }
 });
 
@@ -199,15 +198,8 @@ var Member = Content.extend({
   },
 
   toString: function () {
-    var it = this.it;
-    var name = it.next(CHOMP_SPACE, 2)[0];
-    var token;
-    var tokens = []
-    it.next(CHOMP_SPACE);
-    while (token = it.next()) {
-      tokens.push(token[0]);
-    }
-    return '"' + name + '":' + tokens.join('') + ',';
+    var v = this.validate(/(var)(\s+)(I)(\s*)=(\s*)/);
+    return '"' + v[2] + '":' + v.last + ',';
   }
 });
 
@@ -244,13 +236,11 @@ var Foreach = Content.extend({
     var collectionName = "_c" + n;
     var l = "_l" + n;
 
-    var holder = brace.it.next(CHOMP_SPACE, 3)[0];
-    brace.it.next(CHOMP_SPACE, 1);
+    var v = brace.validate(/(\()(\s*)(var)(\s+)(I)(\s+)(in)(\s+)/);
+    if (!v) return '';
 
-    var temp = [];
-    for (var ele; ele=brace.it.next(); temp.push(ele[0])) {};
-    temp.pop();
-    var collection = temp.join('');
+    var holder = v[5];
+    var collection = v.last.replace(/\)$/, '');
 
     return "(var " + iteratorName + "=0," +
             collectionName + "=" + collection + "," +
@@ -286,5 +276,5 @@ var ShortFunct = Content.extend({
   }
 });
 
-//console.log(Parser.parse("class Foobar { function foo () { } var bar = 'hello'; } foreach(var ele in foo){} foo %{foobar#{bar} #{foo}} yo").toString());
+console.log(Parser.parse("class Foobar { function foo () { } var bar = 'hello'; } foreach(var ele in foo){} foo %{foobar#{bar} #{foo}} yo").toString());
 console.log(Parser.parse("class Foobar { }").toString());
