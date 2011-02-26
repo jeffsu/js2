@@ -3,8 +3,8 @@ var JS2 = (function () {
   // CLASS HELPERS
 (function (undefined, JS2) {
   JS2.Class = function () { this.initialize.apply(this, arguments) };
-  JS2.test = function (funct) {
-    funct(assert); 
+  JS2.assertEquals = function (left, right) {
+    if (left != right) console.log("Expected "+left+" but got "+right+".");
   };
 
   function AssertException(message) { this.message = message; }
@@ -316,7 +316,6 @@ var JS2 = (function () {
 
     validate: function(regex, n) {
       var str = this.getString(n);
-      console.log(str);
       var m   = regex.exec(str);
       if (!m) return false;
 
@@ -573,18 +572,8 @@ var JS2 = (function () {
     },
 
     toString: function() {
-      var v = this.validate(/(I)(\s*)(\s)/);
-      var ret = ['function']; 
-      var i = 0;
-      if (this.hasBrace) {
-        ret.push(this.handOffs[i++].toString());
-      } else {
-        ret.push("($1,$2,$3)");
-      }
-
-      ret.push(this.handOffs[i].toString());
-      return '';
-      return ret.join('');
+      var v = this.validate(/(->)(\s*)(Braces)?(\s*)(Block)/);
+      return (v[1] == '->' ? '' : '=') + "function" + (v[3] ? v[3] : "($1,$2,$3)") + v[5];
     }
   });
 
@@ -627,6 +616,7 @@ var JS2 = (function () {
       return ret.join('');
     }
   });
+
   JS2.Parser = Parser;
   JS2.require = function(file) {
     var str = JS2.Parser.parseFile(file).toString(); 

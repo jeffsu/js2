@@ -3,12 +3,10 @@ class Test1 {
   var regexMember = /member/;
   var stuffs      = [ 'hello', 'world' ];
 
-  function 
-    getStuffs
-    (foo
-     
-     ) {
+  function getStuffs () {
     return this.stuffs;
   }
 }
 
+var test = new Test1(); 
+JS2.assertEquals(test.getStuffs()[0], 'hello2');

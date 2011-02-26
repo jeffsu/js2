@@ -1,8 +1,8 @@
 // CLASS HELPERS
 (function (undefined, JS2) {
   JS2.Class = function () { this.initialize.apply(this, arguments) };
-  JS2.test = function (funct) {
-    funct(assert); 
+  JS2.assertEquals = function (left, right) {
+    if (left != right) console.log("Expected "+left+" but got "+right+".");
   };
 
   function AssertException(message) { this.message = message; }

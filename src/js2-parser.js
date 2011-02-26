@@ -280,18 +280,8 @@
     },
 
     toString: function() {
-      var v = this.validate(/(I)(\s*)(\s)/);
-      var ret = ['function']; 
-      var i = 0;
-      if (this.hasBrace) {
-        ret.push(this.handOffs[i++].toString());
-      } else {
-        ret.push("($1,$2,$3)");
-      }
-
-      ret.push(this.handOffs[i].toString());
-      return '';
-      return ret.join('');
+      var v = this.validate(/(->)(\s*)(Braces)?(\s*)(Block)/);
+      return (v[1] == '->' ? '' : '=') + "function" + (v[3] ? v[3] : "($1,$2,$3)") + v[5];
     }
   });
 
@@ -334,6 +324,7 @@
       return ret.join('');
     }
   });
+
   JS2.Parser = Parser;
   JS2.require = function(file) {
     var str = JS2.Parser.parseFile(file).toString(); 
