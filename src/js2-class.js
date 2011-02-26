@@ -1,6 +1,20 @@
 // CLASS HELPERS
 (function (undefined, JS2) {
   JS2.Class = function () { this.initialize.apply(this, arguments) };
+  JS2.test = function (funct) {
+    funct(assert); 
+  };
+
+  function AssertException(message) { this.message = message; }
+  AssertException.prototype.toString = function () {
+    return 'AssertException: ' + this.message;
+  }
+
+  function assert(exp, message) {
+    if (!exp) {
+      throw new AssertException(message);
+    }
+  }
 
   function _super () {
     var s = arguments.callee.caller._super;

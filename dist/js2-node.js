@@ -4,6 +4,20 @@ JS2 = (function () {
   // CLASS HELPERS
 (function (undefined, JS2) {
   JS2.Class = function () { this.initialize.apply(this, arguments) };
+  JS2.test = function (funct) {
+    funct(assert); 
+  };
+
+  function AssertException(message) { this.message = message; }
+  AssertException.prototype.toString = function () {
+    return 'AssertException: ' + this.message;
+  }
+
+  function assert(exp, message) {
+    if (!exp) {
+      throw new AssertException(message);
+    }
+  }
 
   function _super () {
     var s = arguments.callee.caller._super;
@@ -157,8 +171,7 @@ JS2 = (function () {
     [ 'SPACE', "\\s+" ],
     [ 'REGEX', "\\/", function(str) { var m = REGEX_REGEX.exec(str); if (m) return m[0] } ],
     [ 'CLASS', "class" ],
-    [ 'SHORT_FUNCT_ASSIGN', "=>" ],
-    [ 'SHORT_FUNCT', "->" ],
+    [ 'SHORT_FUNCT', "->|=>" ],
     [ 'FOREACH', "foreach" ],
     [ 'CURRY', "curry" ],
     [ 'IDENT', "[\\w$]+" ],
@@ -350,7 +363,7 @@ JS2 = (function () {
       } else if (token[0] in KEYWORDS) {
         return token[0];
       } else if (token[1] == IDS.SPACE) {
-        return token[0];
+        return token[0].replace(/\n/g, '');
       } else if (token[1] == IDS.IDENT) {
         return 'I';
       } else if (typeof token[0] == 'object') {
@@ -431,7 +444,7 @@ JS2 = (function () {
 
     toString: function() {
       var v  = this.validate(/(class)(\s+)(I)(\s*)/);
-      return "var " + v[3] + "=(function() { return JS2.Class.extend(" + v.last + ")();";
+      return "var " + v[3] + "=(function() { return JS2.Class.extend(" + v.last + ")})();";
     }
   });
 
@@ -552,13 +565,15 @@ JS2 = (function () {
   var ShortFunct = Content.extend({
     name: "ShortFunct",
     handOff: function(token) {
+      if (this.started) this.closed;
       switch (token[0]) {
-        case '(': this.hasBrace = true; return Braces;
+        case '(': return Braces;
         case '{': this.started = true; return Block;
       }
     },
 
     toString: function() {
+      var v = this.validate(/(I)(\s*)(\s)/);
       var ret = ['function']; 
       var i = 0;
       if (this.hasBrace) {

@@ -70,7 +70,7 @@
       } else if (token[0] in KEYWORDS) {
         return token[0];
       } else if (token[1] == IDS.SPACE) {
-        return token[0];
+        return token[0].replace(/\n/g, '');
       } else if (token[1] == IDS.IDENT) {
         return 'I';
       } else if (typeof token[0] == 'object') {
@@ -151,7 +151,7 @@
 
     toString: function() {
       var v  = this.validate(/(class)(\s+)(I)(\s*)/);
-      return "var " + v[3] + "=(function() { return JS2.Class.extend(" + v.last + ")();";
+      return "var " + v[3] + "=(function() { return JS2.Class.extend(" + v.last + ")})();";
     }
   });
 
@@ -272,13 +272,15 @@
   var ShortFunct = Content.extend({
     name: "ShortFunct",
     handOff: function(token) {
+      if (this.started) this.closed;
       switch (token[0]) {
-        case '(': this.hasBrace = true; return Braces;
+        case '(': return Braces;
         case '{': this.started = true; return Block;
       }
     },
 
     toString: function() {
+      var v = this.validate(/(I)(\s*)(\s)/);
       var ret = ['function']; 
       var i = 0;
       if (this.hasBrace) {
