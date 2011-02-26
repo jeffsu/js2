@@ -316,6 +316,7 @@ var JS2 = (function () {
 
     validate: function(regex, n) {
       var str = this.getString(n);
+      console.log(str);
       var m   = regex.exec(str);
       if (!m) return false;
 
@@ -362,7 +363,7 @@ var JS2 = (function () {
       } else if (token[0] in KEYWORDS) {
         return token[0];
       } else if (token[1] == IDS.SPACE) {
-        return token[0].replace(/\n/g, '');
+        return token[0];
       } else if (token[1] == IDS.IDENT) {
         return 'I';
       } else if (typeof token[0] == 'object') {
@@ -490,8 +491,8 @@ var JS2 = (function () {
     },
 
     toString: function () {
-      var v  = this.validate(/(function)(\s+)(I)(\s*)/);
-      return v[1] + ':' + "function" + v.last + ',';
+      var v  = this.validate(/^(function)(\s+)(I)(\s*)(Braces)(\s*)(Block)/);
+      return v[3] + ':' + "function" + v[2] + v[5] + ' ' + v[7] + ',';
     }
   });
 

@@ -4,8 +4,10 @@ class Test1 {
   var stuffs      = [ 'hello', 'world' ];
 
   function 
-    
-    getStuffs() {
+    getStuffs
+    (foo
+     
+     ) {
     return this.stuffs;
   }
 }
