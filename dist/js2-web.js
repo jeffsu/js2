@@ -1,35 +1,32 @@
 var JS2 = (function () {
   var JS2 = {};
   JS2.MODE = 'web';
+
   // CLASS HELPERS
 (function (undefined, JS2) {
   JS2.Class = function () { this.initialize.apply(this, arguments) };
+
   JS2.assertEquals = function (left, right) {
     if (left != right) console.log("Expected "+left+" but got "+right+".");
   };
-
-  function AssertException(message) { this.message = message; }
-  AssertException.prototype.toString = function () {
-    return 'AssertException: ' + this.message;
-  }
-
-  function assert(exp, message) {
-    if (!exp) {
-      throw new AssertException(message);
-    }
-  }
 
   function _super () {
     var s = arguments.callee.caller._super;
     if (s) return s.apply(this, arguments);
   };
 
+  function create(o) {
+    function F() {};
+    F.prototype = o;
+    return new F();
+  }
+
   JS2.Class.prototype.initialize = function () {};
 
   JS2.Class.extend = function (klassDef, name) {
     // TODO make more efficient
     var ret   = function () { this.initialize.apply(this, arguments) };
-    var proto = Object.create(this.prototype);
+    var proto = create(this.prototype);
     ret.prototype = proto;
 
     for (var k in this) {
@@ -43,7 +40,7 @@ var JS2 = (function () {
       } 
     }  
 
-    if (! 'initialize' in ret.prototype) {
+    if (! 'initialize' in proto) {
       proto.initialize = function () {}; 
     }
 
@@ -98,6 +95,7 @@ var JS2 = (function () {
 
   return JS2;
 })(undefined, JS2);
+
 
   return JS2;
 });

@@ -330,4 +330,5 @@
     var str = JS2.Parser.parseFile(file).toString(); 
     eval(str);
   }
+  JS2.parse = function(str) { return this.Parser.parse(str); };
 })(undefined, JS2);

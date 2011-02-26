@@ -1,0 +1,11 @@
+%h1 Welcome to JS2
+%script{ :src => 'js2-parser.js' }
+%script{ :src => 'jquery.js' }
+:javascript
+  function start() {
+    $.get('/hello.js2', {}, function (data, status, resp) {
+      alert(JS2.parse(resp.responseText).toString());
+    });
+  }
+
+  start();

@@ -1,10 +1,10 @@
 (function (undefined, JS2) {
-  var SSTRING_REGEX = /^'[^\\']*(?:\\.[^\\']*)*'/s;
-  var DSTRING_REGEX = /^"[^\\"]*(?:\\.[^\\']*)*"/s;
-  var REGEX_REGEX   = /^\/(?!\s)[^[\/\n\\]*(?:(?:\\[\s\S]|\[[^\]\n\\]*(?:\\[\s\S][^\]\n\\]*)*])[^[\/\n\\]*)*\/[imgy]{0,4}(?!\w)/s;
+  var SSTRING_REGEX = /^'[^\\']*(?:\\.[^\\']*)*'/;
+  var DSTRING_REGEX = /^"[^\\"]*(?:\\.[^\\']*)*"/;
+  var REGEX_REGEX   = /^\/(?!\s)[^[\/\n\\]*(?:(?:\\[\s\S]|\[[^\]\n\\]*(?:\\[\s\S][^\]\n\\]*)*])[^[\/\n\\]*)*\/[imgy]{0,4}(?!\w)/;
 
-  var ISTRING_REGEX     = /^(%\{|})([^\\{]*(?:\\.[^\\']*)*)(#\{|})/s;
-  var ISTRING_REGEX_FIN = /^(%\{|})[^\\"]*(?:\\.[^\\']*)*(})/s;
+  var ISTRING_REGEX     = /^(%\{|})([^\\{]*(?:\\.[^\\']*)*)(#\{|})/;
+  var ISTRING_REGEX_FIN = /^(%\{|})[^\\"]*(?:\\.[^\\']*)*(})/;
 
   function comment(str, lexer) {
     var m = str.match(/^\/\/.*/);
@@ -163,7 +163,7 @@
     },
 
     chomp: function(str) {
-      this.str = this.str.substr(str.length);
+      this.str = this.str.toString().substr(str.length);
     },
 
     next: function(str) {

@@ -1,0 +1,5 @@
+class Hello {
+  function world() {
+    alert('hello world'); 
+  }
+}
