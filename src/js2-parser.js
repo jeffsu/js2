@@ -81,7 +81,7 @@
     }
   });
 
-  var Content = JS2.Class.extend('Content', {
+  JS2.Class.extend('Content', {
     name: 'Content',
     initialize: function(tokens) {
       this.curlyCount = tokens.curlyCount;
@@ -140,7 +140,7 @@
     }
   });
 
-  var Klass = Content.extend({
+  Content.extend('Klass', {
     name: 'Klass',
     handOff: function(token) {
       if (this.started) this.closed = true;
@@ -151,11 +151,11 @@
 
     toString: function() {
       var v  = this.validate(/(class)(\s+)(I)(\s*)/);
-      return "var " + v[3] + "=(function() { return JS2.Class.extend('"+v[3]+"'," + v.last + ")})();";
+      return "(function() { var Klass=JS2.Class.extend('"+v[3]+"'," + v.last + "); return Klass;})();";
     }
   });
 
-  var Block = Content.extend({
+  Content.extend('Content', {
     name: 'Block',
     handleToken: function(token) {
       if (this.tokens.isBalancedCurly(this) && token[0] == '}') {
@@ -164,7 +164,7 @@
     } 
   });
 
-  var KlassBlock = Block.extend({
+  Block.extend('KlassBlock', {
     name: 'KlassBlock',
     handOff: function(token) {
       switch (token[0]) {
@@ -185,7 +185,7 @@
     } 
   });
 
-  var Method = Content.extend({
+  Content.extend('Method', {
     name: 'Method',
     handOff: function(token) {
       if (this.started) this.closed = true;
@@ -203,7 +203,7 @@
     }
   });
 
-  var Member = Content.extend({
+  Content.extend('Member', {
     name: 'Member',
     handleToken: function(token) {
       if (token[0] == ';') this.closed = true;
@@ -220,7 +220,7 @@
 
 
 
-  var Braces = Content.extend({
+  Content.extend('Braces', {
     name: 'Braces',
     handleToken: function(token) {
       if (this.tokens.isBalancedBrace(this) && token[0] == ')') {
@@ -229,7 +229,7 @@
     } 
   });
 
-  var Foreach = Content.extend({
+  Content.extend('Foreach', {
     cache: { count: 1 },
     name: 'Foreach',
     handOff: function(token) {

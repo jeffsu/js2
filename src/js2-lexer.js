@@ -1,4 +1,5 @@
 (function (undefined, JS2) {
+
   var SSTRING_REGEX = /^'[^\\']*(?:\\.[^\\']*)*'/;
   var DSTRING_REGEX = /^"[^\\"]*(?:\\.[^\\']*)*"/;
   var REGEX_REGEX   = /^\/(?!\s)[^[\/\n\\]*(?:(?:\\[\s\S]|\[[^\]\n\\]*(?:\\[\s\S][^\]\n\\]*)*])[^[\/\n\\]*)*\/[imgy]{0,4}(?!\w)/;
