@@ -1,8 +1,7 @@
-var JS2 = (function () {
+var JS2 = (function (root) {
   var JS2 = {};
   JS2.MODE = 'web';
-
-  <%= js2_class %>
-
+  JS2.ROOt = root;
+  <%= js 'js2-class.js' %>
   return JS2;
-});
+})(window);

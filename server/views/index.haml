@@ -1,11 +1,37 @@
-%h1 Welcome to JS2
-%script{ :src => 'js2-parser.js' }
-%script{ :src => 'jquery.js' }
-:javascript
-  function start() {
-    $.get('/hello.js2', {}, function (data, status, resp) {
-      alert(JS2.parse(resp.responseText).toString());
-    });
-  }
+!!!
+%html
+  %head
+    %link(rel="stylesheet" href="/blueprint/screen.css" type="text/css" media="screen, projection")
+    %link(rel="stylesheet" href="/blueprint/print.css" type="text/css" media="print")
+%body
+  .container
+    .span-12
+      %h1 Welcome to JS2
+      %p
+        %a(href="#" onclick="start(); return false;") Start
+        %code
+          :plain
+             function start() {
+               JS2.require("/hello.js2", function () { 
+                 var h = new Hello();
+                 h.world();
+               });
+             }
+      
 
-  start();
+  %script{ :src => 'js2-parser.js' }
+  %script{ :src => 'jquery.js' }
+  :javascript
+    function start() {
+      JS2.require("/hello.js2", function () { 
+        var h = new Hello();
+        h.world();
+      });
+    }
+  %style
+    :sass
+      code
+        display: block
+        border: 1px solid black
+        white-space: pre
+      

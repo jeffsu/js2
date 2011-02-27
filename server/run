@@ -6,7 +6,6 @@ require 'haml'
 set :public, './public'
 mime_type :js2, 'text'
 
-
 get '/' do
   haml :index
 end

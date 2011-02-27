@@ -18,11 +18,12 @@ end
 
 desc "ERBify all distributions"
 task :dist do
-  js2_class = nil
+  def js(f)
+    return File.read("./src/#{f}")
+  end
+
   core =  %W{ js2-class.js js2-lexer.js js2-parser.js }.collect do |f|
-    out = File.read("./src/#{f}")
-    js2_class = out if f.match(/js2-class\.js/)
-    out
+    js(f)
   end.join("\n");
 
   Dir["./dist-templates/*.erb"].each do |file|

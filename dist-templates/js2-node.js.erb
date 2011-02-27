@@ -1,6 +1,7 @@
-JS2 = (function () {
+JS2 = (function (root) {
   var JS2 = {};
   JS2.MODE = 'node';
+  JS2.ROOT = root;
   <%= core %>
   return JS2;
-})();
+})(this);

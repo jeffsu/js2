@@ -1,97 +1,127 @@
-var JS2 = (function () {
+var JS2 = (function (root) {
   var JS2 = {};
 
   JS2.MODE = 'web_parser';
+  JS2.ROOT = root;
   // CLASS HELPERS
 (function (undefined, JS2) {
-  JS2.Class = function () { this.initialize.apply(this, arguments) };
 
+  function $super () {
+    var s = arguments.callee.caller.$super;
+    if (s) return s.apply(this, arguments);
+  }
+
+  var OO = function (klass, par) {
+    this.klass = klass;
+    this.par   = par;
+
+    this['static'] = {
+      methods: {},
+      members: {},
+    };
+
+    this.methods  = {};
+    this.members  = {};
+    this.children = [];
+
+    if (this.par) this.par.oo.children.push(klass);
+  };
+
+  OO.prototype = {
+    forbiddenMembers: { 
+      'prototype': undefined, 
+      'oo': undefined 
+    },
+
+    createNamespace: function(name) {
+      var splitted = name.split('.');
+      var klassName = splitted.pop();
+      var root = JS2.ROOT;
+
+      while (splitted.length > 0) {
+        var name = splitted.shift();
+        if (!root[name]) {
+          root[name] = JS2.Class.extend({});
+        } 
+        root = root[name];
+      }
+
+      return [ root, klassName ];
+    },
+
+    addMember: function(name, member) {
+      if (this.forbiddenMembers.hasOwnProperty(name)) return;
+
+      var proto = this.klass.prototype;
+      if (typeof proto[name] == 'function') {
+        member.$super = proto[name];
+      }
+
+      proto[name] = member;
+    },
+
+    addStaticMember: function(name, member) {
+      if (this.forbiddenMembers.hasOwnProperty(name)) return;
+
+      if (typeof this.klass[name] == 'function') {
+        if (!this.klass.hasOwnProperty(name)) {
+          member.$super = this.klass[name];
+        }
+      }
+      
+      this.klass[name] = member;
+    }
+  };
+
+  JS2.Class = function() { this.initialize.apply(this, arguments); };
+  JS2.Class.oo = new OO(JS2.Class);
+  JS2.Class.prototype = {
+    initialize: function () {},
+    $super: $super,
+    oo: JS2.Class.oo
+  };
+
+  var noInit = false;
+  JS2.Class.extend = function(name, klassDef) {
+    var klass = function() { if (!noInit) this.initialize.apply(this, arguments); };
+    klass.oo  = new OO(klass, this);
+
+    if (typeof name != 'string') {
+      klassDef = name;
+    } else {
+      var namespace = this.oo.createNamespace(name);
+      namespace[0][namespace[1]] = klass;
+    }
+
+    // create instance of this as prototype for new this
+    noInit = true;
+    var proto = new this();
+    noInit = false;
+
+    klass.prototype = proto;
+    var oo   = klass.oo;
+    proto.oo = oo;
+
+    for (var name in klassDef) {
+      oo.addMember(name, klassDef[name]);
+    }
+
+    for (var name in this) {
+      oo.addStaticMember(name, this[name]);
+    }
+
+    return klass;
+  };
+
+  // simple test framework
   JS2.assertEquals = function (left, right) {
     if (left != right) console.log("Expected "+left+" but got "+right+".");
   };
 
-  function _super () {
-    var s = arguments.callee.caller._super;
-    if (s) return s.apply(this, arguments);
+  // simple test framework
+  JS2.assertEquals = function (left, right) {
+    if (left != right) console.log("Expected "+left+" but got "+right+".");
   };
-
-  function create(o) {
-    function F() {};
-    F.prototype = o;
-    return new F();
-  }
-
-  JS2.Class.prototype.initialize = function () {};
-
-  JS2.Class.extend = function (klassDef, name) {
-    // TODO make more efficient
-    var ret   = function () { this.initialize.apply(this, arguments) };
-    var proto = create(this.prototype);
-    ret.prototype = proto;
-
-    for (var k in this) {
-      if (this.hasOwnProperty(k)) ret[k] = this[k];
-    }
-
-    for (var k in klassDef) {
-      if (klassDef.hasOwnProperty(k)) {
-        if (proto[k]) klassDef[k]._super = proto[k];
-        proto[k] = klassDef[k];
-      } 
-    }  
-
-    if (! 'initialize' in proto) {
-      proto.initialize = function () {}; 
-    }
-
-    proto.super = _super;
-    return ret;
-  };
-
-  JS2.Class.addStaticMethod = function (name, method) {
-    if (this.hasOwnProperty(name)) {
-      method._super = this[name]._super;
-    } else if (this[name]) {
-      method._super = this[name];
-    }
-
-    this[name] = method;
-  };
-
-  JS2.Class.addMethod = function (name, method) {
-    // method exists, override
-    if (this.prototype.hasOwnProperty(name)) {
-      method._super = this.prototype[name]._super;
-    } 
-    
-    // inheritted method, use super
-    else if (this.prototype[name]) {
-      method._super = this.prototype[name];      
-    }
-
-    this.prototype[name] = method;
-  };
-
-  JS2.Class.include = function (mixin) {
-    var proto = ret.prototype;
-    var mixinProto = mixin.prototype;
-
-    for (var k in mixinProto) {
-      if (mixinProto.hasOwnProperty(k)) {
-        if (!proto.hasOwnProperty(k)) {
-          ret.prototype[k] = mixinProto[k];
-	      }
-      } 
-    }  
-
-    if (! 'initialize' in ret.prototype) {
-      ret.prototype.initialize = function () {}; 
-    }
-
-    ret.prototype.$super = _super;
-    return ret;
-  };
-
 
   return JS2;
 })(undefined, JS2);
@@ -244,7 +274,7 @@ var JS2 = (function () {
 
   });
 
-  var Lexer = JS2.Class.extend({
+  var Lexer = JS2.Class.extend('Lexer', {
     tokenize: function(str) {
       this.tokens = new Tokens();
       this.str    = str;
@@ -307,7 +337,7 @@ var JS2 = (function () {
   IDS['NODE'] = -1;
 
 
-  var Validator = JS2.Class.extend({
+  var Validator = JS2.Class.extend('Validator', {
     initialize: function(content) {
       this.content = content;
     },
@@ -371,7 +401,7 @@ var JS2 = (function () {
     }
   });
 
-  var Content = JS2.Class.extend({
+  var Content = JS2.Class.extend('Content', {
     name: 'Content',
     initialize: function(tokens) {
       this.curlyCount = tokens.curlyCount;
@@ -441,7 +471,7 @@ var JS2 = (function () {
 
     toString: function() {
       var v  = this.validate(/(class)(\s+)(I)(\s*)/);
-      return "var " + v[3] + "=(function() { return JS2.Class.extend(" + v.last + ")})();";
+      return "var " + v[3] + "=(function() { return JS2.Class.extend('"+v[3]+"'," + v.last + ")})();";
     }
   });
 
@@ -470,7 +500,7 @@ var JS2 = (function () {
     },
 
     toString: function() {
-      var str = this.super();
+      var str = this.$super();
       return str.replace(/,(\s+\})$/, "$1");
     } 
   });
@@ -620,8 +650,38 @@ var JS2 = (function () {
     var str = JS2.Parser.parseFile(file).toString(); 
     eval(str);
   }
+
   JS2.parse = function(str) { return this.Parser.parse(str); };
+  JS2.parseFile = function(file) { return this.Parser.parseFile(file); };
+  JS2.render = function(str) { return this.parse(str).toString(); };
+  JS2.renderFile = function(file) { return this.parseFile(file).toString(); };
+
+})(undefined, JS2);
+
+  (function (undefined, JS2) {
+  JS2.require = function(file, callback) {
+    var xmlhttp;
+    if (window.XMLHttpRequest) { // code for IE7+, Firefox, Chrome, Opera, Safari
+      xmlhttp = new XMLHttpRequest();
+    } else { 
+      xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+    }
+
+    xmlhttp.onreadystatechange = function() {
+      if (xmlhttp.readyState==4 && xmlhttp.status==200) {
+        try {
+          eval(JS2.render(xmlhttp.responseText));
+        } catch(e) {
+          console.log(JS2.render(xmlhttp.responseText));
+        }
+        if (callback) callback(xmlhttp.responseText);
+      }
+    }
+
+    xmlhttp.open("GET",file,true);
+    xmlhttp.send();
+  }
 })(undefined, JS2);
 
   return JS2;
-})();
+})(window);

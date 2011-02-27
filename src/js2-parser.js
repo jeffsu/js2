@@ -17,7 +17,7 @@
   IDS['NODE'] = -1;
 
 
-  var Validator = JS2.Class.extend({
+  var Validator = JS2.Class.extend('Validator', {
     initialize: function(content) {
       this.content = content;
     },
@@ -81,7 +81,7 @@
     }
   });
 
-  var Content = JS2.Class.extend({
+  var Content = JS2.Class.extend('Content', {
     name: 'Content',
     initialize: function(tokens) {
       this.curlyCount = tokens.curlyCount;
@@ -151,7 +151,7 @@
 
     toString: function() {
       var v  = this.validate(/(class)(\s+)(I)(\s*)/);
-      return "var " + v[3] + "=(function() { return JS2.Class.extend(" + v.last + ")})();";
+      return "var " + v[3] + "=(function() { return JS2.Class.extend('"+v[3]+"'," + v.last + ")})();";
     }
   });
 
@@ -180,7 +180,7 @@
     },
 
     toString: function() {
-      var str = this.super();
+      var str = this.$super();
       return str.replace(/,(\s+\})$/, "$1");
     } 
   });
@@ -330,5 +330,10 @@
     var str = JS2.Parser.parseFile(file).toString(); 
     eval(str);
   }
+
   JS2.parse = function(str) { return this.Parser.parse(str); };
+  JS2.parseFile = function(file) { return this.Parser.parseFile(file); };
+  JS2.render = function(str) { return this.parse(str).toString(); };
+  JS2.renderFile = function(file) { return this.parseFile(file).toString(); };
+
 })(undefined, JS2);

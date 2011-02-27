@@ -146,7 +146,7 @@
 
   });
 
-  var Lexer = JS2.Class.extend({
+  var Lexer = JS2.Class.extend('Lexer', {
     tokenize: function(str) {
       this.tokens = new Tokens();
       this.str    = str;
