@@ -27,27 +27,27 @@ Object Oriented Programming Sugar
 
 Methods and Members
 -------------------
-  class Rectangle {
-    var height = 10;
-    var width  = 5;
-
-    function setDimensions(h, w) {
-      this.height = h;
-      this.width  = w;
+    class Rectangle {
+      var height = 10;
+      var width  = 5;
+    
+      function setDimensions(h, w) {
+        this.height = h;
+        this.width  = w;
+      }
+    
+      function area() {
+        return this.height * this.width;
+      }
     }
-
-    function area() {
-      return this.height * this.width;
-    }
-  }
 
 Inheritence
 -----------
-  class Square extends Rectangle {
-    function setDimensions(side) {
-      this.height = this.width = side;
+    class Square extends Rectangle {
+      function setDimensions(side) {
+        this.height = this.width = side;
+      }
     }
-  }
 
 Mixins
 ------
