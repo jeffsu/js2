@@ -1,7 +1,9 @@
-[JS2](http://github.com/jeffsu/js2) - Javascript Object Oriented Sugar
+[JS2](http://github.com/jeffsu/js2) - Javascript Syntactic Sugar
 ======================================================================
 
-JS2 is just javascript with added functionality.  You can think of it as just a superset of javascript.
+JS2 is a superset javascript.  It attempts to add common functionality to Javascript that was 
+inspired by other languages (Java, Ruby, Perl).  Since JS2 is a superset of Javascript, Javascript 
+remains fully compatible with JS2.
 
     class Person {
       var first = "John";
@@ -20,11 +22,11 @@ JS2 is just javascript with added functionality.  You can think of it as just a 
 
     var employee = new Employee();
 
-Object Oriented Programming
-===========================
+Object Oriented Programming Sugar
+=================================
 
-Methods, Members and Properties
--------------------------------
+Methods and Members
+-------------------
   class Rectangle {
     var height = 10;
     var width  = 5;
@@ -49,25 +51,33 @@ Inheritence
 
 Mixins
 ------
-  module TalkableShape {
-    function sayArea() {
-      alert(this.aread());
+    module TalkableShape {
+      function sayArea() {
+        alert(this.aread());
+      }
     }
-  }
-
-  class Square extends Rectangle {
-    include TalkableShape;
-    function setDimensions(side) {
-      this.height = this.width = side;
+  
+    class Square extends Rectangle {
+      include TalkableShape;
+      function setDimensions(side) {
+        this.height = this.width = side;
+      }
     }
-  }
 
 Syntactic Sugar
 ===============
+
 Interpolated Strings
 --------------------
-  var name    = "John Doe";
-  var message = "Welcome #{name}";
+    var name    = "John Doe";
+    var message = "Welcome #{name}";
+    var message = %{Welcome #{name}};
+
+Heredocs
+--------
+    var string = <<END
+    Random text with interpolated variable #{name}
+    END
 
 Foreach
 -------
