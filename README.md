@@ -3,7 +3,9 @@
 
 JS2 is a superset javascript.  It attempts to add common functionality to Javascript that was 
 inspired by other languages (Java, Ruby, Perl).  Since JS2 is a superset of Javascript, Javascript 
-remains fully compatible with JS2.
+remains fully compatible with JS2.  JS2 is available in 2 different flavors:
+  * ruby gem (ruby & jruby)
+  * nodejs
 
     class Person {
       var first = "John";
@@ -21,6 +23,26 @@ remains fully compatible with JS2.
     }
 
     var employee = new Employee();
+
+Quick Setup
+===========
+
+Nodejs (using Google Chrome's V8 engine)
+----------------------------------------
+    install node js  
+    install npm
+    npm install js2
+   
+Ruby
+----
+    gem install js2
+
+    # for ruby mri
+    gem install rubyracer
+
+    # for jruby 
+    gem install rubyrhino
+
 
 Object Oriented Programming Sugar
 =================================
@@ -110,3 +132,4 @@ Curry
       alert(name);
     }
     say3("Welcome John Doe");
+
