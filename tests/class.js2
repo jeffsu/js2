@@ -6,6 +6,12 @@ class Test1.Foo {
   function getStuffs () {
     return this.stuffs;
   }
+
+  function sayHi() {
+    foreach(var stuff in this.getStuffs()) {
+      console.log(stuff);
+    }
+  }
 }
 
 JS2.test(#(assert){

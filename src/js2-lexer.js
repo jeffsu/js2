@@ -120,23 +120,23 @@
       var toEnd = false;
       while (1) {
         var m = this.tokens.match(this.REGEX_NEXT);
-	if (m) {
-	  var matched = m[1];
-	  if (m[3] == '#{') {
+        if (m) {
+          var matched = m[1];
+          if (m[3] == '#{') {
             this.tokens.push([ '"' + this.sanitize(matched) + '"+(', this.ID ]);
             this.tokens.chomp(m[0].length-1);
             var block = new JS2.Lexer.Block(this.tokens);
-	    block.tokenize();
+            block.tokenize();
             this.tokens.push([ ')+', this.ID ]);
-	    toEnd = true;
-	  } else if (m[3] == '}' || m[0] == '}') {
+            toEnd = true;
+          } else if (m[3] == '}' || m[0] == '}') {
             this.tokens.push([ '"' + this.sanitize(matched) + '"', this.ID ]);
             this.tokens.chomp(m[0].length);
-	    break;
-	  }
-	} else {
+            break;
+          }
+        } else {
           break;
-	}
+        }
       }
       return true;
     }
@@ -160,21 +160,21 @@
       var first = true;
       while (1) {
         var e = this.tokens.match(ender);
-	if (e) {
-	  this.tokens.chomp(e[0].length);
+  if (e) {
+    this.tokens.chomp(e[0].length);
           this.tokens.push([ ';', IDS.DSTRING ]);
           return true;
-	} 
+  } 
 
         var line = this.tokens.match(regex);
-	if (line) {
-	  this.tokens.chomp(line[0].length);
+  if (line) {
+    this.tokens.chomp(line[0].length);
           this.tokens.push([ (first ? '' : '+') + '"' + this.sanitize(line[1]) + '\\n"', IDS.DSTRING ]);
         } else {
           break;
-	}	
+  }  
 
-	first = false;
+  first = false;
       }
       return true;
     }
@@ -190,7 +190,7 @@
     consume: function() {
       if (! this.started) {
         this.started = true;
-	this.tokens.chomp(1);
+        this.tokens.chomp(1);
         this.curlyCount = 1;
         return true;
       } else if (this.tokens.str.charAt(0) == '{') {
@@ -245,6 +245,8 @@
 
   JS2.Lexer.Tokens = JS2.Class.extend({
     initialize: function(str) {
+      this.curlyCount = 0;
+      this.braceCount = 0;
       this.tokens = [];
       this.index  = 0;
       this.str    = str;
@@ -298,7 +300,15 @@
     },
 
     shift: function() {
-      return this.tokens.shift();
+      var token = this.tokens.shift();
+      var str = token[0];
+      switch(str) {
+        case '{': this.curlyCount++; break;
+        case '}': this.curlyCount--; break;
+        case '(': this.braceCount++; break;
+        case ')': this.braceCount--; break;
+      }
+      return token;
     },
 
     freeze: function(obj) {

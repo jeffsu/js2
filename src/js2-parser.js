@@ -158,7 +158,7 @@
       var m = last.match(/^\w+(\.?[\w$]+)*/);
       last = last.substr(m[0].length);
       
-      return "(function() {return JS2.Class.extend('"+m[0]+"'," + last + ");})();";
+      return "(function() {return JS2.Class.extend('"+m[0]+"'," + last + ")})();";
     }
   });
 

@@ -3,5 +3,8 @@ JS2 = (function () {
   JS2.MODE = 'node';
   JS2.ROOT = global;
   <%= core %>
+  <%= js 'js2-fs.js' %>
+  <%= js 'js2-command.js' %>
+
   return JS2;
 })();

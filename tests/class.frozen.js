@@ -5,8 +5,12 @@
 
   getStuffs:function () {
     return this.stuffs;
+  },
+
+  sayHi:function () {
+    console.log('say hi');
   }
-});})();
+})})();
 
 JS2.test(function(assert){
   var test = new Test1.Foo(); 

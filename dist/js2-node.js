@@ -246,23 +246,23 @@ JS2 = (function () {
       var toEnd = false;
       while (1) {
         var m = this.tokens.match(this.REGEX_NEXT);
-	if (m) {
-	  var matched = m[1];
-	  if (m[3] == '#{') {
+        if (m) {
+          var matched = m[1];
+          if (m[3] == '#{') {
             this.tokens.push([ '"' + this.sanitize(matched) + '"+(', this.ID ]);
             this.tokens.chomp(m[0].length-1);
             var block = new JS2.Lexer.Block(this.tokens);
-	    block.tokenize();
+            block.tokenize();
             this.tokens.push([ ')+', this.ID ]);
-	    toEnd = true;
-	  } else if (m[3] == '}' || m[0] == '}') {
+            toEnd = true;
+          } else if (m[3] == '}' || m[0] == '}') {
             this.tokens.push([ '"' + this.sanitize(matched) + '"', this.ID ]);
             this.tokens.chomp(m[0].length);
-	    break;
-	  }
-	} else {
+            break;
+          }
+        } else {
           break;
-	}
+        }
       }
       return true;
     }
@@ -286,21 +286,21 @@ JS2 = (function () {
       var first = true;
       while (1) {
         var e = this.tokens.match(ender);
-	if (e) {
-	  this.tokens.chomp(e[0].length);
+  if (e) {
+    this.tokens.chomp(e[0].length);
           this.tokens.push([ ';', IDS.DSTRING ]);
           return true;
-	} 
+  } 
 
         var line = this.tokens.match(regex);
-	if (line) {
-	  this.tokens.chomp(line[0].length);
+  if (line) {
+    this.tokens.chomp(line[0].length);
           this.tokens.push([ (first ? '' : '+') + '"' + this.sanitize(line[1]) + '\\n"', IDS.DSTRING ]);
         } else {
           break;
-	}	
+  }  
 
-	first = false;
+  first = false;
       }
       return true;
     }
@@ -316,7 +316,7 @@ JS2 = (function () {
     consume: function() {
       if (! this.started) {
         this.started = true;
-	this.tokens.chomp(1);
+        this.tokens.chomp(1);
         this.curlyCount = 1;
         return true;
       } else if (this.tokens.str.charAt(0) == '{') {
@@ -371,6 +371,8 @@ JS2 = (function () {
 
   JS2.Lexer.Tokens = JS2.Class.extend({
     initialize: function(str) {
+      this.curlyCount = 0;
+      this.braceCount = 0;
       this.tokens = [];
       this.index  = 0;
       this.str    = str;
@@ -424,7 +426,15 @@ JS2 = (function () {
     },
 
     shift: function() {
-      return this.tokens.shift();
+      var token = this.tokens.shift();
+      var str = token[0];
+      switch(str) {
+        case '{': this.curlyCount++; break;
+        case '}': this.curlyCount--; break;
+        case '(': this.braceCount++; break;
+        case ')': this.braceCount--; break;
+      }
+      return token;
     },
 
     freeze: function(obj) {
@@ -615,7 +625,7 @@ JS2 = (function () {
       var m = last.match(/^\w+(\.?[\w$]+)*/);
       last = last.substr(m[0].length);
       
-      return "(function() {return JS2.Class.extend('"+m[0]+"'," + last + ");})();";
+      return "(function() {return JS2.Class.extend('"+m[0]+"'," + last + ")})();";
     }
   });
 
@@ -800,6 +810,104 @@ JS2 = (function () {
   JS2.renderFile = function(file) { return this.parseFile(file).toString(); };
 
 })(undefined, JS2);
+
+  var FS = require('fs');
+JS2.FS = {
+  read: function(file) {
+    return FS.readFileSync(file, 'utf8');
+  },
+  
+  getFiles: function(dir, ext) {
+    var all = FS.readdirSync(dir);
+    var extRegex = new RegExp("\\\\." + ext + "$");
+    for (var i=0; i<all.length; i++) {
+      var file = dir + '/' + all[i];
+      if (file.match(/^\./)) continue;
+
+      if (FS.statSync(file).isDirectory()) {
+        var more = this.getFiles(file, ext);
+        for (var j=0; j<more.length; j++) {
+          all.push(more[j]);
+        }
+      } else if (file.match(extRegex)) {
+        all.push(file);
+      }
+    }
+    return all;
+  },
+
+  write: function(file, data) {
+    return FS.writeFileSync(file, data);
+  },
+
+  mtime: function(file) {
+    try {
+      var stat = FS.statSync(file);
+      return stat.isFile() ? stat.mtime : 0;
+    } catch (e)  {
+      return 0;
+    }
+  }
+};
+
+
+  (function() {
+  JS2.Command = JS2.Class.extend({
+    initialize:function (argv) {
+      this.argv = argv;
+      var command = this.argv.shift();
+      if (this[command]) {
+        this[command](argv);
+      } else {
+        this.showBanner();
+      }
+    },
+
+    run: function(argv) {
+      var file;
+      var i = 0;
+      while (file = argv[i++]) {
+        console.log(file, JS2.FS.read(file));
+        eval(JS2.render(JS2.FS.read(file))); 
+      }
+    },
+
+    compile: function(argv) {
+      var updater = new JS2.Updater(argv[0], argv[1]);
+      updater.update();
+    },
+
+    watch: function(argv) {
+      var updater = new Updater(argv[0], argv[1]);
+      var self = this;
+      setInterval(this.interval * 1000, function () { self.update() });
+    },
+
+    showBanner:function() {
+      console.log("js2 <command>");
+    }
+  });
+
+  JS2.Updater = JS2.Class.extend({
+    initialize: function (inDir, outDir) {
+      this.inDir  = inDir;
+      this.outDir = outDir || inDir;
+      this.interval = 2;
+    },
+
+    update: function () {
+      var files = JS2.FS.getFiles(this.inDir, 'js2');
+      for(var i=0; i<files.length; i++){
+        var inFile  = files[i];
+        var outFile = inFile.replace(this.inDir, this.outDir).replace(/\.js2$/, '.js');
+        if (JS2.FS.mtime(inFile) > JS2.FS.mtime(outFile)) {
+          JS2.FS.write(outFile, (JS2.render(JS2.FS.read(inFile)))); 
+        }
+      }
+    }
+  });
+})(undefined, JS2);
+
 
   return JS2;
 })();
