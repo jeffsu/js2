@@ -1,6 +1,6 @@
 spec = Gem::Specification.new do |s|
   s.name    = 'js2'
-  s.version = '1.0.0.pre2'
+  s.version = '0.3.0pre3'
   s.summary = "Javascript Syntactic Sugar"
   s.description = %{A superset of the Javascript language to make development easier.}
   s.files = Dir['bin/*'] + Dir['lib/**/*.rb'] + Dir['lib/**/*.js']

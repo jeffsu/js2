@@ -1,0 +1,12 @@
+{ "name" : "js2",
+  "description" : "Javascript Syntactic Sugar",
+  "version" : "0.3.0pre3",
+  "author" : "Jeff Su",
+  "repository" : { "type" : "git" , "url" : "git://github.com/jeffsu/js2.git" },
+  "bugs" : { "web" : "http://github.com/jeffsu/js2/issues" },
+  "os" : [ "linux", "darwin", "freebsd" ],
+  "directories" : { "lib" : "./dist/npm/lib/", "bin" : "./dist/npm/bin/" },
+  "bin" : { "js2" : "./bin/js2-node", "js2-node" : "./bin/js2-node" },
+  "main" : "./lib/js2-node",
+  "engines" : { "node" : ">=0.1.97" }
+}

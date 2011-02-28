@@ -60,4 +60,7 @@ task :dist do
     outfile = file.sub(/-templates/, '').sub(/\.erb$/, '')
     File.open(outfile, 'w') { |f| f << template.result(binding) }
   end
+
+  sh "cp ./dist/js2-node.js ./dist/npm/lib/js2-node.js"
 end
+
