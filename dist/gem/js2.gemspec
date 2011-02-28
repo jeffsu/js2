@@ -1,9 +1,11 @@
 spec = Gem::Specification.new do |s|
-  s.name    = 'builder'
-  s.version = '1.0.0'
+  s.name    = 'js2'
+  s.version = '1.0.0.pre2'
   s.summary = "Javascript Syntactic Sugar"
   s.description = %{A superset of the Javascript language to make development easier.}
-  s.files = Dir['bin/*'] + Dir['/lib/**/*.rb'] + Dir['/lib/**/*.js']
+  s.files = Dir['bin/*'] + Dir['lib/**/*.rb'] + Dir['lib/**/*.js']
+  s.bindir = 'bin'
+  s.executables = [ 'js2-ruby', 'js2' ]
   #s.files = Dir['bin/*']
   #s.require_path = 'lib'
   #s.autorequire  = 'js2'
@@ -13,5 +15,5 @@ spec = Gem::Specification.new do |s|
   s.author   = "Jeff Su"
   s.email    = "me@jeffsu.com"
   s.homepage = "http://jeffsu.github.com"
-  s.add_dependency('therubyracer', '0.8.1.pre3')
+  s.add_dependency('therubyracer')
 end
