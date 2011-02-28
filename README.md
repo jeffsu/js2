@@ -7,22 +7,19 @@ remains fully compatible with JS2.  JS2 is available in 2 different flavors:
   * ruby gem (ruby & jruby)
   * nodejs
 
-    class Person {
-      var first = "John";
-      var last  = "Doe";
-
-      function name() {
-        return "#{this.first} #{this.last}";
+    class Car {
+      function maxSpeed() {
+        return 60;
       }
     }
 
-    class Employee extends Person {
-      function name() {
-        return "Employee:" + this.super(); 
+    class SportsCar extends Car {
+      function speed() {
+        return this.$super() + 20;
       }
     }
 
-    var employee = new Employee();
+    var ferrari = new SportsCar();
 
 Quick Setup
 ===========
@@ -49,31 +46,27 @@ Object Oriented Programming Sugar
 
 Methods and Members
 -------------------
-    class Rectangle {
-      var height = 10;
-      var width  = 5;
+    class Car {
+      var nwheels    = 4;
+      var ncylinders = 6;
     
-      function setDimensions(h, w) {
-        this.height = h;
-        this.width  = w;
-      }
-    
-      function area() {
-        return this.height * this.width;
+      function go() {
+        console.log('Vroom');
       }
     }
 
 Inheritence
 -----------
-    class Square extends Rectangle {
-      function setDimensions(side) {
-        this.height = this.width = side;
+    class SportsCar extends Car {
+      function go() {
+        this.$super(); 
+        console.log('Vroom Vroom');
       }
     }
 
 Mixins
 ------
-    module TalkableShape {
+    module {
       function sayArea() {
         alert(this.aread());
       }
