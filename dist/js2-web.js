@@ -39,9 +39,7 @@ var JS2 = (function (root) {
 
       while (splitted.length > 0) {
         var name = splitted.shift();
-        if (!root[name]) {
-          root[name] = JS2.Class.extend({});
-        } 
+        if (!root[name]) root[name] = JS2.Class.extend({});
         root = root[name];
       }
 

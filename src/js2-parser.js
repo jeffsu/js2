@@ -1,8 +1,8 @@
 (function (undefined, JS2) {
   Parser = {
     parse: function(str) {
-      var lexer   = new JS2.Lexer();
-      var tokens  = lexer.tokenize(str);
+      var lexer   = new JS2.Lexer(str);
+      var tokens  = lexer.tokenize();
       var root    = new Content(tokens);
       return root;
     },
@@ -15,7 +15,6 @@
   var KEYWORDS = { 'var': null, 'class': null, 'function': null, 'in': null, 'with': null, 'curry': null };
   var IDS = JS2.Lexer.IDS;
   IDS['NODE'] = -1;
-
 
   var Validator = JS2.Class.extend('Validator', {
     initialize: function(content) {
@@ -81,7 +80,7 @@
     }
   });
 
-  JS2.Class.extend('Content', {
+  var Content = JS2.Class.extend({
     name: 'Content',
     initialize: function(tokens) {
       this.curlyCount = tokens.curlyCount;
@@ -140,7 +139,7 @@
     }
   });
 
-  Content.extend('Klass', {
+  var Klass = Content.extend('Klass', {
     name: 'Klass',
     handOff: function(token) {
       if (this.started) this.closed = true;
@@ -155,7 +154,7 @@
     }
   });
 
-  Content.extend('Content', {
+  var Block = Content.extend('Block', {
     name: 'Block',
     handleToken: function(token) {
       if (this.tokens.isBalancedCurly(this) && token[0] == '}') {
@@ -164,7 +163,7 @@
     } 
   });
 
-  Block.extend('KlassBlock', {
+  var KlassBlock = Block.extend('KlassBlock', {
     name: 'KlassBlock',
     handOff: function(token) {
       switch (token[0]) {
@@ -185,7 +184,7 @@
     } 
   });
 
-  Content.extend('Method', {
+  var Method = Content.extend('Method', {
     name: 'Method',
     handOff: function(token) {
       if (this.started) this.closed = true;
@@ -203,7 +202,7 @@
     }
   });
 
-  Content.extend('Member', {
+  var Member = Content.extend('Member', {
     name: 'Member',
     handleToken: function(token) {
       if (token[0] == ';') this.closed = true;
@@ -220,7 +219,7 @@
 
 
 
-  Content.extend('Braces', {
+  var Braces = Content.extend('Braces', {
     name: 'Braces',
     handleToken: function(token) {
       if (this.tokens.isBalancedBrace(this) && token[0] == ')') {
@@ -229,7 +228,7 @@
     } 
   });
 
-  Content.extend('Foreach', {
+  var Foreach = Content.extend('Foreach', {
     cache: { count: 1 },
     name: 'Foreach',
     handOff: function(token) {

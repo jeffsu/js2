@@ -1,84 +1,17 @@
 (function (undefined, JS2) {
-
-  var SSTRING_REGEX = /^'[^\\']*(?:\\.[^\\']*)*'/;
-  var DSTRING_REGEX = /^"[^\\"]*(?:\\.[^\\']*)*"/;
-  var REGEX_REGEX   = /^\/(?!\s)[^[\/\n\\]*(?:(?:\\[\s\S]|\[[^\]\n\\]*(?:\\[\s\S][^\]\n\\]*)*])[^[\/\n\\]*)*\/[imgy]{0,4}(?!\w)/;
-
-  var ISTRING_REGEX     = /^(%\{|})([^\\{]*(?:\\.[^\\']*)*)(#\{|})/;
-  var ISTRING_REGEX_FIN = /^(%\{|})[^\\"]*(?:\\.[^\\']*)*(})/;
-
-  function comment(str, lexer) {
-    var m = str.match(/^\/\/.*/);
-    if (m) return m[0];
-
-    var mode = 0;
-    for (var i=0; i<str.length; i++) {
-      if (str.charAt(i) == '*') {
-        mode++;
-      } else if (str.charAt(i) == '/' && mode == 1) {
-        mode++;
-      } else {
-        mode = 0;
-      }
-
-      if (mode == 2) return str.substr(0,i+1);
-    }
-  }
-
-  function istring(str, lexer) {
-    var tokens = [];
-    var m = ISTRING_REGEX.exec(str);
-
-    // found it!
-    if (!m) return null;
-
-    if (m[3] == '#{') {
-      lexer.tokens.push([ '"' + m[2] + '"+(', IDS.DSTRING ]);
-
-      var curlyCount = 1;
-      var res = null;
-      lexer.chomp(m[0]);
-
-      while (res = lexer.next(lexer.str)) {
-        if (res == -1) return res;
-        if (res[0] == '{') {
-          ++curlyCount;
-        } else if (res[0] == '}') {
-          --curlyCount;
-        } 
-
-        if (curlyCount == 0) {
-          lexer.tokens.push([')+', IDS.DSTRING]);
-          istring(lexer.str, lexer);
-          break;
-        } else {
-          lexer.tokens.push(res);
-          lexer.chomp(res[0]);
-        }
-      }
-    }
-
-    else if (m[3] == '}') {
-      lexer.chomp(m[0]);
-      lexer.tokens.push([ '"' + m[2] + '"', IDS.DSTRING ]);
-    }
-
-    return -1;
-  }
-
   var TOKENS = [ 
-    [ 'COMMENT', "\\/\\/|/\\*", comment ],
+    [ 'COMMENT', "\\/\\/|/\\*" ],
     [ 'SPACE', "\\s+" ],
-    [ 'REGEX', "\\/", function(str) { var m = REGEX_REGEX.exec(str); if (m) return m[0] } ],
+    [ 'REGEX', "\\/" ],
     [ 'CLASS', "class" ],
     [ 'SHORT_FUNCT', "->|=>" ],
     [ 'FOREACH', "foreach" ],
     [ 'CURRY', "curry" ],
     [ 'IDENT', "[\\w$]+" ],
     [ 'HERE_DOC', "<<[A-Z_]+" ],
-    [ 'DSTRING', '"', function(str) { var m = DSTRING_REGEX.exec(str); if (m) return m[0]; } ],
-    [ 'SSTRING', "'", function(str) { var m = SSTRING_REGEX.exec(str); if (m) return m[0]; } ],
-    [ 'ISTRING', "%\\{", istring ],
+    [ 'DSTRING', '"' ],
+    [ 'SSTRING', "'" ],
+    [ 'ISTRING', "%\\{" ],
     [ 'OPERATOR', "[^\w]" ]
   ];
 
@@ -91,41 +24,242 @@
 
   var PRIMARY_REGEX = new RegExp("^(" + REGEX_TOKENS.join('|') + ")");
 
-  var Tokens = JS2.Class.extend({
-    initialize: function() {
+  JS2.Lexer = JS2.Class.extend({
+    TOKENS: TOKENS,
+    PRIMARY_REGEX: PRIMARY_REGEX,
+    IDS: IDS,
+
+    initialize: function(str) {
+      this.tokens = (typeof str == 'string') ? new JS2.Lexer.Tokens(str) : str;
+    },
+
+    tokenize: function() {
+      while (!this.tokens.finished()) {
+        if (! this.consume()) return false;
+      }
+      return this.tokens;
+    },
+
+    consume: function() {
+      var m = this.tokens.match(PRIMARY_REGEX)
+      if (!m) return false;
+
+      for (var i=0,tokenDef;tokenDef=this.TOKENS[i];i++) {
+        if (m[0] == m[i+2]) {
+          var klass = JS2.Lexer[tokenDef[0]];
+          if (klass) {
+            var lexer = new klass(this.tokens);
+            if (lexer.consume()) {
+              return true;
+            }
+          } else {
+            this.tokens.push([ m[0], i ]);
+            this.tokens.chomp(m[0]);
+            return true;
+          }
+        }
+      }
+    }
+  });
+
+  JS2.Lexer.IDS = IDS;
+
+  JS2.Lexer.REGEX = JS2.Lexer.extend({
+    REGEX: /^\/(?!\s)[^[\/\n\\]*(?:(?:\\[\s\S]|\[[^\]\n\\]*(?:\\[\s\S][^\]\n\\]*)*])[^[\/\n\\]*)*\/[imgy]{0,4}(?!\w)/,
+    ID: IDS.REGEX,
+
+    consume: function() {
+      return this.consumeRegex(this.REGEX);
+    },
+
+    consumeRegex: function(regex) {
+      var m = this.tokens.match(regex);
+
+      if (m) {
+        this.tokens.push([ m[0], this.ID ]);
+        return this.tokens.chomp(m[0].length);
+      }
+
+      return false;
+    }
+  });
+
+  JS2.Lexer.SSTRING = JS2.Lexer.REGEX.extend({
+    REGEX: /^'[^\\']*(?:\\.[^\\']*)*'/,
+    ID: IDS.SSTRING
+  });
+
+  JS2.Lexer.DSTRING = JS2.Lexer.REGEX.extend({
+    REGEX: /^"[^\\"]*(?:\\.[^\\"]*)*"/,
+    ID: IDS.DSTRING
+  });
+
+  JS2.Lexer.ISTRING = JS2.Lexer.REGEX.extend({
+    REGEX: /^%{/,
+    ID: IDS.ISTRING,
+    sanitize: function(str) {
+      return str.replace('"', '\\"');
+    },
+    consume: function() {
+      var m = this.tokens.match(this.REGEX);
+      if (!m) return false;
+      this.tokens.chomp(2);
+
+      // not really ends...
+      var str = this.tokens.str;
+      var i=0,c,mode=0;
+      while (c = str.charAt(i)) {
+        if (c == '#') {
+          mode++;
+        } 
+        
+        else if (c == '{' && mode == 1) {
+          mode++; 
+        } 
+        
+        // finished
+        else if (c == '}') {
+          this.tokens.push([ '"' + this.sanitize(str.substr(0, i)) + '"', this.ID ]);
+          this.tokens.chomp(i+1); 
+          return true;
+        } else {
+          mode = 0;
+        } 
+
+        // go into block mode
+        if (mode == 2) {
+          // push beginning
+          this.tokens.push([ '"' + this.sanitize(str.substr(0, i-1)) + '"+(', this.ID ]);
+
+          // handle middle
+          this.tokens.chomp(i+1);
+          var block = new JS2.Lexer.Block(this.tokens);
+          block.tokenize();
+          this.tokens.push([ ')+', this.ID ]);
+          str = this.tokens.str;
+          i = 0;
+        } else {
+          i++;
+          if (c == '\\') i++;
+        }
+      }
+      return true;
+    }
+  });
+
+  JS2.Lexer.Block = JS2.Lexer.extend({
+    initialize: function(tokens) {
+      this.$super(tokens);
+      this.started = false;
+    },
+
+    consume: function() {
+      if (! this.started) {
+        this.started = true;
+        this.curlyCount = 1;
+        return true;
+      } else if (this.tokens.str.charAt(0) == '{') {
+        this.curlyCount++;
+      } else if (this.tokens.str.charAt(0) == '}') {
+        this.curlyCount--;
+      }
+
+      if (this.curlyCount == 0) {
+        this.tokens.chomp(1);
+        return false;
+      } else {
+        this.$super();
+        return true;
+      }
+    } 
+  });
+
+  JS2.Lexer.COMMENT = JS2.Lexer.extend({
+    ID: IDS.COMMENT,
+    consume: function() {
+      var m = this.tokens.match(/^\/\/.*/);
+      if (m) {
+        this.tokens.push([ m[0], IDS.COMMENT ]);
+        this.tokens.chomp(m[0].length);
+        return true;
+      }
+
+      var str = this.tokens.str;
+      var mode = 0;
+      for (var i=0; i<str.length; i++) {
+        if (str.charAt(i) == '*') {
+          mode++;
+        } else if (str.charAt(i) == '/' && mode == 1) {
+          mode++;
+        } else {
+          mode = 0;
+        }
+
+        if (mode == 2) {
+          this.tokens.push([ str.substr(0, i+1), IDS.COMMENT ]);
+          this.tokens.chomp(i+1);
+          return true;
+        }
+      }
+      return false;
+    }
+  });
+
+
+
+
+  JS2.Lexer.Tokens = JS2.Class.extend({
+    initialize: function(str) {
       this.tokens = [];
-      this.curlyCount = 0;
-      this.braceCount = 0;
+      this.index  = 0;
+      this.str    = str;
+      this.orig   = str;
+    },
+
+    match: function(regex) {
+      return this.str.match(regex);
+    },
+
+    compare: function(str) {
+      return this.str.substr(0, str.length) == str;
+    },
+
+    // stuff can be string, integer, or regex
+    // will return true if it actually made the string 
+    // smaller
+    chomp: function(stuff) {
+      var len = this.str.length;
+      if (typeof stuff == 'number') {
+        this.str = this.str.substr(stuff);
+      } else if (typeof stuff == 'string') {
+        this.str = this.str.substr(stuff.length);
+      } else if (stuff instanceof RegExp) {
+        var m = this.str.match(stuff);
+        if (m) {
+          this.str = this.str.substr(m[0].length);
+        }
+      }
+      return len > this.str.length;
+    },
+
+    finished: function(token) {
+      return this.str.length == 0;
+    },
+
+    push: function(token) {
+      this.tokens.push(token);
+    },
+
+    pop: function() {
+      return this.tokens.pop();
     },
 
     peek: function() {
       return this.tokens[0];
     },
 
-    toArray: function() {
-      return this.tokens;
-    },
-
     shift: function() {
-      var item = this.tokens.shift(item);
-      if (item[0] == '{') {
-        this.curlyCount++;
-      } else if (item[0] == '}') {
-        this.curlyCount--;
-      } else if (item[0] == '(') {
-        this.braceCount++;
-      } else if (item[0] == ')') {
-        this.braceCount--;
-      }
-      return item;
-    },
-
-    push: function(item) {
-      this.tokens.push(item);
-    },
-
-    pop: function() {
-      return this.tokens.pop();
+      return this.tokens.shift();
     },
 
     freeze: function(obj) {
@@ -142,51 +276,7 @@
     },
 
     empty: function() {
-      return this.tokens.length <= 0;
-    }
-
-  });
-
-  var Lexer = JS2.Class.extend('Lexer', {
-    tokenize: function(str) {
-      this.tokens = new Tokens();
-      this.str    = str;
-      var res;
-
-      while (res = this.next(this.str)) {
-        if (res == -1) continue;
-
-        this.tokens.push(res); 
-        this.chomp(res[0]);
-      }
-
-      return this.tokens;
-    },
-
-    chomp: function(str) {
-      this.str = this.str.toString().substr(str.length);
-    },
-
-    next: function(str) {
-      if (str.length == 0) return null;
-      var m = PRIMARY_REGEX.exec(str);
-      var res   = null;
-      var type  = null;
-
-      for (var i=0,token;token=TOKENS[i]; i++) {
-        if (m[0] == m[i+2]) {
-          res  = token[2] ? token[2](str, this) : m[0];
-          type = i;
-          if (res) break;
-        }
-      }
-
-      if (res == -1) return res;
-      return res ? [ res, type ] : null;
+      return this.tokens.length <= 0; 
     }
   });
-
-  Lexer.IDS = IDS;
-  JS2.Lexer = Lexer;
 })(undefined, JS2);
-
