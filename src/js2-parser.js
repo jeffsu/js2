@@ -149,8 +149,12 @@
     }, 
 
     toString: function() {
-      var v  = this.validate(/(class)(\s+)(I)(\s*)/);
-      return "(function() { var Klass=JS2.Class.extend('"+v[3]+"'," + v.last + "); return Klass;})();";
+      var v  = this.validate(/(class)(\s+)/);
+      var last = v.last;
+      var m = last.match(/^\w+(\.?[\w$]+)*/);
+      last = last.substr(m[0].length);
+      
+      return "(function() {return JS2.Class.extend('"+m[0]+"'," + last + ");})();";
     }
   });
 

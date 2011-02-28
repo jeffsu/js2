@@ -95,6 +95,7 @@
   });
 
   JS2.Lexer.ISTRING = JS2.Lexer.REGEX.extend({
+    REGEX_NEXT: /^((\\#|[^#])*?)(#{|})/,
     REGEX: /^%{/,
     ID: IDS.ISTRING,
     sanitize: function(str) {
@@ -106,42 +107,26 @@
       this.tokens.chomp(2);
 
       // not really ends...
-      var str = this.tokens.str;
-      var i=0,c,mode=0;
-      while (c = str.charAt(i)) {
-        if (c == '#') {
-          mode++;
-        } 
-        
-        else if (c == '{' && mode == 1) {
-          mode++; 
-        } 
-        
-        // finished
-        else if (c == '}') {
-          this.tokens.push([ '"' + this.sanitize(str.substr(0, i)) + '"', this.ID ]);
-          this.tokens.chomp(i+1); 
-          return true;
-        } else {
-          mode = 0;
-        } 
-
-        // go into block mode
-        if (mode == 2) {
-          // push beginning
-          this.tokens.push([ '"' + this.sanitize(str.substr(0, i-1)) + '"+(', this.ID ]);
-
-          // handle middle
-          this.tokens.chomp(i+1);
-          var block = new JS2.Lexer.Block(this.tokens);
-          block.tokenize();
-          this.tokens.push([ ')+', this.ID ]);
-          str = this.tokens.str;
-          i = 0;
-        } else {
-          i++;
-          if (c == '\\') i++;
-        }
+      var toEnd = false;
+      while (1) {
+        var m = this.tokens.match(this.REGEX_NEXT);
+	if (m) {
+	  var matched = m[1];
+	  if (m[3] == '#{') {
+            this.tokens.push([ '"' + this.sanitize(matched) + '"+(', this.ID ]);
+            this.tokens.chomp(m[0].length-1);
+            var block = new JS2.Lexer.Block(this.tokens);
+	    block.tokenize();
+            this.tokens.push([ ')+', this.ID ]);
+	    toEnd = true;
+	  } else if (m[3] == '}' || m[0] == '}') {
+            this.tokens.push([ '"' + this.sanitize(matched) + '"', this.ID ]);
+            this.tokens.chomp(m[0].length);
+	    break;
+	  }
+	} else {
+          break;
+	}
       }
       return true;
     }
@@ -156,6 +141,7 @@
     consume: function() {
       if (! this.started) {
         this.started = true;
+	this.tokens.chomp(1);
         this.curlyCount = 1;
         return true;
       } else if (this.tokens.str.charAt(0) == '{') {

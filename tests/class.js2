@@ -1,4 +1,4 @@
-class Test1 {
+class Test1.Foo {
   var member      = "member";
   var regexMember = /member/;
   var stuffs      = [ 'hello', 'world' ];
@@ -8,5 +8,6 @@ class Test1 {
   }
 }
 
-var test = new Test1(); 
-JS2.assertEquals(test.getStuffs()[0], 'hello2');
+var test = new Test1.Foo(); 
+console.log(test.getStuffs().join(' '));
+JS2.assertEquals(test.getStuffs()[0], 'hello');
