@@ -15,11 +15,7 @@ module JS2
   Engine = JSVM == :v8 ? V8::Context : Rhino::Context
 end
 
-dirname = File.dirname(__FILE__)
+dirname = File.dirname(File.expand_path('', __FILE__))
 
 require "#{dirname}/js2/context"
 require "#{dirname}/js2/updater"
-require "#{dirname}/js2/command"
-
-context = JS2::Context.new
-JS2::Command.new

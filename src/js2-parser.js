@@ -121,6 +121,10 @@
       return (new Validator(this.content)).validate(regex);
     },
 
+    getValidateString: function() {
+      return (new Validator(this.content)).getString();
+    },
+
     handOff: function(token) {
       switch (token[1]) {
         case IDS.CLASS: return Klass;
@@ -275,7 +279,7 @@
   var ShortFunct = Content.extend({
     name: "ShortFunct",
     handOff: function(token) {
-      if (this.started) this.closed;
+      if (this.started) this.closed = true;
       switch (token[0]) {
         case '(': return Braces;
         case '{': this.started = true; return Block;
@@ -283,8 +287,8 @@
     },
 
     toString: function() {
-      var v = this.validate(/(->)(\s*)(Braces)?(\s*)(Block)/);
-      return (v[1] == '->' ? '' : '=') + "function" + (v[3] ? v[3] : "($1,$2,$3)") + v[5];
+      var v = this.validate(/(#)(Braces)?(\s*)(Block)/);
+      return "function" + (v[2] ? v[2] : "($1,$2,$3)") + v[4];
     }
   });
 
@@ -300,9 +304,8 @@
       if (this.nbraces == null) this.nbraces = 0;
 
       switch (token[0]) {
-        case '(': this.nbraces++; return Braces;
+        case '(': return Braces;
         case '{': this.started = true; return Block;
-        case 'with': this.hasWith = true;
       }
     },
 

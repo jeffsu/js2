@@ -4,15 +4,15 @@
     [ 'SPACE', "\\s+" ],
     [ 'REGEX', "\\/" ],
     [ 'CLASS', "class" ],
-    [ 'SHORT_FUNCT', "->|=>" ],
+    [ 'SHORT_FUNCT', "#\\{|#\\(" ],
     [ 'FOREACH', "foreach" ],
     [ 'CURRY', "curry" ],
     [ 'IDENT', "[\\w$]+" ],
-    [ 'HERE_DOC', "<<[A-Z_]+" ],
     [ 'DSTRING', '"' ],
     [ 'SSTRING', "'" ],
     [ 'ISTRING', "%\\{" ],
-    [ 'OPERATOR', "[^\w]" ]
+    [ 'HEREDOC', "<<-?\\w+" ],
+    [ 'OPERATOR', "[^\\w]" ]
   ];
 
   var IDS = {};
@@ -84,6 +84,16 @@
     }
   });
 
+  JS2.Lexer.SHORT_FUNCT = JS2.Lexer.extend({
+    ID: IDS.SHORT_FUNCT,
+    consume: function() {
+      this.tokens.chomp(1);
+      this.tokens.push([ '#', this.ID ]);
+      return true;
+    }
+  });
+
+
   JS2.Lexer.SSTRING = JS2.Lexer.REGEX.extend({
     REGEX: /^'[^\\']*(?:\\.[^\\']*)*'/,
     ID: IDS.SSTRING
@@ -131,6 +141,45 @@
       return true;
     }
   });
+
+  JS2.Lexer.HEREDOC = JS2.Lexer.ISTRING.extend({
+    REGEX_NEXT: /^((\\#|[^#])*?)(#{)/,
+    REGEX: /^<<\-?(\w+)\r?\n/m,
+    ID: IDS.HEREDOC,
+    consume: function() {
+      var m = this.tokens.match(this.REGEX);
+      if (!m) return false;
+      this.tokens.chomp(m[0].length);
+      this.tokens.push([ "\n", IDS.SPACE ]);
+
+      var mIndent = this.tokens.match(/^(\s*)([^\s])/m);
+
+      var ender = new RegExp("^\\s*" + m[1] + "(\\r?\\n)?");
+      var regex = new RegExp("^\\s{" + mIndent[1].length + "}(.*)\\r?\\n");
+
+      var first = true;
+      while (1) {
+        var e = this.tokens.match(ender);
+	if (e) {
+	  this.tokens.chomp(e[0].length);
+          this.tokens.push([ ';', IDS.DSTRING ]);
+          return true;
+	} 
+
+        var line = this.tokens.match(regex);
+	if (line) {
+	  this.tokens.chomp(line[0].length);
+          this.tokens.push([ (first ? '' : '+') + '"' + this.sanitize(line[1]) + '\\n"', IDS.DSTRING ]);
+        } else {
+          break;
+	}	
+
+	first = false;
+      }
+      return true;
+    }
+  });
+
 
   JS2.Lexer.Block = JS2.Lexer.extend({
     initialize: function(tokens) {
@@ -202,6 +251,10 @@
       this.orig   = str;
     },
 
+    toArray: function() {
+      return this.tokens;
+    },
+
     match: function(regex) {
       return this.str.match(regex);
     },
@@ -263,6 +316,15 @@
 
     empty: function() {
       return this.tokens.length <= 0; 
+    },
+
+    charAt: function(n) {
+      return this.str.charAt(n);
+    },
+
+    indexOf: function(n) {
+      return this.str.indexOf(n);
     }
+
   });
 })(undefined, JS2);

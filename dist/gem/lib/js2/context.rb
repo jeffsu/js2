@@ -1,9 +1,15 @@
 module JS2
+  class Console
+    def log(*str)
+      puts str.join(',')
+    end
+  end
+
   class Context
     def initialize
       @ctx = JS2::Engine.new
       @ctx.eval(File.read(File.dirname(__FILE__) + '/js2-ruby.js'))
-      @ctx['puts'] = lambda { |*args| puts args }
+      @ctx['console'] = Console.new
       @js2 = @ctx['JS2']
     end
 

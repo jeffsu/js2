@@ -1,6 +1,8 @@
 require 'optparse'
+
 module JS2
   class Command
+    DEFAULT_INTERVAL = 3
     def initialize()
       @command = ARGV.shift
       @options = {}
@@ -20,7 +22,6 @@ module JS2
         compile(ARGV)
 
       elsif @command == 'watch'
-        @options[:interval] = 2
         @opts = OptionParser.new do |opts|
           opts.banner = "Usage: js2 watch <indir> <outdir>"
           opts.on('-v', '--verbose', 'Run verbosely') do |v|
@@ -29,6 +30,7 @@ module JS2
 
           opts.on('-t', '--time-interval=[time]', 'Interval (in seconds) to check changed files') do |i|
             @options[:interval] = i.to_i
+            puts "Time interval set to #{@options[:interval]}."
           end
         end
         watch(ARGV)
@@ -39,9 +41,9 @@ module JS2
 Usage: js2 <command> [arguments]
 
 Commands:
-  * run <file>               - Executes a given js2 file
-  * compile <indir> <outdir> - Compiles all files (recursively) with the js2 extension to js
-  * watch <indir> <outdir>   - Runs a daemon that watches for changed files
+  * js2 run     FILE           - Executes a given js2 file
+  * js2 compile INDIR [OUTDIR] - Compiles all files (recursively) with the js2 extension to js.  If OUTDIR isn't specified, INDIR is used for both
+  * js2 watch   INDIR [OUTDIR] - Runs a daemon that watches for changed files
           END
         end
         puts @opts
@@ -62,16 +64,17 @@ Commands:
     end
 
     def watch(args)
-      indir  = args.shift
-      outdir = args.any? ? args.shift : indir
-      seconds = args.any? ? args.shift : 3
+      indir   = args.shift
+      outdir  = args.any? ? args.shift : indir
+      seconds = @options[:interval] || DEFAULT_INTERVAL
+      verbose = @options[:verbose]
 
       updater = get_updater(indir, outdir)
       while (1) 
-        if @options[:interval]
-          puts "Checking..."
-        end
+        puts "Checking for updates..." if verbose
         updater.update!
+        puts "Updated!" if verbose
+        puts "Sleeping #{seconds} seconds..." if verbose
         sleep seconds
       end
     end

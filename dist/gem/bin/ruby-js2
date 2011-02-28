@@ -1,3 +1,9 @@
 #!/usr/bin/env ruby
-require('v8')
 
+dir = File.expand_path('../../lib/', __FILE__)
+dir = File.directory?(dir) ? (dir + '/') : ''
+
+require "#{dir}js2"
+require "#{dir}js2/command"
+
+JS2::Command.new

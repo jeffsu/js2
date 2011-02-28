@@ -1,0 +1,9 @@
+class Hello {
+  function world() {
+    console.log("hello");
+  }
+}
+
+var h = new Hello();
+h.world();
+console.log(this['Hello']);

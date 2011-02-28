@@ -8,6 +8,7 @@ class Test1.Foo {
   }
 }
 
-var test = new Test1.Foo(); 
-console.log(test.getStuffs().join(' '));
-JS2.assertEquals(test.getStuffs()[0], 'hello');
+JS2.test(#(assert){
+  var test = new Test1.Foo(); 
+  assert.eq('hello', test.getStuffs()[0]);
+});

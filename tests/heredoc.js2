@@ -1,0 +1,5 @@
+<<END
+  hello world
+  #{foo} bar
+  yo there
+END

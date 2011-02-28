@@ -110,15 +110,16 @@ var JS2 = (function (root) {
     return klass;
   };
 
-  // simple test framework
-  JS2.assertEquals = function (left, right) {
-    if (left != right) console.log("Expected "+left+" but got "+right+".");
+  var assert = {
+    'eq': function(expected, val) { if (expected != val) console.log("Expected "+expected+", but got "+val+".") },
+    'isTrue': function(val) { if (!val) console.log("Expected true, but got " +val+".") }
   };
 
-  // simple test framework
-  JS2.assertEquals = function (left, right) {
-    if (left != right) console.log("Expected "+left+" but got "+right+".");
+  JS2.test = function(message, callback) {
+    if (!callback) callback = message;
+    callback(assert);
   };
+
 
   return JS2;
 })(undefined, JS2);

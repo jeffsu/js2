@@ -1,9 +1,11 @@
 var JS2 = (function (root) {
   var JS2 = {};
 
-  JS2.MODE = 'web_parser';
+  JS2.MODE = 'ruby';
   JS2.ROOT = root;
+
   <%= core %>
   <%= js 'js2-ajax.js' %>
+
   return JS2;
 })(this);

@@ -1,20 +1,48 @@
 require 'erb'
 namespace :test do
+  def get_test_files
+    return  ENV['TEST'] ? [ "./tests/#{ENV['TEST']}.js2" ] : Dir['./tests/*.js2']
+  end
+
+
+  task :test => :dist do
+    get_test_files.each do |file|
+      got      = `node scripts/compile.js #{file}`
+      expected = `cat #{file.sub(/js2$/, 'frozen.js')}`
+      if got != expected
+        puts "FAILED! #{file}"
+      else
+        puts "PASSED  #{file}"
+      end
+    end
+
+  end
+
   desc "test everything"
   task :run => :dist  do
-    sh "node scripts/run.js ./tests/#{ENV['TEST']}.js2"
+    get_test_files.each do |file|
+      sh "node scripts/run.js #{file}"
+    end
   end
 
   desc "show compilation TEST=test1"
   task :compile => :dist do
-    sh "node scripts/compile.js ./tests/#{ENV['TEST']}.js2"
+    get_test_files.each do |file|
+      sh "node scripts/compile.js #{file}"
+    end
   end
 
   desc "freeze test compilation"
   task :freeze => :dist do
-    sh "node scripts/compile.js ./tests/#{ENV['TEST']}.js2 > ./tests/#{ENV['TEST']}.js"
+    get_test_files.each do |file|
+      input  = file
+      output = file.sub(/js2$/, 'frozen.js')
+      sh "node scripts/compile.js #{input} > #{output}"
+    end
   end
+
 end
+task :test => [ 'test:test' ]
 
 desc "ERBify all distributions"
 task :dist do

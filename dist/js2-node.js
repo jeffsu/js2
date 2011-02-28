@@ -110,15 +110,16 @@ JS2 = (function () {
     return klass;
   };
 
-  // simple test framework
-  JS2.assertEquals = function (left, right) {
-    if (left != right) console.log("Expected "+left+" but got "+right+".");
+  var assert = {
+    'eq': function(expected, val) { if (expected != val) console.log("Expected "+expected+", but got "+val+".") },
+    'isTrue': function(val) { if (!val) console.log("Expected true, but got " +val+".") }
   };
 
-  // simple test framework
-  JS2.assertEquals = function (left, right) {
-    if (left != right) console.log("Expected "+left+" but got "+right+".");
+  JS2.test = function(message, callback) {
+    if (!callback) callback = message;
+    callback(assert);
   };
+
 
   return JS2;
 })(undefined, JS2);
@@ -129,15 +130,15 @@ JS2 = (function () {
     [ 'SPACE', "\\s+" ],
     [ 'REGEX', "\\/" ],
     [ 'CLASS', "class" ],
-    [ 'SHORT_FUNCT', "->|=>" ],
+    [ 'SHORT_FUNCT', "#\\{|#\\(" ],
     [ 'FOREACH', "foreach" ],
     [ 'CURRY', "curry" ],
     [ 'IDENT', "[\\w$]+" ],
-    [ 'HERE_DOC', "<<[A-Z_]+" ],
     [ 'DSTRING', '"' ],
     [ 'SSTRING', "'" ],
     [ 'ISTRING', "%\\{" ],
-    [ 'OPERATOR', "[^\w]" ]
+    [ 'HEREDOC', "<<-?\\w+" ],
+    [ 'OPERATOR', "[^\\w]" ]
   ];
 
   var IDS = {};
@@ -209,6 +210,16 @@ JS2 = (function () {
     }
   });
 
+  JS2.Lexer.SHORT_FUNCT = JS2.Lexer.extend({
+    ID: IDS.SHORT_FUNCT,
+    consume: function() {
+      this.tokens.chomp(1);
+      this.tokens.push([ '#', this.ID ]);
+      return true;
+    }
+  });
+
+
   JS2.Lexer.SSTRING = JS2.Lexer.REGEX.extend({
     REGEX: /^'[^\\']*(?:\\.[^\\']*)*'/,
     ID: IDS.SSTRING
@@ -256,6 +267,45 @@ JS2 = (function () {
       return true;
     }
   });
+
+  JS2.Lexer.HEREDOC = JS2.Lexer.ISTRING.extend({
+    REGEX_NEXT: /^((\\#|[^#])*?)(#{)/,
+    REGEX: /^<<\-?(\w+)\r?\n/m,
+    ID: IDS.HEREDOC,
+    consume: function() {
+      var m = this.tokens.match(this.REGEX);
+      if (!m) return false;
+      this.tokens.chomp(m[0].length);
+      this.tokens.push([ "\n", IDS.SPACE ]);
+
+      var mIndent = this.tokens.match(/^(\s*)([^\s])/m);
+
+      var ender = new RegExp("^\\s*" + m[1] + "(\\r?\\n)?");
+      var regex = new RegExp("^\\s{" + mIndent[1].length + "}(.*)\\r?\\n");
+
+      var first = true;
+      while (1) {
+        var e = this.tokens.match(ender);
+	if (e) {
+	  this.tokens.chomp(e[0].length);
+          this.tokens.push([ ';', IDS.DSTRING ]);
+          return true;
+	} 
+
+        var line = this.tokens.match(regex);
+	if (line) {
+	  this.tokens.chomp(line[0].length);
+          this.tokens.push([ (first ? '' : '+') + '"' + this.sanitize(line[1]) + '\\n"', IDS.DSTRING ]);
+        } else {
+          break;
+	}	
+
+	first = false;
+      }
+      return true;
+    }
+  });
+
 
   JS2.Lexer.Block = JS2.Lexer.extend({
     initialize: function(tokens) {
@@ -327,6 +377,10 @@ JS2 = (function () {
       this.orig   = str;
     },
 
+    toArray: function() {
+      return this.tokens;
+    },
+
     match: function(regex) {
       return this.str.match(regex);
     },
@@ -388,7 +442,16 @@ JS2 = (function () {
 
     empty: function() {
       return this.tokens.length <= 0; 
+    },
+
+    charAt: function(n) {
+      return this.str.charAt(n);
+    },
+
+    indexOf: function(n) {
+      return this.str.indexOf(n);
     }
+
   });
 })(undefined, JS2);
 
@@ -513,6 +576,10 @@ JS2 = (function () {
 
     validate: function(regex) {
       return (new Validator(this.content)).validate(regex);
+    },
+
+    getValidateString: function() {
+      return (new Validator(this.content)).getString();
     },
 
     handOff: function(token) {
@@ -669,7 +736,7 @@ JS2 = (function () {
   var ShortFunct = Content.extend({
     name: "ShortFunct",
     handOff: function(token) {
-      if (this.started) this.closed;
+      if (this.started) this.closed = true;
       switch (token[0]) {
         case '(': return Braces;
         case '{': this.started = true; return Block;
@@ -677,8 +744,8 @@ JS2 = (function () {
     },
 
     toString: function() {
-      var v = this.validate(/(->)(\s*)(Braces)?(\s*)(Block)/);
-      return (v[1] == '->' ? '' : '=') + "function" + (v[3] ? v[3] : "($1,$2,$3)") + v[5];
+      var v = this.validate(/(#)(Braces)?(\s*)(Block)/);
+      return "function" + (v[2] ? v[2] : "($1,$2,$3)") + v[4];
     }
   });
 
@@ -694,9 +761,8 @@ JS2 = (function () {
       if (this.nbraces == null) this.nbraces = 0;
 
       switch (token[0]) {
-        case '(': this.nbraces++; return Braces;
+        case '(': return Braces;
         case '{': this.started = true; return Block;
-        case 'with': this.hasWith = true;
       }
     },
 

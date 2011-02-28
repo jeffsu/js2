@@ -1,3 +1,4 @@
 "foobar";
 'foobar';
+"foo "+(bar)+"";
 
