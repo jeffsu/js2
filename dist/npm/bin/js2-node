@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 require('js2');
+
 process.argv.shift();
 process.argv.shift();
 var command = new JS2.Command(process.argv);
+command._run();

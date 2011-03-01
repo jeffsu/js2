@@ -1,3 +1,4 @@
+
 // CLASS HELPERS
 (function (undefined, JS2) {
 

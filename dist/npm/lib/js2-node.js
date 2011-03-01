@@ -842,18 +842,22 @@ JS2.FS = {
   },
   
   find: function(dir, ext, recursive) {
+    console.log(dir);
     var all = FS.readdirSync(dir);
     var extRegex = new RegExp("\\\\." + ext + "$");
+
     for (var i=0; i<all.length; i++) {
       var file = dir + '/' + all[i];
       if (file.match(/^\./)) continue;
 
-      if (recursive && FS.statSync(file).isDirectory()) {
+      var stat = FS.statSync(file);
+      if (recursive && stat && stat.isDirectory()) {
         var more = this.find(file, ext, recursive);
         for (var j=0; j<more.length; j++) {
           all.push(more[j]);
         }
       } else if (file.match(extRegex)) {
+        console.log(file);
         all.push(file);
       }
     }
@@ -873,13 +877,10 @@ JS2.FS = {
         FS.mkdirSync(dir);
       }
     }
-
-    if (FS.statSync(file).FS.readFile(file);
-
   },
 
-  isDiretory: function(file) {
-    return FS.statSync(file).isDiretory();
+  isDirectory: function(file) {
+    return FS.statSync(file).isDirectory();
   },
   
   isFile: function(file) {
@@ -922,13 +923,16 @@ JS2.FS = {
   JS2.Command = JS2.Class.extend({
     initialize:function (argv) {
       this.argv = argv;
-      var command = this.argv.shift();
+      this.command = this.argv.shift();
       this.fs     = JS2.FS;
       this.parseOpts(argv);
 
-      if (this[command]) {
-        console.log("Running " + command + ".");
-        this[command](argv);
+    },
+
+    _run:  function(argv) {
+      if (this[this.command]) {
+        console.log("Running " + this.command + ".");
+        this[this.command](argv);
       } else {
         this.showBanner();
       }
@@ -994,8 +998,8 @@ JS2.FS = {
 
   JS2.Updater = JS2.Class.extend({
     initialize: function (inDir, outDir, recursive) {
-      this.inDir  = JS2.FS.realpath(inDir);
-      this.outDir = JS2.FS.realpath(outDir || inDir);
+      this.inDir  = inDir
+      this.outDir = outDir || inDir;
       this.interval = 2;
       this.recursive = recursive;
     },

@@ -15,13 +15,16 @@
   JS2.Command = JS2.Class.extend({
     initialize:function (argv) {
       this.argv = argv;
-      var command = this.argv.shift();
+      this.command = this.argv.shift();
       this.fs     = JS2.FS;
       this.parseOpts(argv);
 
-      if (this[command]) {
-        console.log("Running " + command + ".");
-        this[command](argv);
+    },
+
+    _run:  function(argv) {
+      if (this[this.command]) {
+        console.log("Running " + this.command + ".");
+        this[this.command](argv);
       } else {
         this.showBanner();
       }
@@ -87,8 +90,8 @@
 
   JS2.Updater = JS2.Class.extend({
     initialize: function (inDir, outDir, recursive) {
-      this.inDir  = JS2.FS.realpath(inDir);
-      this.outDir = JS2.FS.realpath(outDir || inDir);
+      this.inDir  = inDir
+      this.outDir = outDir || inDir;
       this.interval = 2;
       this.recursive = recursive;
     },
