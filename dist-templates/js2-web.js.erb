@@ -1,7 +1,6 @@
 var JS2 = (function (root) {
-  <%= js 'js2-helper.js' %>
-  JS2.MODE = 'web';
-  JS2.ROOt = root;
-  <%= js 'js2-class.js' %>
+  <%= js 'core/js2-boot.js' %>
+  <%= js 'core/js2-class.js' %>
+  <%= js 'common/Array.js2' %>
   return JS2;
 })(window);

@@ -2,4 +2,5 @@
 require('../dist/js2-node');
 process.argv.shift();
 process.argv.shift();
-var command = new JS2.Command(process.argv);
+var foo = JS2.FileSystem;
+//var commander = new JS2.Commander();

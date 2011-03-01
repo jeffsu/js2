@@ -47,12 +47,22 @@ task :test => [ 'test:test' ]
 desc "ERBify all distributions"
 task :dist do
   def js(f)
-    return File.read("./src/#{f}")
+    if (f.match(/\.js2$/)) 
+      return `js2-node render ./src/#{f}`
+    else
+      return File.read("./src/#{f}")
+    end
   end
 
-  core =  %W{ js2-class.js js2-lexer.js js2-parser.js }.collect do |f|
-    js(f)
+  core =  %W{ js2-boot.js js2-class.js js2-lexer.js js2-parser.js }.collect do |f|
+    js("core/#{f}")
   end.join("\n");
+
+  common = %W{ Array FileSystem Updater Commander NodeFileAdapter  }.collect do |f|
+    js("common/#{f}.js2")
+  end.join("\n");
+
+  core += common
 
   Dir["./dist-templates/*.erb"].each do |file|
     puts "processing: #{file}"

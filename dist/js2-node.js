@@ -1,8 +1,19 @@
-JS2 = (function () {
-  var JS2 = {};
-  JS2.MODE = 'node';
-  JS2.ROOT = global;
-  // CLASS HELPERS
+JS2 = (function (root) {
+  var JS2 = function (arg) {
+  if (typeof arg == 'string') {
+    return JS2.Parser.parse(arg).toString();
+  } else if (arg instanceof Array) {
+    return new JS2.Array(arg);
+  } else {
+    return new JS2.Array();
+  } 
+};
+
+var js2 = JS2;
+JS2.ROOT = root;
+
+
+// CLASS HELPERS
 (function (undefined, JS2) {
 
   function $super () {
@@ -834,81 +845,165 @@ JS2 = (function () {
   JS2.renderFile = function(file) { return this.parseFile(file).toString(); };
 
 })(undefined, JS2);
-
-  var FS = require('fs');
-JS2.FS = {
-  read: function(file) {
-    return FS.readFileSync(file, 'utf8');
-  },
-  
-  find: function(dir, ext, recursive) {
-    console.log(dir);
-    var all = FS.readdirSync(dir);
-    var extRegex = new RegExp("\\\\." + ext + "$");
-
-    for (var i=0; i<all.length; i++) {
-      var file = dir + '/' + all[i];
-      if (file.match(/^\./)) continue;
-
-      var stat = FS.statSync(file);
-      if (recursive && stat && stat.isDirectory()) {
-        var more = this.find(file, ext, recursive);
-        for (var j=0; j<more.length; j++) {
-          all.push(more[j]);
-        }
-      } else if (file.match(extRegex)) {
-        console.log(file);
-        all.push(file);
-      }
-    }
-    return all;
-  },
-
-  mkPath: function(file) {
-    var appended = [];
-    var splitted = file.split('/');
-
-    splitted.pop();
-
-    while (splitted.length) {
-      appended.push(splitted.shift()); 
-      var dir = appended.join('/');
-      if (!FS.statSync(dir).isDirectory() && !FS.statSync(dir).isFile()) {
-        FS.mkdirSync(dir);
-      }
-    }
-  },
-
-  isDirectory: function(file) {
-    return FS.statSync(file).isDirectory();
-  },
-  
-  isFile: function(file) {
-    return FS.statSync(file).isFile();
-  },
-  
-  write: function(file, data) {
-    return FS.writeFileSync(file, data);
-  },
-  
-  mtime: function(file) {
-    try {
-      var stat = FS.statSync(file);
-      return stat.isFile() ? stat.mtime : 0;
-    } catch (e)  {
-      return 0;
-    }
-  },
-  
-  setInterval: function(code, time) {
-    setInterval(code, time);
+JS2.Array = function (arr) {
+  if (arr instanceof Array) {
+    this.append(arr);
   }
 };
 
+JS2.Array.prototype = new Array();
+JS2.Array.prototype.each = function(f) {
+  for (var i=0; i<this.length; i++) {
+    f.call(this, this[i], i );
+  }
+  return this;
+};
 
-  (function() {
-  var BANNER = 
-    "js2 <command> [options] <arguments>\n" +
+JS2.Array.prototype.collect = function(f) {
+  var ret = new JS2.Array();
+  this.each(function($1,$2,$3){ ret.push(f.call(this, $1, $2)) });
+  return ret;
+};
+
+JS2.Array.prototype.extractMap = function(f) {
+  var ret = new JS2.Array();
+  this.each(function($1,$2,$3){ if (f.call(this, $1, $2) !== null) ret.push($1) });
+  return ret;
+};
+
+JS2.Array.prototype.reduce = function(f, val) {
+  var value = val;
+  this.each(function($1,$2,$3){ value = f.call(this, $1, value) });
+};
+
+JS2.Array.prototype.reject = function(f) {
+  var ret = new JS2.Array();
+  this.each(function($1,$2,$3){ if (!f.call(this, $1, $2)) ret.push($1) });
+  return ret;
+};
+
+JS2.Array.prototype.select = function(f) {
+  var ret = new JS2.Array();
+  if (f instanceof RegExp) {
+    this.each(function($1,$2,$3){ if ($1.match(regex)) ret.push($1) });
+  } else if (typeof f == 'string' || typeof f == 'number') {
+    this.each(function($1,$2,$3){ if ($1 == f) ret.push($1) });
+  } else if (typeof f == 'function') {
+    this.each(function($1,$2,$3){ if (f.call(this, $1, $2)) ret.push($1) });
+  }
+  return ret;
+};
+
+JS2.Array.prototype.append = function(arr) {
+  this.push.apply(this, arr);
+  return this;
+};
+
+JS2.Array.prototype.empty = function() {
+  return this.length == 0;
+};
+
+JS2.Array.prototype.any = function() {
+  return this.length > 0;
+};
+
+
+(function() {return JS2.Class.extend('JS2.FileSystem', {
+  initialize:function (adapter) {
+    this.adapter = adapter;
+  },
+
+  find:function (dir, ext) {
+    this._find(this.expandPath(dir), new RegExp('\\.' + ext + '$'));
+  },
+
+  _find:function (dir, regex) {
+    var parts = this.adapter.readdir(dir); 
+
+    var files = js2();
+    js2(parts).select(/^\.\.?$/).each(function($1,$2,$3){
+      var file = dir + '/' + $1;
+      if (this.isFile(file) && file.match(regex)) {
+        files.push(file); 
+      } else if (this.isDirectory(file)) {
+        files.append(this._find(file, regex)); 
+      }
+    });
+
+    return files;
+  },
+
+  mkpath:function (file) {
+    var dirname = this.dirname(file);
+    var subdirs = js2(dirname.split('/'));
+
+    var self = this;
+    subdirs.reduce(function($1,$2,$3){
+      self.mkdir($2); 
+      return $2 + '/' + $1;
+    });
+  },
+
+  // ADAPTER USAGE
+  dirname:function (file) {
+    return this.adapter.dirname(file);
+  },
+
+  read:function (file) {
+    return this.adapter.read(file);
+  },
+
+  write:function (file, data) {
+    return this.adapter.write(file, data);
+  },
+
+  mtime:function (file) {
+    return this.adapter.mtime(file);
+  },
+
+  mkdir:function (file) {
+    return this.adapter.mkdir(file);
+  },
+
+  isFile:function (file) {
+    return this.adapter.isFile(file);
+  },
+
+  isDirectory:function (file) {
+    return this.adapter.isFile(file);
+  },
+
+  expandPath:function (file) {
+    return this.adapter.expandPath(file);
+  }
+})})();
+
+
+(function() {return JS2.Class.extend('JS2.Updater', {
+  initialize:function (fs, inDir, outDir) {
+    this.fs      = fs; 
+    this.inDir   = this.fs.expandPath(inDir);
+    this.outDir  = this.fs.expandPath(outDir);
+    this.verbose = true;
+  },
+
+  update:function () {
+    js2(this.fs.find(this.inDir, 'js2')).each(function($1,$2,$3){
+      this.tryUpdate($1); 
+    });
+  },
+
+  tryUpdate:function (file) {
+    var outFile = file.replace(this.inDir, this.outDir);
+    if (this.fs.mtime(file) > this.fs.mtime(outFile)) {
+      this.fs.write(outFile, JS2(this.fs.read(file)));
+    }
+  }
+})})();
+
+
+(function() {return JS2.Class.extend('JS2.Commander', {
+  "BANNER":"js2 <command> [options] <arguments>\n" +
     "Commands:\n" +
     "  * run <file>                -- Executes file\n" +
     "  * compile <inDir> [outDir]  -- Compiles a directory and puts js files into outDir.  If outDir is not specified, inDir will be used\n" + 
@@ -918,114 +1013,121 @@ JS2.FS = {
     "  * watch <inDir> <outDir>    -- Similar to compile, but update will keep looping while watching for modifications\n" +
     "    Options:\n" +
     "      -r                      -- Traverse directories recursively\n" +
-    "      -i=<seconds>            -- Interval time in seconds between loops\n";
+    "      -i=<seconds>            -- Interval time in seconds between loops\n",
 
-  JS2.Command = JS2.Class.extend({
-    initialize:function (argv) {
-      this.argv = argv;
-      this.command = this.argv.shift();
-      this.fs     = JS2.FS;
-      this.parseOpts(argv);
+  initialize:function (argv) {
+    this.argv = argv;
+    this.command = this.argv.shift();
+    this.fs      = new JS2.FileSystem(new JS2.FILE_ADAPTER());
+    this.parseOpts(argv);
+  },
 
-    },
-
-    _run:  function(argv) {
-      if (this[this.command]) {
-        console.log("Running " + this.command + ".");
-        this[this.command](argv);
-      } else {
-        this.showBanner();
-      }
-    },
-
-    run: function(argv) {
-      var file;
-      var i = 0;
-      while (file = argv[i++]) {
-        eval(JS2.render(JS2.FS.read(file))); 
-      }
-    },
-
-    options: {
-      'r': 'recursive',
-      'i': 'interval'
-    },
-
-    parseOpts: function(argv) {
-      this.opts = { main: [] };
-      var opts = this.opts;
-      for (var i=0; i<argv.length; i++) {
-        var arg = argv[i];
-        if (arg.match(/^-(\w)(=(.*))?$/)) {
-          opts[this.options[arg[1]]] = arg[3] || true;
-        } else {
-          opts.main.push(arg); 
-        }
-      }
-    },
-
-    compile: function() {
-      var inDir = this.opts.main[0];
-      if (this.fs.isFile(inDir)) {
-        this.fs.write(inDir.replace(/\.js2$/, '.js'), JS2.render(JS2.FS.read(inDir))); 
-      } else {
-        this.getUpdater().update();
-      }
-    },
-
-    getUpdater: function() {
-      var inDir  = this.opts.main[0] || '.';
-      var outDir = this.opts.main[1] || inDir;
-      return new JS2.Updater(inDir, outDir, ('recursive' in this.opts));
-    },
-
-    watch: function() {
-      var updater = this.getUpdater();
-      var self = this;
-      var interval = this.opts.interval || 2;
-      console.log('Input Directory:' + updater.inDir + ' -> Output Directory:' + updater.outDir);
-      if (updater.recursive) console.log('RECURSIVE');
-
-      // HACK to get this integrated with ruby
-      JS2.updater = updater;
-      this.fs.setInterval("JS2.updater.update()", interval * 1000);
-    },
-
-    showBanner:function() {
-      console.log(BANNER);
+  run:function (argv) {
+    if (this[this.command]) {
+      console.log("Running " + this.command + ".");
+      this[this.command](argv);
+    } else {
+      this.showBanner();
     }
-  });
+  },
 
-  JS2.Updater = JS2.Class.extend({
-    initialize: function (inDir, outDir, recursive) {
-      this.inDir  = inDir
-      this.outDir = outDir || inDir;
-      this.interval = 2;
-      this.recursive = recursive;
-    },
+  _run:function (argv) {
+    var file;
+    var i = 0;
+    while (file = argv[i++]) {
+      eval(JS2.render(this.read(file))); 
+    }
+  },
 
-    update: function () {
-      console.log('Updating...');
-      var files = JS2.FS.find(this.inDir, 'js2', this.recursive);
-      for(var i=0; i<files.length; i++){
-        var inFile  = files[i];
-        var outFile = inFile.replace(this.inDir, this.outDir).replace(/\.js2$/, '.js');
-        if (JS2.FS.mtime(inFile) > JS2.FS.mtime(outFile)) {
-          console.log("  `- Compiling " + inFile + " to " + outFile + "...");
-          try {
-            JS2.FS.mkPath(outFile);
-            JS2.FS.write(outFile, (JS2.render(JS2.FS.read(inFile)))); 
-          } catch (e) {
-            console.log(e.toString());
-          }
-        }
+  "options":{
+    'r': 'recursive',
+    'i': 'interval'
+  },
+
+  parseOpts:function (argv) {
+    this.opts = { main: [] };
+    var opts = this.opts;
+    for (var i=0; i<argv.length; i++) {
+      var arg = argv[i];
+      if (arg.match(/^-(\w)(=(.*))?$/)) {
+        opts[this.options[arg[1]]] = arg[3] || true;
+      } else {
+        opts.main.push(arg); 
       }
     }
-  });
-})(undefined, JS2);
+  },
+
+  compile:function () {
+    var inDir = this.opts.main[0];
+    this.getUpdater().update();
+  },
+
+  getUpdater:function () {
+    var inDir  = this.opts.main[0] || '.';
+    var outDir = this.opts.main[1] || inDir;
+    return new JS2.Updater(inDir, outDir, ('recursive' in this.opts));
+  },
+
+  watch:function () {
+    var updater = this.getUpdater();
+    var self = this;
+    var interval = this.opts.interval || 2;
+    console.log('Input Directory:' + updater.inDir + ' -> Output Directory:' + updater.outDir);
+    if (updater.recursive) console.log('RECURSIVE');
+
+    // HACK to get this integrated with ruby
+    JS2.updater = updater;
+    this.fs.setInterval("JS2.updater.update()", interval * 1000);
+  },
+
+  showBanner:function () {
+    console.log(BANNER);
+  }
+})})();
+
+
+
+(function() {return JS2.Class.extend('JS2.NodeFileAdapter', {
+  initialize:function () {
+    this.fs = require('fs'); 
+  }, 
+
+  isDirectory:function (file) {
+    return this.fs.stat(file).isDirectory();
+  },
+
+  isFile:function (file) {
+    return this.fs.statSync(file).isFile();
+  },
+
+  mkdir:function (file) {
+    return this.fs.mkdirSync(file);
+  },
+
+  expandPath:function (file) {
+    return this.fs.realpathSync(file);
+  },
+
+  read:function (file) {
+    return this.fs.readSync(file);
+  },
+
+  write:function (file, data) {
+    return this.fs.writeSync(file, data);
+  },
+
+
+  mtime:function (file) {
+    try {
+      return this.fs.statSync(file).mtime;
+    } catch(e) {
+      return 0;
+    }
+  }
+})})();
 
 
   return JS2;
-})();
+})(GLOBAL);
 
 exports.JS2 = JS2;

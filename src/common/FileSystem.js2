@@ -1,0 +1,69 @@
+class JS2.FileSystem {
+  function initialize(adapter) {
+    this.adapter = adapter;
+  }
+
+  function find(dir, ext) {
+    this._find(this.expandPath(dir), new RegExp('\\.' + ext + '$'));
+  }
+
+  function _find(dir, regex) {
+    var parts = this.adapter.readdir(dir); 
+
+    var files = js2();
+    js2(parts).select(/^\.\.?$/).each(#{
+      var file = dir + '/' + $1;
+      if (this.isFile(file) && file.match(regex)) {
+        files.push(file); 
+      } else if (this.isDirectory(file)) {
+        files.append(this._find(file, regex)); 
+      }
+    });
+
+    return files;
+  }
+
+  function mkpath(file) {
+    var dirname = this.dirname(file);
+    var subdirs = js2(dirname.split('/'));
+
+    var self = this;
+    subdirs.reduce(#{
+      self.mkdir($2); 
+      return $2 + '/' + $1;
+    });
+  }
+
+  // ADAPTER USAGE
+  function dirname(file) {
+    return this.adapter.dirname(file);
+  }
+
+  function read(file) {
+    return this.adapter.read(file);
+  }
+
+  function write(file, data) {
+    return this.adapter.write(file, data);
+  }
+
+  function mtime(file) {
+    return this.adapter.mtime(file);
+  }
+
+  function mkdir(file) {
+    return this.adapter.mkdir(file);
+  }
+
+  function isFile(file) {
+    return this.adapter.isFile(file);
+  }
+
+  function isDirectory(file) {
+    return this.adapter.isFile(file);
+  }
+
+  function expandPath(file) {
+    return this.adapter.expandPath(file);
+  }
+}

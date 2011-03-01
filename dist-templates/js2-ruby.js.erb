@@ -1,10 +1,4 @@
 var JS2 = (function (root) {
-  <%= js 'js2-helper.js' %>
-  JS2.MODE = 'ruby';
-  JS2.ROOT = root;
-
   <%= core %>
-  <%= js 'js2-command.js' %>
-
   return JS2;
 })(this);

@@ -1,12 +1,6 @@
-JS2 = (function () {
-  <%= js 'js2-helper.js' %>
-  JS2.MODE = 'node';
-  JS2.ROOT = global;
+JS2 = (function (root) {
   <%= core %>
-  <%= js 'js2-fs.js' %>
-  <%= js 'js2-command.js' %>
-
   return JS2;
-})();
+})(GLOBAL);
 
 exports.JS2 = JS2;
