@@ -15,20 +15,19 @@ class JS2.Commander {
   function initialize (argv) {
     this.argv = argv;
     this.command = this.argv.shift();
-    this.fs      = new JS2.FileSystem(new JS2.FILE_ADAPTER());
+    //this.fs      = new JS2.FileSystem(new JS2.NodeFileAdapter());
     this.parseOpts(argv);
   }
 
-  function run(argv) {
+  function cli(argv) {
     if (this[this.command]) {
-      console.log("Running " + this.command + ".");
       this[this.command](argv);
     } else {
       this.showBanner();
     }
   }
 
-  function _run(argv) {
+  function run(argv) {
     var file;
     var i = 0;
     while (file = argv[i++]) {
@@ -78,7 +77,7 @@ class JS2.Commander {
   }
 
   function showBanner() {
-    console.log(BANNER);
+    console.log(this.BANNER);
   }
 }
 

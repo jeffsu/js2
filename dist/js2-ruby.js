@@ -1018,20 +1018,19 @@ JS2.Array.prototype.any = function() {
   initialize:function (argv) {
     this.argv = argv;
     this.command = this.argv.shift();
-    this.fs      = new JS2.FileSystem(new JS2.FILE_ADAPTER());
+    //this.fs      = new JS2.FileSystem(new JS2.NodeFileAdapter());
     this.parseOpts(argv);
   },
 
-  run:function (argv) {
+  cli:function (argv) {
     if (this[this.command]) {
-      console.log("Running " + this.command + ".");
       this[this.command](argv);
     } else {
       this.showBanner();
     }
   },
 
-  _run:function (argv) {
+  run:function (argv) {
     var file;
     var i = 0;
     while (file = argv[i++]) {
@@ -1081,7 +1080,7 @@ JS2.Array.prototype.any = function() {
   },
 
   showBanner:function () {
-    console.log(BANNER);
+    console.log(this.BANNER);
   }
 })})();
 

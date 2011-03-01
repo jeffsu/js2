@@ -1,4 +1,4 @@
-JS2 = (function (root) {
+var JS2 = (function (root) {
   var JS2 = function (arg) {
   if (typeof arg == 'string') {
     return JS2.Parser.parse(arg).toString();
@@ -1018,20 +1018,19 @@ JS2.Array.prototype.any = function() {
   initialize:function (argv) {
     this.argv = argv;
     this.command = this.argv.shift();
-    this.fs      = new JS2.FileSystem(new JS2.FILE_ADAPTER());
+    //this.fs      = new JS2.FileSystem(new JS2.NodeFileAdapter());
     this.parseOpts(argv);
   },
 
-  run:function (argv) {
+  cli:function (argv) {
     if (this[this.command]) {
-      console.log("Running " + this.command + ".");
       this[this.command](argv);
     } else {
       this.showBanner();
     }
   },
 
-  _run:function (argv) {
+  run:function (argv) {
     var file;
     var i = 0;
     while (file = argv[i++]) {
@@ -1081,13 +1080,53 @@ JS2.Array.prototype.any = function() {
   },
 
   showBanner:function () {
-    console.log(BANNER);
+    console.log(this.BANNER);
   }
 })})();
 
 
 
 (function() {return JS2.Class.extend('JS2.NodeFileAdapter', {
+  initialize:function () {
+    this.fs = require('fs'); 
+  }, 
+
+  isDirectory:function (file) {
+    return this.fs.stat(file).isDirectory();
+  },
+
+  isFile:function (file) {
+    return this.fs.statSync(file).isFile();
+  },
+
+  mkdir:function (file) {
+    return this.fs.mkdirSync(file);
+  },
+
+  expandPath:function (file) {
+    return this.fs.realpathSync(file);
+  },
+
+  read:function (file) {
+    return this.fs.readSync(file);
+  },
+
+  write:function (file, data) {
+    return this.fs.writeSync(file, data);
+  },
+
+
+  mtime:function (file) {
+    try {
+      return this.fs.statSync(file).mtime;
+    } catch(e) {
+      return 0;
+    }
+  }
+})})();
+
+
+  (function() {return JS2.Class.extend('JS2.NodeFileAdapter', {
   initialize:function () {
     this.fs = require('fs'); 
   }, 

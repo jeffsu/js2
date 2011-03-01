@@ -59,7 +59,7 @@ task :dist do
   end.join("\n");
 
   common = %W{ Array FileSystem Updater Commander NodeFileAdapter  }.collect do |f|
-    js("common/#{f}.js2")
+    js("Common/#{f}.js2")
   end.join("\n");
 
   core += common
