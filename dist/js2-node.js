@@ -858,21 +858,38 @@ JS2.FS = {
       }
     }
     return all;
- },
+  },
 
- isDiretory: function(file) {
-   return FS.statSync(file).isDiretory();
- },
+  mkPath: function(file) {
+    var appended = [];
+    var splitted = file.split('/');
 
- isFile: function(file) {
-   return FS.statSync(file).isFile();
- },
+    splitted.pop();
 
+    while (splitted.length) {
+      appended.push(splitted.shift()); 
+      var dir = appended.join('/');
+      if (!FS.statSync(dir).isDirectory() && !FS.statSync(dir).isFile()) {
+        FS.mkdirSync(dir);
+      }
+    }
 
+    if (FS.statSync(file).FS.readFile(file);
+
+  },
+
+  isDiretory: function(file) {
+    return FS.statSync(file).isDiretory();
+  },
+  
+  isFile: function(file) {
+    return FS.statSync(file).isFile();
+  },
+  
   write: function(file, data) {
     return FS.writeFileSync(file, data);
   },
-
+  
   mtime: function(file) {
     try {
       var stat = FS.statSync(file);
@@ -881,7 +898,7 @@ JS2.FS = {
       return 0;
     }
   },
-
+  
   setInterval: function(code, time) {
     setInterval(code, time);
   }
@@ -977,8 +994,8 @@ JS2.FS = {
 
   JS2.Updater = JS2.Class.extend({
     initialize: function (inDir, outDir, recursive) {
-      this.inDir  = inDir;
-      this.outDir = outDir || inDir;
+      this.inDir  = JS2.FS.realpath(inDir);
+      this.outDir = JS2.FS.realpath(outDir || inDir);
       this.interval = 2;
       this.recursive = recursive;
     },
@@ -992,6 +1009,7 @@ JS2.FS = {
         if (JS2.FS.mtime(inFile) > JS2.FS.mtime(outFile)) {
           console.log("  `- Compiling " + inFile + " to " + outFile + "...");
           try {
+            JS2.FS.mkPath(outFile);
             JS2.FS.write(outFile, (JS2.render(JS2.FS.read(inFile)))); 
           } catch (e) {
             console.log(e.toString());

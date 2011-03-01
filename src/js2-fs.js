@@ -21,21 +21,38 @@ JS2.FS = {
       }
     }
     return all;
- },
+  },
 
- isDiretory: function(file) {
-   return FS.statSync(file).isDiretory();
- },
+  mkPath: function(file) {
+    var appended = [];
+    var splitted = file.split('/');
 
- isFile: function(file) {
-   return FS.statSync(file).isFile();
- },
+    splitted.pop();
 
+    while (splitted.length) {
+      appended.push(splitted.shift()); 
+      var dir = appended.join('/');
+      if (!FS.statSync(dir).isDirectory() && !FS.statSync(dir).isFile()) {
+        FS.mkdirSync(dir);
+      }
+    }
 
+    if (FS.statSync(file).FS.readFile(file);
+
+  },
+
+  isDiretory: function(file) {
+    return FS.statSync(file).isDiretory();
+  },
+  
+  isFile: function(file) {
+    return FS.statSync(file).isFile();
+  },
+  
   write: function(file, data) {
     return FS.writeFileSync(file, data);
   },
-
+  
   mtime: function(file) {
     try {
       var stat = FS.statSync(file);
@@ -44,7 +61,7 @@ JS2.FS = {
       return 0;
     }
   },
-
+  
   setInterval: function(code, time) {
     setInterval(code, time);
   }

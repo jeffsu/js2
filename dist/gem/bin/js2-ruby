@@ -7,4 +7,4 @@ require "#{dir}js2"
 require "#{dir}js2/command"
 require "#{dir}js2/fs"
 
-JS2::Command.new(ARGV)
+JS2::Command.new(ARGV).run

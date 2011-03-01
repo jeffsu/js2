@@ -926,8 +926,8 @@ var JS2 = (function (root) {
 
   JS2.Updater = JS2.Class.extend({
     initialize: function (inDir, outDir, recursive) {
-      this.inDir  = inDir;
-      this.outDir = outDir || inDir;
+      this.inDir  = JS2.FS.realpath(inDir);
+      this.outDir = JS2.FS.realpath(outDir || inDir);
       this.interval = 2;
       this.recursive = recursive;
     },
@@ -941,6 +941,7 @@ var JS2 = (function (root) {
         if (JS2.FS.mtime(inFile) > JS2.FS.mtime(outFile)) {
           console.log("  `- Compiling " + inFile + " to " + outFile + "...");
           try {
+            JS2.FS.mkPath(outFile);
             JS2.FS.write(outFile, (JS2.render(JS2.FS.read(inFile)))); 
           } catch (e) {
             console.log(e.toString());

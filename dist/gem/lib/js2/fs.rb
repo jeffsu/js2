@@ -1,3 +1,4 @@
+require 'fileutils'
 class JS2::FS
   def initialize(context) 
     @ctx = context
@@ -9,14 +10,24 @@ class JS2::FS
 
   def find(dir, ext, recursive) 
     lookup = recursive ? "**" : "."
-    return Dir["#{lookup}/*.#{ext}"].reject { |f| f == /^./ }
+    return Dir["#{lookup}/*.#{ext}"].collect { |f| File.expand_path(f) }.reject { |f| f.match(/^\./) }
+  end
+
+  def realpath(file)
+    return File.expand_path(file)
   end
 
   def isDirectory(dir)
     return File.directory?(dir)
   end
 
+  def mkPath(file)
+    dir = File.dirname(file)
+    FileUtils.mkdir_p(dir) unless File.directory?(dir)
+  end
+
   def isFile(dir)
+    return false unless dir
     return File.file?(dir)
   end
 
@@ -26,6 +37,8 @@ class JS2::FS
 
   def mtime(file)
     File.stat(file).mtime
+  rescue
+    return 0
   end
 
   def setInterval(code, time)
