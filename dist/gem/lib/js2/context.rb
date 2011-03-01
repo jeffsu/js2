@@ -13,6 +13,15 @@ module JS2
       @js2 = @ctx['JS2']
     end
 
+    def []= (k,v)
+      @ctx[k] = v
+    end
+
+    def [] (k)
+      @ctx[k]
+    end
+
+
     def render(str)
       @js2.render(str)
     end

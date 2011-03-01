@@ -974,3 +974,5 @@ JS2.FS = {
 
   return JS2;
 })();
+
+exports.JS2 = JS2;
