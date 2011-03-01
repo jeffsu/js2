@@ -18,3 +18,11 @@ JS2.test(#(assert){
   var test = new Test1.Foo(); 
   assert.eq('hello', test.getStuffs()[0]);
 });
+
+ele.onclick = #{ 
+  console.log('hello') 
+  console.log('hello') 
+  console.log('hello') 
+}
+
+var foo;

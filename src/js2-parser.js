@@ -279,7 +279,12 @@
   var ShortFunct = Content.extend({
     name: "ShortFunct",
     handOff: function(token) {
-      if (this.started) this.closed = true;
+      if (this.started) {
+        this.closed = true;
+        var foo = (new Validator(this.tokens.toArray())).getString(2);
+        this.semi = (new Validator(this.tokens.toArray())).validate(/^(\s*)([^\s\w$])/, 2) ? '' : ';';
+      }
+
       switch (token[0]) {
         case '(': return Braces;
         case '{': this.started = true; return Block;
@@ -288,7 +293,7 @@
 
     toString: function() {
       var v = this.validate(/(#)(Braces)?(\s*)(Block)/);
-      return "function" + (v[2] ? v[2] : "($1,$2,$3)") + v[4];
+      return "function" + (v[2] ? v[2] : "($1,$2,$3)") + v[4] + this.semi;
     }
   });
 
@@ -311,7 +316,7 @@
 
     toString: function() {
       var v = this.validate(/(curry)(\s*)(Braces)?(\s*)(with)?(\s*)(Braces)?(\s*)(Block)/);
-      var ret = [ '(function(){return function'];
+      var ret = [ '(function(){return function' ];
 
       // args
       ret.push(v[3] ? v[3].toString() : '($1,$2,$3)');

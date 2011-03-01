@@ -270,38 +270,57 @@ var JS2 = (function (root) {
   });
 
   JS2.Lexer.HEREDOC = JS2.Lexer.ISTRING.extend({
-    REGEX_NEXT: /^((\\#|[^#])*?)(#{)/,
+    REGEX_NEXT: /^((\\#|[^#])*?)(#{|\r?\n)/,
     REGEX: /^<<\-?(\w+)\r?\n/m,
     ID: IDS.HEREDOC,
     consume: function() {
       var m = this.tokens.match(this.REGEX);
       if (!m) return false;
+
       this.tokens.chomp(m[0].length);
       this.tokens.push([ "\n", IDS.SPACE ]);
 
       var mIndent = this.tokens.match(/^(\s*)([^\s])/m);
-
+      var spacing = mIndent[1];
+      var nspace  = mIndent[1].length;
       var ender = new RegExp("^\\s*" + m[1] + "(\\r?\\n)?");
-      var regex = new RegExp("^\\s{" + mIndent[1].length + "}(.*)\\r?\\n");
 
-      var first = true;
+      var first   = true;
+      var noChomp = false;
+
       while (1) {
         var e = this.tokens.match(ender);
-  if (e) {
-    this.tokens.chomp(e[0].length);
+        if (e) {
+          this.tokens.chomp(e[0].length);
           this.tokens.push([ ';', IDS.DSTRING ]);
           return true;
-  } 
+        } 
 
-        var line = this.tokens.match(regex);
-  if (line) {
-    this.tokens.chomp(line[0].length);
-          this.tokens.push([ (first ? '' : '+') + '"' + this.sanitize(line[1]) + '\\n"', IDS.DSTRING ]);
+        if (noChomp) {
+          noChomp = false;
         } else {
-          break;
-  }  
+          this.tokens.chomp(nspace);
+        }
 
-  first = false;
+        var next = this.tokens.match(this.REGEX_NEXT);
+        if (next) {
+          if (next[1]) {
+            this.tokens.chomp(next[1].length);
+            this.tokens.push([ (first ? '' : '+') + '"' + this.sanitize(next[1]) + '\\\\n"', IDS.DSTRING ]);
+          } 
+
+          if (next[3] == '#{') {
+            this.tokens.chomp(1);
+            this.tokens.push([ '+(', IDS.DSTRING ]);
+            var block = new JS2.Lexer.Block(this.tokens);
+            block.tokenize();
+            this.tokens.push([ ')', IDS.DSTRING ]);
+            noChomp = true;
+          } else {
+            this.tokens.chomp(next[3].length);
+          }
+        }
+        first = false;
       }
       return true;
     }
@@ -747,7 +766,12 @@ var JS2 = (function (root) {
   var ShortFunct = Content.extend({
     name: "ShortFunct",
     handOff: function(token) {
-      if (this.started) this.closed = true;
+      if (this.started) {
+        this.closed = true;
+        var foo = (new Validator(this.tokens.toArray())).getString(2);
+        this.semi = (new Validator(this.tokens.toArray())).validate(/^(\s*)([^\s\w$])/, 2) ? '' : ';';
+      }
+
       switch (token[0]) {
         case '(': return Braces;
         case '{': this.started = true; return Block;
@@ -756,7 +780,7 @@ var JS2 = (function (root) {
 
     toString: function() {
       var v = this.validate(/(#)(Braces)?(\s*)(Block)/);
-      return "function" + (v[2] ? v[2] : "($1,$2,$3)") + v[4];
+      return "function" + (v[2] ? v[2] : "($1,$2,$3)") + v[4] + this.semi;
     }
   });
 
@@ -779,7 +803,7 @@ var JS2 = (function (root) {
 
     toString: function() {
       var v = this.validate(/(curry)(\s*)(Braces)?(\s*)(with)?(\s*)(Braces)?(\s*)(Block)/);
-      var ret = [ '(function(){return function'];
+      var ret = [ '(function(){return function' ];
 
       // args
       ret.push(v[3] ? v[3].toString() : '($1,$2,$3)');

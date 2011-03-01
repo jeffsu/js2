@@ -1,39 +1,37 @@
 class JS2::FS
-  class << self
-    def read(file)
-      File.read(file)
-    end
+  def initialize(context) 
+    @ctx = context
+  end
 
-    def find(dir, ext, recursive) 
-      if recursive
-        return Dir["**/*.#{ext}"].reject { |f| f == /^./ }
-      else
-        return Dir.readdir(dir);
-      end
-    end
+  def read(file)
+    File.read(file)
+  end
 
-    def isDirectory(dir)
-      return File.directory?(dir)
-    end
+  def find(dir, ext, recursive) 
+    lookup = recursive ? "**" : "."
+    return Dir["#{lookup}/*.#{ext}"].reject { |f| f == /^./ }
+  end
 
-    def isFile(dir)
-      return File.file?(dir)
-    end
+  def isDirectory(dir)
+    return File.directory?(dir)
+  end
 
-    def write(out, data) 
-      File.open(out, 'w') { |f| f << data }
-    end
+  def isFile(dir)
+    return File.file?(dir)
+  end
 
-    def mtime(file)
-      File.stat(file).mtime
-    end
+  def write(out, data) 
+    File.open(out, 'w') { |f| f << data }
+  end
 
-    def setInterval(block, time)
-      puts block.class.to_s
-      while true
-        sleep time
-        block.call()
-      end
+  def mtime(file)
+    File.stat(file).mtime
+  end
+
+  def setInterval(code, time)
+    while true
+      @ctx.eval(code)
+      sleep(time/1000)
     end
   end
 end

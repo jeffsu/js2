@@ -74,7 +74,10 @@
       var interval = this.opts.interval || 2;
       console.log('Input Directory:' + updater.inDir + ' -> Output Directory:' + updater.outDir);
       if (updater.recursive) console.log('RECURSIVE');
-      setInterval(function () { updater.update() }, interval * 1000);
+
+      // HACK to get this integrated with ruby
+      JS2.updater = updater;
+      this.fs.setInterval("JS2.updater.update()", interval * 1000);
     },
 
     showBanner:function() {

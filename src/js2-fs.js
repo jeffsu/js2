@@ -43,6 +43,10 @@ JS2.FS = {
     } catch (e)  {
       return 0;
     }
+  },
+
+  setInterval: function(code, time) {
+    setInterval(code, time);
   }
 };
 

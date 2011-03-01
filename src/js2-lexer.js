@@ -143,38 +143,57 @@
   });
 
   JS2.Lexer.HEREDOC = JS2.Lexer.ISTRING.extend({
-    REGEX_NEXT: /^((\\#|[^#])*?)(#{)/,
+    REGEX_NEXT: /^((\\#|[^#])*?)(#{|\r?\n)/,
     REGEX: /^<<\-?(\w+)\r?\n/m,
     ID: IDS.HEREDOC,
     consume: function() {
       var m = this.tokens.match(this.REGEX);
       if (!m) return false;
+
       this.tokens.chomp(m[0].length);
       this.tokens.push([ "\n", IDS.SPACE ]);
 
       var mIndent = this.tokens.match(/^(\s*)([^\s])/m);
-
+      var spacing = mIndent[1];
+      var nspace  = mIndent[1].length;
       var ender = new RegExp("^\\s*" + m[1] + "(\\r?\\n)?");
-      var regex = new RegExp("^\\s{" + mIndent[1].length + "}(.*)\\r?\\n");
 
-      var first = true;
+      var first   = true;
+      var noChomp = false;
+
       while (1) {
         var e = this.tokens.match(ender);
-  if (e) {
-    this.tokens.chomp(e[0].length);
+        if (e) {
+          this.tokens.chomp(e[0].length);
           this.tokens.push([ ';', IDS.DSTRING ]);
           return true;
-  } 
+        } 
 
-        var line = this.tokens.match(regex);
-  if (line) {
-    this.tokens.chomp(line[0].length);
-          this.tokens.push([ (first ? '' : '+') + '"' + this.sanitize(line[1]) + '\\n"', IDS.DSTRING ]);
+        if (noChomp) {
+          noChomp = false;
         } else {
-          break;
-  }  
+          this.tokens.chomp(nspace);
+        }
 
-  first = false;
+        var next = this.tokens.match(this.REGEX_NEXT);
+        if (next) {
+          if (next[1]) {
+            this.tokens.chomp(next[1].length);
+            this.tokens.push([ (first ? '' : '+') + '"' + this.sanitize(next[1]) + '\\\\n"', IDS.DSTRING ]);
+          } 
+
+          if (next[3] == '#{') {
+            this.tokens.chomp(1);
+            this.tokens.push([ '+(', IDS.DSTRING ]);
+            var block = new JS2.Lexer.Block(this.tokens);
+            block.tokenize();
+            this.tokens.push([ ')', IDS.DSTRING ]);
+            noChomp = true;
+          } else {
+            this.tokens.chomp(next[3].length);
+          }
+        }
+        first = false;
       }
       return true;
     }
