@@ -8,7 +8,9 @@
   },
 
   sayHi:function () {
-    console.log('say hi');
+    for(var _i4=0,_c4=this.getStuffs(),_l4=_c4.length,stuff;stuff=_c4[_i4]||_i4<_l4;_i4++){
+      console.log(stuff);
+    }
   }
 })})();
 

@@ -1,5 +1,5 @@
 var JS2 = (function (root) {
-  var JS2 = function (arg) {
+  JS2 = root['JS2'] = function (arg) {
   if (typeof arg == 'string') {
     return JS2.Parser.parse(arg).toString();
   } else if (arg instanceof Array) {
@@ -9,7 +9,7 @@ var JS2 = (function (root) {
   } 
 };
 
-var js2 = JS2;
+js2 = root['js2'] = JS2;
 JS2.ROOT = root;
 
 
@@ -170,9 +170,21 @@ JS2.ROOT = root;
       this.tokens = (typeof str == 'string') ? new JS2.Lexer.Tokens(str) : str;
     },
 
-    tokenize: function() {
+    tokenize: function(root) {
+      if (root) {
+        var m = this.tokens.match(/^#!.*/);
+        if (m) this.tokens.chomp(m[0].length);
+      }
+
       while (!this.tokens.finished()) {
-        if (! this.consume()) return false;
+        if (! this.consume()) {
+          if (root) {
+            console.log("ERROR" + this.tokens.str);
+            break;
+          } else {
+            return false;
+          }
+        }
       }
       return this.tokens;
     },
@@ -499,7 +511,7 @@ JS2.ROOT = root;
   Parser = {
     parse: function(str) {
       var lexer   = new JS2.Lexer(str);
-      var tokens  = lexer.tokenize();
+      var tokens  = lexer.tokenize(true);
       var root    = new Content(tokens);
       return root;
     },
@@ -878,14 +890,20 @@ JS2.Array.prototype.reduce = function(f, val) {
 
 JS2.Array.prototype.reject = function(f) {
   var ret = new JS2.Array();
-  this.each(function($1,$2,$3){ if (!f.call(this, $1, $2)) ret.push($1) });
+  if (f instanceof RegExp) {
+    this.each(function($1,$2,$3){ if (!$1.match(f)) ret.push($1) });
+  } else if (typeof f == 'string' || typeof f == 'number') {
+    this.each(function($1,$2,$3){ if ($1 != f) ret.push($1) });
+  } else if (typeof f == 'function') {
+    this.each(function($1,$2,$3){ if (!f.call(this, $1, $2)) ret.push($1) });
+  }
   return ret;
 };
 
 JS2.Array.prototype.select = function(f) {
   var ret = new JS2.Array();
   if (f instanceof RegExp) {
-    this.each(function($1,$2,$3){ if ($1.match(regex)) ret.push($1) });
+    this.each(function($1,$2,$3){ if ($1.match(f)) ret.push($1) });
   } else if (typeof f == 'string' || typeof f == 'number') {
     this.each(function($1,$2,$3){ if ($1 == f) ret.push($1) });
   } else if (typeof f == 'function') {
@@ -914,19 +932,20 @@ JS2.Array.prototype.any = function() {
   },
 
   find:function (dir, ext) {
-    this._find(this.expandPath(dir), new RegExp('\\.' + ext + '$'));
+    return this._find(this.expandPath(dir), new RegExp('\\.' + ext + '$'));
   },
 
   _find:function (dir, regex) {
     var parts = this.adapter.readdir(dir); 
 
     var files = js2();
-    js2(parts).select(/^\.\.?$/).each(function($1,$2,$3){
+    var self = this;
+    js2(parts).reject(/^\.\.?$/).each(function($1,$2,$3){
       var file = dir + '/' + $1;
-      if (this.isFile(file) && file.match(regex)) {
+      if (self.isFile(file) && file.match(regex)) {
         files.push(file); 
-      } else if (this.isDirectory(file)) {
-        files.append(this._find(file, regex)); 
+      } else if (self.isDirectory(file)) {
+        files.append(self._find(file, regex)); 
       }
     });
 
@@ -950,7 +969,8 @@ JS2.Array.prototype.any = function() {
   },
 
   read:function (file) {
-    return this.adapter.read(file);
+    var data = this.adapter.read(file);
+    return data;
   },
 
   write:function (file, data) {
@@ -966,11 +986,24 @@ JS2.Array.prototype.any = function() {
   },
 
   isFile:function (file) {
-    return this.adapter.isFile(file);
+    try {
+      return this.adapter.isFile(file);
+    } catch(e) {
+      console.log(e);
+      return false;
+    }
+  },
+
+  setInterval:function (code, interval) {
+    return this.adapter.setInterval(code, interval);
   },
 
   isDirectory:function (file) {
-    return this.adapter.isFile(file);
+    try {
+      return this.adapter.isDirectory(file);
+    } catch(e) {
+      return false;
+    }
   },
 
   expandPath:function (file) {
@@ -988,13 +1021,14 @@ JS2.Array.prototype.any = function() {
   },
 
   update:function () {
-    js2(this.fs.find(this.inDir, 'js2')).each(function($1,$2,$3){
-      this.tryUpdate($1); 
+    var self = this;
+    this.fs.find(this.inDir, 'js2').each(function($1,$2,$3){
+      self.tryUpdate($1); 
     });
   },
 
   tryUpdate:function (file) {
-    var outFile = file.replace(this.inDir, this.outDir);
+    var outFile = file.replace(this.inDir, this.outDir).replace(/\.js2$/, '.js');
     if (this.fs.mtime(file) > this.fs.mtime(outFile)) {
       this.fs.write(outFile, JS2(this.fs.read(file)));
     }
@@ -1006,6 +1040,7 @@ JS2.Array.prototype.any = function() {
   "BANNER":"js2 <command> [options] <arguments>\n" +
     "Commands:\n" +
     "  * run <file>                -- Executes file\n" +
+    "  * render <file>             -- Shows JS2 compiled output\n" +
     "  * compile <inDir> [outDir]  -- Compiles a directory and puts js files into outDir.  If outDir is not specified, inDir will be used\n" + 
     "    Options:\n" +
     "      -r                      -- Traverse directories recursively\n" +
@@ -1018,23 +1053,27 @@ JS2.Array.prototype.any = function() {
   initialize:function (argv) {
     this.argv = argv;
     this.command = this.argv.shift();
-    //this.fs      = new JS2.FileSystem(new JS2.NodeFileAdapter());
+    this.fs      = new JS2.FileSystem(new JS2.FILE_ADAPTER_CLASS());
     this.parseOpts(argv);
   },
 
-  cli:function (argv) {
+  cli:function () {
     if (this[this.command]) {
-      this[this.command](argv);
+      this[this.command](this.argv);
     } else {
       this.showBanner();
     }
+  },
+
+  render:function (argv) {
+    console.log(js2.render(this.fs.read(argv[0])));
   },
 
   run:function (argv) {
     var file;
     var i = 0;
     while (file = argv[i++]) {
-      eval(JS2.render(this.read(file))); 
+      eval(js2.render(this.fs.read(file))); 
     }
   },
 
@@ -1064,7 +1103,7 @@ JS2.Array.prototype.any = function() {
   getUpdater:function () {
     var inDir  = this.opts.main[0] || '.';
     var outDir = this.opts.main[1] || inDir;
-    return new JS2.Updater(inDir, outDir, ('recursive' in this.opts));
+    return new JS2.Updater(this.fs, inDir, outDir);
   },
 
   watch:function () {
@@ -1075,8 +1114,7 @@ JS2.Array.prototype.any = function() {
     if (updater.recursive) console.log('RECURSIVE');
 
     // HACK to get this integrated with ruby
-    JS2.updater = updater;
-    this.fs.setInterval("JS2.updater.update()", interval * 1000);
+    setInterval(function($1,$2,$3){ console.log('updating'); updater.update() }, interval * 1000);
   },
 
   showBanner:function () {
@@ -1095,6 +1133,10 @@ JS2.Array.prototype.any = function() {
     return this.fs.stat(file).isDirectory();
   },
 
+  setInterval:function (code, interval) {
+    return setInterval(code, interval);
+  },
+
   isFile:function (file) {
     return this.fs.statSync(file).isFile();
   },
@@ -1103,22 +1145,25 @@ JS2.Array.prototype.any = function() {
     return this.fs.mkdirSync(file);
   },
 
+  readdir:function (file) {
+    return this.fs.readdirSync(file);
+  },
+
   expandPath:function (file) {
     return this.fs.realpathSync(file);
   },
 
   read:function (file) {
-    return this.fs.readSync(file);
+    return this.fs.readFileSync(file, 'utf8');
   },
 
   write:function (file, data) {
-    return this.fs.writeSync(file, data);
+    return this.fs.writeFileSync(file, data, 'utf8');
   },
-
 
   mtime:function (file) {
     try {
-      return this.fs.statSync(file).mtime;
+      return this.fs.statSync(file).mtime.getTime();
     } catch(e) {
       return 0;
     }

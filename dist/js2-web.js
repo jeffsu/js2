@@ -1,5 +1,5 @@
 var JS2 = (function (root) {
-  var JS2 = function (arg) {
+  JS2 = root['JS2'] = function (arg) {
   if (typeof arg == 'string') {
     return JS2.Parser.parse(arg).toString();
   } else if (arg instanceof Array) {
@@ -9,7 +9,7 @@ var JS2 = (function (root) {
   } 
 };
 
-var js2 = JS2;
+js2 = root['js2'] = JS2;
 JS2.ROOT = root;
 
   
@@ -168,14 +168,20 @@ JS2.Array.prototype.reduce = function(f, val) {
 
 JS2.Array.prototype.reject = function(f) {
   var ret = new JS2.Array();
-  this.each(function($1,$2,$3){ if (!f.call(this, $1, $2)) ret.push($1) });
+  if (f instanceof RegExp) {
+    this.each(function($1,$2,$3){ if (!$1.match(f)) ret.push($1) });
+  } else if (typeof f == 'string' || typeof f == 'number') {
+    this.each(function($1,$2,$3){ if ($1 != f) ret.push($1) });
+  } else if (typeof f == 'function') {
+    this.each(function($1,$2,$3){ if (!f.call(this, $1, $2)) ret.push($1) });
+  }
   return ret;
 };
 
 JS2.Array.prototype.select = function(f) {
   var ret = new JS2.Array();
   if (f instanceof RegExp) {
-    this.each(function($1,$2,$3){ if ($1.match(regex)) ret.push($1) });
+    this.each(function($1,$2,$3){ if ($1.match(f)) ret.push($1) });
   } else if (typeof f == 'string' || typeof f == 'number') {
     this.each(function($1,$2,$3){ if ($1 == f) ret.push($1) });
   } else if (typeof f == 'function') {

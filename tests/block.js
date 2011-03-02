@@ -5,7 +5,6 @@ var front;
 
 var space;
 
-function($1,$2,$3){ }
+function($1,$2,$3){ };
 
 var back;
-

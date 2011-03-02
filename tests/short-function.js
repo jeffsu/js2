@@ -9,4 +9,3 @@ this.bar = -> {
 this.baz = -> (foo, bar) {
   alert('hello world');
 };
-

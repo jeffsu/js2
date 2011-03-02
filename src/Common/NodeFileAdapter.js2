@@ -7,6 +7,10 @@ class JS2.NodeFileAdapter {
     return this.fs.stat(file).isDirectory();
   }
 
+  function setInterval(code, interval) {
+    return setInterval(code, interval);
+  }
+
   function isFile(file) {
     return this.fs.statSync(file).isFile();
   }
@@ -15,22 +19,25 @@ class JS2.NodeFileAdapter {
     return this.fs.mkdirSync(file);
   }
 
+  function readdir(file) {
+    return this.fs.readdirSync(file);
+  }
+
   function expandPath(file) {
     return this.fs.realpathSync(file);
   }
 
   function read(file) {
-    return this.fs.readSync(file);
+    return this.fs.readFileSync(file, 'utf8');
   }
 
   function write(file, data) {
-    return this.fs.writeSync(file, data);
+    return this.fs.writeFileSync(file, data, 'utf8');
   }
-
 
   function mtime(file) {
     try {
-      return this.fs.statSync(file).mtime;
+      return this.fs.statSync(file).mtime.getTime();
     } catch(e) {
       return 0;
     }

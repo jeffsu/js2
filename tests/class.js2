@@ -19,10 +19,3 @@ JS2.test(#(assert){
   assert.eq('hello', test.getStuffs()[0]);
 });
 
-ele.onclick = #{ 
-  console.log('hello') 
-  console.log('hello') 
-  console.log('hello') 
-}
-
-var foo;

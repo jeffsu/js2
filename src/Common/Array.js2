@@ -31,14 +31,20 @@ JS2.Array.prototype.reduce = function(f, val) {
 
 JS2.Array.prototype.reject = function(f) {
   var ret = new JS2.Array();
-  this.each(#{ if (!f.call(this, $1, $2)) ret.push($1) });
+  if (f instanceof RegExp) {
+    this.each(#{ if (!$1.match(f)) ret.push($1) });
+  } else if (typeof f == 'string' || typeof f == 'number') {
+    this.each(#{ if ($1 != f) ret.push($1) });
+  } else if (typeof f == 'function') {
+    this.each(#{ if (!f.call(this, $1, $2)) ret.push($1) });
+  }
   return ret;
 };
 
 JS2.Array.prototype.select = function(f) {
   var ret = new JS2.Array();
   if (f instanceof RegExp) {
-    this.each(#{ if ($1.match(regex)) ret.push($1) });
+    this.each(#{ if ($1.match(f)) ret.push($1) });
   } else if (typeof f == 'string' || typeof f == 'number') {
     this.each(#{ if ($1 == f) ret.push($1) });
   } else if (typeof f == 'function') {

@@ -7,13 +7,14 @@ class JS2.Updater {
   }
 
   function update() {
-    js2(this.fs.find(this.inDir, 'js2')).each(#{
-      this.tryUpdate($1); 
+    var self = this;
+    this.fs.find(this.inDir, 'js2').each(#{
+      self.tryUpdate($1); 
     });
   }
 
   function tryUpdate(file) {
-    var outFile = file.replace(this.inDir, this.outDir);
+    var outFile = file.replace(this.inDir, this.outDir).replace(/\.js2$/, '.js');
     if (this.fs.mtime(file) > this.fs.mtime(outFile)) {
       this.fs.write(outFile, JS2(this.fs.read(file)));
     }

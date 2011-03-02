@@ -3,6 +3,7 @@ class JS2.Commander {
     "js2 <command> [options] <arguments>\n" +
     "Commands:\n" +
     "  * run <file>                -- Executes file\n" +
+    "  * render <file>             -- Shows JS2 compiled output\n" +
     "  * compile <inDir> [outDir]  -- Compiles a directory and puts js files into outDir.  If outDir is not specified, inDir will be used\n" + 
     "    Options:\n" +
     "      -r                      -- Traverse directories recursively\n" +
@@ -15,23 +16,27 @@ class JS2.Commander {
   function initialize (argv) {
     this.argv = argv;
     this.command = this.argv.shift();
-    //this.fs      = new JS2.FileSystem(new JS2.NodeFileAdapter());
+    this.fs      = new JS2.FileSystem(new JS2.FILE_ADAPTER_CLASS());
     this.parseOpts(argv);
   }
 
-  function cli(argv) {
+  function cli() {
     if (this[this.command]) {
-      this[this.command](argv);
+      this[this.command](this.argv);
     } else {
       this.showBanner();
     }
+  }
+
+  function render(argv) {
+    console.log(js2.render(this.fs.read(argv[0])));
   }
 
   function run(argv) {
     var file;
     var i = 0;
     while (file = argv[i++]) {
-      eval(JS2.render(this.read(file))); 
+      eval(js2.render(this.fs.read(file))); 
     }
   }
 
@@ -61,7 +66,7 @@ class JS2.Commander {
   function getUpdater() {
     var inDir  = this.opts.main[0] || '.';
     var outDir = this.opts.main[1] || inDir;
-    return new JS2.Updater(inDir, outDir, ('recursive' in this.opts));
+    return new JS2.Updater(this.fs, inDir, outDir);
   }
 
   function watch() {
@@ -72,8 +77,8 @@ class JS2.Commander {
     if (updater.recursive) console.log('RECURSIVE');
 
     // HACK to get this integrated with ruby
-    JS2.updater = updater;
-    this.fs.setInterval("JS2.updater.update()", interval * 1000);
+    updater.update();
+    setInterval(#{ console.log('updating'); updater.update() }, interval * 1000);
   }
 
   function showBanner() {

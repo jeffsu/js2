@@ -33,9 +33,21 @@
       this.tokens = (typeof str == 'string') ? new JS2.Lexer.Tokens(str) : str;
     },
 
-    tokenize: function() {
+    tokenize: function(root) {
+      if (root) {
+        var m = this.tokens.match(/^#!.*/);
+        if (m) this.tokens.chomp(m[0].length);
+      }
+
       while (!this.tokens.finished()) {
-        if (! this.consume()) return false;
+        if (! this.consume()) {
+          if (root) {
+            console.log("ERROR" + this.tokens.str);
+            break;
+          } else {
+            return false;
+          }
+        }
       }
       return this.tokens;
     },

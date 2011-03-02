@@ -2,7 +2,7 @@
   Parser = {
     parse: function(str) {
       var lexer   = new JS2.Lexer(str);
-      var tokens  = lexer.tokenize();
+      var tokens  = lexer.tokenize(true);
       var root    = new Content(tokens);
       return root;
     },
