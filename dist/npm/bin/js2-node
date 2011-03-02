@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-require('../dist/js2-node');
+require('../dist/js2-node').apply(GLOBAL);
 process.argv.shift();
 process.argv.shift();
 var commander = new JS2.Commander(process.argv);

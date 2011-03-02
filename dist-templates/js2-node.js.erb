@@ -1,7 +1,6 @@
-var JS2 = (function (root) {
+exports.apply = function (root) {
   <%= core %>
   JS2.FILE_ADAPTER_CLASS = JS2.NodeFileAdapter;
-  return JS2;
-})(GLOBAL);
+  <%= js 'core/js2-require.js' %>
+};
 
-exports.JS2 = JS2;

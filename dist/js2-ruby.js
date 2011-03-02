@@ -1,5 +1,5 @@
-var JS2 = (function (root) {
-  JS2 = root['JS2'] = function (arg) {
+(function (root) {
+  root['JS2'] = function (arg) {
   if (typeof arg == 'string') {
     return JS2.Parser.parse(arg).toString();
   } else if (arg instanceof Array) {
@@ -9,8 +9,8 @@ var JS2 = (function (root) {
   } 
 };
 
+JS2.ROOT = root
 js2 = root['js2'] = JS2;
-JS2.ROOT = root;
 
 
 // CLASS HELPERS
@@ -1114,6 +1114,7 @@ JS2.Array.prototype.any = function() {
     if (updater.recursive) console.log('RECURSIVE');
 
     // HACK to get this integrated with ruby
+    updater.update();
     setInterval(function($1,$2,$3){ console.log('updating'); updater.update() }, interval * 1000);
   },
 
