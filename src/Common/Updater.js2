@@ -1,4 +1,4 @@
-class JS2.Updater {
+class Updater {
   function initialize(fs, inDir, outDir) {
     this.fs      = fs; 
     this.inDir   = this.fs.expandPath(inDir);

@@ -1,4 +1,4 @@
-class JS2.NodeFileAdapter {
+class NodeFileAdapter {
   function initialize() {
     this.fs = require('fs'); 
   } 

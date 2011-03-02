@@ -1,4 +1,4 @@
-class JS2.FileSystem {
+class FileSystem {
   function initialize(adapter) {
     this.adapter = adapter;
   }

@@ -8,7 +8,7 @@
     },
 
     parseFile: function(file) {
-      return this.parse(require('fs').readFileSync(file, 'utf8'));
+      return this.parse(js2.fs.read(file, 'utf8'));
     }
   };
 
@@ -16,7 +16,7 @@
   var IDS = JS2.Lexer.IDS;
   IDS['NODE'] = -1;
 
-  var Validator = JS2.Class.extend('Validator', {
+  Validator = JS2.Class.extend({
     initialize: function(content) {
       this.content = content;
     },
@@ -143,7 +143,7 @@
     }
   });
 
-  var Klass = Content.extend('Klass', {
+  var Klass = Content.extend({
     name: 'Klass',
     handOff: function(token) {
       if (this.started) this.closed = true;
@@ -162,7 +162,7 @@
     }
   });
 
-  var Block = Content.extend('Block', {
+  var Block = Content.extend({
     name: 'Block',
     handleToken: function(token) {
       if (this.tokens.isBalancedCurly(this) && token[0] == '}') {
@@ -171,7 +171,7 @@
     } 
   });
 
-  var KlassBlock = Block.extend('KlassBlock', {
+  var KlassBlock = Block.extend({
     name: 'KlassBlock',
     handOff: function(token) {
       switch (token[0]) {
@@ -192,7 +192,7 @@
     } 
   });
 
-  var Method = Content.extend('Method', {
+  var Method = Content.extend({
     name: 'Method',
     handOff: function(token) {
       if (this.started) this.closed = true;
@@ -210,7 +210,7 @@
     }
   });
 
-  var Member = Content.extend('Member', {
+  var Member = Content.extend({
     name: 'Member',
     handleToken: function(token) {
       if (token[0] == ';') this.closed = true;
@@ -227,7 +227,7 @@
 
 
 
-  var Braces = Content.extend('Braces', {
+  var Braces = Content.extend({
     name: 'Braces',
     handleToken: function(token) {
       if (this.tokens.isBalancedBrace(this) && token[0] == ')') {
@@ -236,7 +236,7 @@
     } 
   });
 
-  var Foreach = Content.extend('Foreach', {
+  var Foreach = Content.extend({
     cache: { count: 1 },
     name: 'Foreach',
     handOff: function(token) {
@@ -338,7 +338,7 @@
 
   JS2.Parser = Parser;
   JS2.require = function(file) {
-    var str = JS2.Parser.parseFile(file).toString(); 
+    var str = JS2.Parser.parseFile(file + '.js2').toString(); 
     eval(str);
   }
 

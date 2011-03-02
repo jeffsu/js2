@@ -1,18 +1,5 @@
 (function (root) {
-  root['JS2'] = function (arg) {
-  if (typeof arg == 'string') {
-    return JS2.Parser.parse(arg).toString();
-  } else if (arg instanceof Array) {
-    return new JS2.Array(arg);
-  } else {
-    return new JS2.Array();
-  } 
-};
-
-JS2.ROOT = root
-js2 = root['js2'] = JS2;
-
-
+  
 // CLASS HELPERS
 (function (undefined, JS2) {
 
@@ -161,7 +148,7 @@ js2 = root['js2'] = JS2;
 
   var PRIMARY_REGEX = new RegExp("^(" + REGEX_TOKENS.join('|') + ")");
 
-  JS2.Lexer = JS2.Class.extend({
+  JS2.Class.extend('Lexer', {
     TOKENS: TOKENS,
     PRIMARY_REGEX: PRIMARY_REGEX,
     IDS: IDS,
@@ -212,8 +199,7 @@ js2 = root['js2'] = JS2;
   });
 
   JS2.Lexer.IDS = IDS;
-
-  JS2.Lexer.REGEX = JS2.Lexer.extend({
+  JS2.Lexer.extend('Lexer.REGEX', {
     REGEX: /^\/(?!\s)[^[\/\n\\]*(?:(?:\\[\s\S]|\[[^\]\n\\]*(?:\\[\s\S][^\]\n\\]*)*])[^[\/\n\\]*)*\/[imgy]{0,4}(?!\w)/,
     ID: IDS.REGEX,
 
@@ -233,7 +219,7 @@ js2 = root['js2'] = JS2;
     }
   });
 
-  JS2.Lexer.SHORT_FUNCT = JS2.Lexer.extend({
+  JS2.Lexer.extend('Lexer.SHORT_FUNCT', {
     ID: IDS.SHORT_FUNCT,
     consume: function() {
       this.tokens.chomp(1);
@@ -243,17 +229,17 @@ js2 = root['js2'] = JS2;
   });
 
 
-  JS2.Lexer.SSTRING = JS2.Lexer.REGEX.extend({
+  JS2.Lexer.REGEX.extend('Lexer.SSTRING', {
     REGEX: /^'[^\\']*(?:\\.[^\\']*)*'/,
     ID: IDS.SSTRING
   });
 
-  JS2.Lexer.DSTRING = JS2.Lexer.REGEX.extend({
+  JS2.Lexer.REGEX.extend('Lexer.DSTRING', {
     REGEX: /^"[^\\"]*(?:\\.[^\\"]*)*"/,
     ID: IDS.DSTRING
   });
 
-  JS2.Lexer.ISTRING = JS2.Lexer.REGEX.extend({
+  JS2.Lexer.REGEX.extend('Lexer.IREGEX', {
     REGEX_NEXT: /^((\\#|[^#])*?)(#{|})/,
     REGEX: /^%{/,
     ID: IDS.ISTRING,
@@ -291,7 +277,7 @@ js2 = root['js2'] = JS2;
     }
   });
 
-  JS2.Lexer.HEREDOC = JS2.Lexer.ISTRING.extend({
+  JS2.Lexer.REGEX.extend('Lexer.ISTRING', {
     REGEX_NEXT: /^((\\#|[^#])*?)(#{|\r?\n)/,
     REGEX: /^<<\-?(\w+)\r?\n/m,
     ID: IDS.HEREDOC,
@@ -349,7 +335,7 @@ js2 = root['js2'] = JS2;
   });
 
 
-  JS2.Lexer.Block = JS2.Lexer.extend({
+  JS2.Lexer.extend('Lexer.Block', {
     initialize: function(tokens) {
       this.$super(tokens);
       this.started = false;
@@ -377,7 +363,7 @@ js2 = root['js2'] = JS2;
     } 
   });
 
-  JS2.Lexer.COMMENT = JS2.Lexer.extend({
+  JS2.Lexer.extend('Lexer.COMMENT', {
     ID: IDS.COMMENT,
     consume: function() {
       var m = this.tokens.match(/^\/\/.*/);
@@ -411,7 +397,7 @@ js2 = root['js2'] = JS2;
 
 
 
-  JS2.Lexer.Tokens = JS2.Class.extend({
+  JS2.Class.extend('Lexer.Tokens', {
     initialize: function(str) {
       this.curlyCount = 0;
       this.braceCount = 0;
@@ -517,7 +503,7 @@ js2 = root['js2'] = JS2;
     },
 
     parseFile: function(file) {
-      return this.parse(require('fs').readFileSync(file, 'utf8'));
+      return this.parse(js2.fs.read(file, 'utf8'));
     }
   };
 
@@ -525,7 +511,7 @@ js2 = root['js2'] = JS2;
   var IDS = JS2.Lexer.IDS;
   IDS['NODE'] = -1;
 
-  var Validator = JS2.Class.extend('Validator', {
+  Validator = JS2.Class.extend({
     initialize: function(content) {
       this.content = content;
     },
@@ -652,7 +638,7 @@ js2 = root['js2'] = JS2;
     }
   });
 
-  var Klass = Content.extend('Klass', {
+  var Klass = Content.extend({
     name: 'Klass',
     handOff: function(token) {
       if (this.started) this.closed = true;
@@ -671,7 +657,7 @@ js2 = root['js2'] = JS2;
     }
   });
 
-  var Block = Content.extend('Block', {
+  var Block = Content.extend({
     name: 'Block',
     handleToken: function(token) {
       if (this.tokens.isBalancedCurly(this) && token[0] == '}') {
@@ -680,7 +666,7 @@ js2 = root['js2'] = JS2;
     } 
   });
 
-  var KlassBlock = Block.extend('KlassBlock', {
+  var KlassBlock = Block.extend({
     name: 'KlassBlock',
     handOff: function(token) {
       switch (token[0]) {
@@ -701,7 +687,7 @@ js2 = root['js2'] = JS2;
     } 
   });
 
-  var Method = Content.extend('Method', {
+  var Method = Content.extend({
     name: 'Method',
     handOff: function(token) {
       if (this.started) this.closed = true;
@@ -719,7 +705,7 @@ js2 = root['js2'] = JS2;
     }
   });
 
-  var Member = Content.extend('Member', {
+  var Member = Content.extend({
     name: 'Member',
     handleToken: function(token) {
       if (token[0] == ';') this.closed = true;
@@ -736,7 +722,7 @@ js2 = root['js2'] = JS2;
 
 
 
-  var Braces = Content.extend('Braces', {
+  var Braces = Content.extend({
     name: 'Braces',
     handleToken: function(token) {
       if (this.tokens.isBalancedBrace(this) && token[0] == ')') {
@@ -745,7 +731,7 @@ js2 = root['js2'] = JS2;
     } 
   });
 
-  var Foreach = Content.extend('Foreach', {
+  var Foreach = Content.extend({
     cache: { count: 1 },
     name: 'Foreach',
     handOff: function(token) {
@@ -847,7 +833,7 @@ js2 = root['js2'] = JS2;
 
   JS2.Parser = Parser;
   JS2.require = function(file) {
-    var str = JS2.Parser.parseFile(file).toString(); 
+    var str = JS2.Parser.parseFile(file + '.js2').toString(); 
     eval(str);
   }
 
@@ -926,7 +912,7 @@ JS2.Array.prototype.any = function() {
 };
 
 
-(function() {return JS2.Class.extend('JS2.FileSystem', {
+(function() {return JS2.Class.extend('FileSystem', {
   initialize:function (adapter) {
     this.adapter = adapter;
   },
@@ -1012,7 +998,7 @@ JS2.Array.prototype.any = function() {
 })})();
 
 
-(function() {return JS2.Class.extend('JS2.Updater', {
+(function() {return JS2.Class.extend('Updater', {
   initialize:function (fs, inDir, outDir) {
     this.fs      = fs; 
     this.inDir   = this.fs.expandPath(inDir);
@@ -1036,7 +1022,7 @@ JS2.Array.prototype.any = function() {
 })})();
 
 
-(function() {return JS2.Class.extend('JS2.Commander', {
+(function() {return JS2.Class.extend('Commander', {
   "BANNER":"js2 <command> [options] <arguments>\n" +
     "Commands:\n" +
     "  * run <file>                -- Executes file\n" +
@@ -1053,7 +1039,7 @@ JS2.Array.prototype.any = function() {
   initialize:function (argv) {
     this.argv = argv;
     this.command = this.argv.shift();
-    this.fs      = new JS2.FileSystem(new JS2.FILE_ADAPTER_CLASS());
+    this.fs      = JS2.fs;
     this.parseOpts(argv);
   },
 
@@ -1125,7 +1111,7 @@ JS2.Array.prototype.any = function() {
 
 
 
-(function() {return JS2.Class.extend('JS2.NodeFileAdapter', {
+(function() {return JS2.Class.extend('NodeFileAdapter', {
   initialize:function () {
     this.fs = require('fs'); 
   }, 

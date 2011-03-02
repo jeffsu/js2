@@ -1,6 +1,10 @@
-exports.apply = function (root) {
+<%= js 'core/js2-boot.js' %>
+(function (JS2) {
+  JS2.ROOT = JS2;
   <%= core %>
-  JS2.FILE_ADAPTER_CLASS = JS2.NodeFileAdapter;
-  <%= js 'core/js2-require.js' %>
-};
+  JS2.fs = new JS2.FileSystem(new JS2.NodeFileAdapter());
+})(JS2);
 
+exports.apply = function (root) {
+ JS2.ROOT = root; 
+}

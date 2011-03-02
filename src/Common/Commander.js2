@@ -1,4 +1,4 @@
-class JS2.Commander {
+class Commander {
   var BANNER = 
     "js2 <command> [options] <arguments>\n" +
     "Commands:\n" +
@@ -16,7 +16,7 @@ class JS2.Commander {
   function initialize (argv) {
     this.argv = argv;
     this.command = this.argv.shift();
-    this.fs      = new JS2.FileSystem(new JS2.FILE_ADAPTER_CLASS());
+    this.fs      = JS2.fs;
     this.parseOpts(argv);
   }
 

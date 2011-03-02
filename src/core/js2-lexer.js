@@ -24,7 +24,7 @@
 
   var PRIMARY_REGEX = new RegExp("^(" + REGEX_TOKENS.join('|') + ")");
 
-  JS2.Lexer = JS2.Class.extend({
+  JS2.Class.extend('Lexer', {
     TOKENS: TOKENS,
     PRIMARY_REGEX: PRIMARY_REGEX,
     IDS: IDS,
@@ -75,8 +75,7 @@
   });
 
   JS2.Lexer.IDS = IDS;
-
-  JS2.Lexer.REGEX = JS2.Lexer.extend({
+  JS2.Lexer.extend('Lexer.REGEX', {
     REGEX: /^\/(?!\s)[^[\/\n\\]*(?:(?:\\[\s\S]|\[[^\]\n\\]*(?:\\[\s\S][^\]\n\\]*)*])[^[\/\n\\]*)*\/[imgy]{0,4}(?!\w)/,
     ID: IDS.REGEX,
 
@@ -96,7 +95,7 @@
     }
   });
 
-  JS2.Lexer.SHORT_FUNCT = JS2.Lexer.extend({
+  JS2.Lexer.extend('Lexer.SHORT_FUNCT', {
     ID: IDS.SHORT_FUNCT,
     consume: function() {
       this.tokens.chomp(1);
@@ -106,17 +105,17 @@
   });
 
 
-  JS2.Lexer.SSTRING = JS2.Lexer.REGEX.extend({
+  JS2.Lexer.REGEX.extend('Lexer.SSTRING', {
     REGEX: /^'[^\\']*(?:\\.[^\\']*)*'/,
     ID: IDS.SSTRING
   });
 
-  JS2.Lexer.DSTRING = JS2.Lexer.REGEX.extend({
+  JS2.Lexer.REGEX.extend('Lexer.DSTRING', {
     REGEX: /^"[^\\"]*(?:\\.[^\\"]*)*"/,
     ID: IDS.DSTRING
   });
 
-  JS2.Lexer.ISTRING = JS2.Lexer.REGEX.extend({
+  JS2.Lexer.REGEX.extend('Lexer.IREGEX', {
     REGEX_NEXT: /^((\\#|[^#])*?)(#{|})/,
     REGEX: /^%{/,
     ID: IDS.ISTRING,
@@ -154,7 +153,7 @@
     }
   });
 
-  JS2.Lexer.HEREDOC = JS2.Lexer.ISTRING.extend({
+  JS2.Lexer.REGEX.extend('Lexer.ISTRING', {
     REGEX_NEXT: /^((\\#|[^#])*?)(#{|\r?\n)/,
     REGEX: /^<<\-?(\w+)\r?\n/m,
     ID: IDS.HEREDOC,
@@ -212,7 +211,7 @@
   });
 
 
-  JS2.Lexer.Block = JS2.Lexer.extend({
+  JS2.Lexer.extend('Lexer.Block', {
     initialize: function(tokens) {
       this.$super(tokens);
       this.started = false;
@@ -240,7 +239,7 @@
     } 
   });
 
-  JS2.Lexer.COMMENT = JS2.Lexer.extend({
+  JS2.Lexer.extend('Lexer.COMMENT', {
     ID: IDS.COMMENT,
     consume: function() {
       var m = this.tokens.match(/^\/\/.*/);
@@ -274,7 +273,7 @@
 
 
 
-  JS2.Lexer.Tokens = JS2.Class.extend({
+  JS2.Class.extend('Lexer.Tokens', {
     initialize: function(str) {
       this.curlyCount = 0;
       this.braceCount = 0;

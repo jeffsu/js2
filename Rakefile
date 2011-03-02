@@ -54,7 +54,7 @@ task :dist do
     end
   end
 
-  core =  %W{ js2-boot.js js2-class.js js2-lexer.js js2-parser.js }.collect do |f|
+  core =  %W{ js2-class.js js2-lexer.js js2-parser.js }.collect do |f|
     js("core/#{f}")
   end.join("\n");
 
