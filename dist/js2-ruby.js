@@ -857,15 +857,22 @@ JS2.Array.prototype.each = function(f) {
   return this;
 };
 
+JS2.Array.prototype.toString = function() {
+  return this.join(',');
+};
+
+
+JS2.Array.prototype.until = function(f) {
+  for (var i=0; i<this.length; i++) {
+    if (f.call(this, this[i], i )) return true;;
+  }
+  return false;
+};
+
+
 JS2.Array.prototype.collect = function(f) {
   var ret = new JS2.Array();
   this.each(function($1,$2,$3){ ret.push(f.call(this, $1, $2)) });
-  return ret;
-};
-
-JS2.Array.prototype.extractMap = function(f) {
-  var ret = new JS2.Array();
-  this.each(function($1,$2,$3){ if (f.call(this, $1, $2) !== null) ret.push($1) });
   return ret;
 };
 

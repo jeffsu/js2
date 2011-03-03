@@ -2,6 +2,7 @@
 (function (JS2) {
   JS2.ROOT = JS2;
   <%= core %>
+  <%= js 'Common/NodeFileAdapter.js2' %>
   JS2.fs = new JS2.FileSystem(new JS2.NodeFileAdapter());
 })(JS2);
 
