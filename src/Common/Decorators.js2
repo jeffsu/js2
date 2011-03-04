@@ -1,0 +1,20 @@
+class Decorator.Pure {
+  function file(code) {
+    return code;
+  }
+
+  function useExport() {
+    return false; 
+  }
+}
+
+class Decorator.Node {
+  function file(code) {
+    return "var js2 = require('js2').js2;\nvar JS2 = js2;\n" + code;
+  }
+
+  function useExport() {
+    return true; 
+  }
+}
+

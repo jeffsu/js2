@@ -1,4 +1,4 @@
-exports.apply = function (root) {
+exports.JS2 = (function (root) {
   // temporarily set root 
 // to JS2 global var for this scope
 function mainFunction (arg) {
@@ -11,19 +11,16 @@ function mainFunction (arg) {
   }
 }
 
+  var console = {};
+  console.log = function (m) { system.print(m) };
 
   var JS2 = root.JS2 = mainFunction;
   var js2 = root.js2 = JS2;
-  js2.ROOT = JS2;
 
+  JS2.ROOT = JS2;
   
 // CLASS HELPERS
 (function (undefined, JS2) {
-
-  function $super () {
-    var s = arguments.callee.caller.$super;
-    if (s) return s.apply(this, arguments);
-  }
 
   var OO = function (klass, par) {
     this.klass = klass;
@@ -61,12 +58,21 @@ function mainFunction (arg) {
       return [ root, klassName ];
     },
 
+    makeSuper: function(newMethod, oldMethod) {
+      if (!oldMethod) return newMethod;
+
+      return function() {
+        this.$super = oldMethod;
+        return newMethod.apply(this, arguments);
+      };
+    },
+
     addMember: function(name, member) {
       if (this.forbiddenMembers.hasOwnProperty(name)) return;
 
       var proto = this.klass.prototype;
-      if (typeof proto[name] == 'function') {
-        member.$super = proto[name];
+      if (typeof proto[name] == 'function' && !(proto[name] instanceof RegExp)) {
+        member = this.makeSuper(member, proto[name]);
       }
 
       proto[name] = member;
@@ -77,7 +83,7 @@ function mainFunction (arg) {
 
       if (typeof this.klass[name] == 'function') {
         if (!this.klass.hasOwnProperty(name)) {
-          member.$super = this.klass[name];
+          member = this.makeSuper(member, this.klass[name]);
         }
       }
       
@@ -89,7 +95,6 @@ function mainFunction (arg) {
   JS2.Class.oo = new OO(JS2.Class);
   JS2.Class.prototype = {
     initialize: function () {},
-    $super: $super,
     oo: JS2.Class.oo
   };
 
@@ -183,7 +188,7 @@ function mainFunction (arg) {
       while (!this.tokens.finished()) {
         if (! this.consume()) {
           if (root) {
-            console.log("ERROR" + this.tokens.str);
+            console.log("ERROR:\n" + this.tokens.toArray().join("\n") + "\n" + this.tokens.str);
             break;
           } else {
             return false;
@@ -256,9 +261,9 @@ function mainFunction (arg) {
     ID: IDS.DSTRING
   });
 
-  JS2.Lexer.REGEX.extend('Lexer.IREGEX', {
+  JS2.Lexer.REGEX.extend('Lexer.ISTRING', {
     REGEX_NEXT: /^((\\#|[^#])*?)(#{|})/,
-    REGEX: /^%{/,
+    REGEX: /^%\{/,
     ID: IDS.ISTRING,
     sanitize: function(str) {
       return str.replace('"', '\\"');
@@ -294,7 +299,7 @@ function mainFunction (arg) {
     }
   });
 
-  JS2.Lexer.REGEX.extend('Lexer.ISTRING', {
+  JS2.Lexer.ISTRING.extend('Lexer.HEREDOC', {
     REGEX_NEXT: /^((\\#|[^#])*?)(#{|\r?\n)/,
     REGEX: /^<<\-?(\w+)\r?\n/m,
     ID: IDS.HEREDOC,
@@ -511,7 +516,7 @@ function mainFunction (arg) {
 })(undefined, JS2);
 
 (function (undefined, JS2) {
-  Parser = {
+  JS2.Parser = {
     parse: function(str) {
       var lexer   = new JS2.Lexer(str);
       var tokens  = lexer.tokenize(true);
@@ -528,7 +533,7 @@ function mainFunction (arg) {
   var IDS = JS2.Lexer.IDS;
   IDS['NODE'] = -1;
 
-  Validator = JS2.Class.extend({
+  var Validator = JS2.Class.extend({
     initialize: function(content) {
       this.content = content;
     },
@@ -669,8 +674,11 @@ function mainFunction (arg) {
       var last = v.last;
       var m = last.match(/^\w+(\.?[\w$]+)*/);
       last = last.substr(m[0].length);
-      
-      return "(function() {return JS2.Class.extend('"+m[0]+"'," + last + ")})();";
+      if (JS2.DECORATOR.useExport()) {
+        return "exports['" + m[0] + "'] = (function() {return JS2.Class.extend('"+m[0]+"'," + last + ")})();";
+      } else {
+        return "(function() {return JS2.Class.extend('"+m[0]+"'," + last + ")})();";
+      }
     }
   });
 
@@ -848,7 +856,6 @@ function mainFunction (arg) {
     }
   });
 
-  JS2.Parser = Parser;
   JS2.require = function(file) {
     var str = JS2.Parser.parseFile(file + '.js2').toString(); 
     eval(str);
@@ -936,7 +943,7 @@ JS2.Array.prototype.any = function() {
 };
 
 
-(function() {return JS2.Class.extend('FileSystem', {
+exports['FileSystem'] = (function() {return JS2.Class.extend('FileSystem', {
   initialize:function (adapter) {
     this.adapter = adapter;
   },
@@ -1025,7 +1032,7 @@ JS2.Array.prototype.any = function() {
 })})();
 
 
-(function() {return JS2.Class.extend('Updater', {
+exports['Updater'] = (function() {return JS2.Class.extend('Updater', {
   initialize:function (fs, inDir, outDir, recursive) {
     this.recursive = recursive;
     this.fs      = fs; 
@@ -1034,23 +1041,27 @@ JS2.Array.prototype.any = function() {
     this.verbose = true;
   },
 
-  update:function () {
+  update:function (force, funct) {
     var self = this;
     this.fs.find(this.inDir, 'js2', this.recursive).each(function($1,$2,$3){
-      self.tryUpdate($1); 
+      self.tryUpdate($1, force, funct); 
     });
   },
 
-  tryUpdate:function (file) {
+  tryUpdate:function (file, force, funct) {
     var outFile = file.replace(this.inDir, this.outDir).replace(/\.js2$/, '.js');
-    if (this.fs.mtime(file) > this.fs.mtime(outFile)) {
-      this.fs.write(outFile, JS2(this.fs.read(file)));
+    if (force || this.fs.mtime(file) > this.fs.mtime(outFile)) {
+      if (funct) {
+        this.fs.write(outFile, funct(JS2(this.fs.read(file))));
+      } else {
+        this.fs.write(outFile, JS2(this.fs.read(file)));
+      }
     }
   }
 })})();
 
 
-(function() {return JS2.Class.extend('Commander', {
+exports['Commander'] = (function() {return JS2.Class.extend('Commander', {
   "BANNER":"js2 <command> [options] <arguments>\n" +
     "Commands:\n" +
     "  * run <file>                -- Executes file\n" +
@@ -1058,6 +1069,7 @@ JS2.Array.prototype.any = function() {
     "  * compile <inDir> [outDir]  -- Compiles a directory and puts js files into outDir.  If outDir is not specified, inDir will be used\n" + 
     "    Options:\n" +
     "      -r                      -- Traverse directories recursively\n" +
+    "      -b                      -- Compile for web browsers\n" +
     "  * compile <file>            -- Compiles a single js2 file into js\n" +
     "  * watch <inDir> <outDir>    -- Similar to compile, but update will keep looping while watching for modifications\n" +
     "    Options:\n" +
@@ -1073,10 +1085,17 @@ JS2.Array.prototype.any = function() {
 
   cli:function () {
     if (this[this.command]) {
+      if (this.argv.length == 0) {
+        this.loadArgvFromConfig();
+      }
+
       this[this.command](this.argv);
     } else {
       this.showBanner();
     }
+  },
+
+  loadArgvFromConfig:function () {
   },
 
   render:function (argv) {
@@ -1093,6 +1112,7 @@ JS2.Array.prototype.any = function() {
 
   "options":{
     'r': 'recursive',
+    'b': 'browsers',
     'i': 'interval'
   },
 
@@ -1106,12 +1126,28 @@ JS2.Array.prototype.any = function() {
       } else {
         opts.main.push(arg); 
       }
+      if (opts['browsers']) {
+        JS2.EXPORT_MODE = false;
+      } else {
+        JS2.EXPORT_MODE = true;
+      }
     }
   },
 
   compile:function () {
+    console.log('COMPILE');
     var inDir = this.opts.main[0];
-    this.getUpdater().update();
+    var self = this;
+
+    this.getUpdater().update(true, function($1,$2,$3){ return JS2.DECORATOR.file((self.handleSource($1))); });
+  },
+
+  handleSource:function (code) {
+    if (this.opts.browsers) {
+      return code; 
+    } else {
+      return code;
+    }
   },
 
   getUpdater:function () {
@@ -1139,13 +1175,36 @@ JS2.Array.prototype.any = function() {
 
 
 
-(function() {return JS2.Class.extend('NodeFileAdapter', {
+exports['Decorator.Pure'] = (function() {return JS2.Class.extend('Decorator.Pure', {
+  file:function (code) {
+    return code;
+  },
+
+  useExport:function () {
+    return false; 
+  }
+})})();
+
+exports['Decorator.Node'] = (function() {return JS2.Class.extend('Decorator.Node', {
+  file:function (code) {
+    return "var js2 = require('js2').js2;\nvar JS2 = js2;\n" + code;
+  },
+
+  useExport:function () {
+    return true; 
+  }
+})})();
+
+
+
+
+  exports['RingoFileAdapter'] = (function() {return JS2.Class.extend('RingoFileAdapter', {
   initialize:function () {
     this.fs = require('fs'); 
   }, 
 
   isDirectory:function (file) {
-    return this.fs.statSync(file).isDirectory();
+    return this.fs.isDirectory(file);
   },
 
   setInterval:function (code, interval) {
@@ -1153,32 +1212,32 @@ JS2.Array.prototype.any = function() {
   },
 
   isFile:function (file) {
-    return this.fs.statSync(file).isFile();
+    return this.fs.isFile(file);
   },
 
   mkdir:function (file) {
-    return this.fs.mkdirSync(file);
+    return this.fs.makeDirectory(file);
   },
 
   readdir:function (file) {
-    return this.fs.readdirSync(file);
+    return this.fs.list(file);
   },
 
   expandPath:function (file) {
-    return this.fs.realpathSync(file);
+    return this.fs.canonical(file);
   },
 
   read:function (file) {
-    return this.fs.readFileSync(file, 'utf8');
+    return this.fs.read(file);
   },
 
   write:function (file, data) {
-    return this.fs.writeFileSync(file, data, 'utf8');
+    return this.fs.write(file, data);
   },
 
   mtime:function (file) {
     try {
-      return this.fs.statSync(file).mtime.getTime();
+      return this.fs.openRaw(file).lastModified().getTime();
     } catch(e) {
       return 0;
     }
@@ -1186,56 +1245,11 @@ JS2.Array.prototype.any = function() {
 })})();
 
 
-
-  (function() {return JS2.Class.extend('NodeFileAdapter', {
-  initialize:function () {
-    this.fs = require('fs'); 
-  }, 
-
-  isDirectory:function (file) {
-    return this.fs.statSync(file).isDirectory();
-  },
-
-  setInterval:function (code, interval) {
-    return setInterval(code, interval);
-  },
-
-  isFile:function (file) {
-    return this.fs.statSync(file).isFile();
-  },
-
-  mkdir:function (file) {
-    return this.fs.mkdirSync(file);
-  },
-
-  readdir:function (file) {
-    return this.fs.readdirSync(file);
-  },
-
-  expandPath:function (file) {
-    return this.fs.realpathSync(file);
-  },
-
-  read:function (file) {
-    return this.fs.readFileSync(file, 'utf8');
-  },
-
-  write:function (file, data) {
-    return this.fs.writeFileSync(file, data, 'utf8');
-  },
-
-  mtime:function (file) {
-    try {
-      return this.fs.statSync(file).mtime.getTime();
-    } catch(e) {
-      return 0;
-    }
-  }
-})})();
-
-
-  JS2.fs = new JS2.FileSystem(new JS2.NodeFileAdapter());
+  JS2.fs = new JS2.FileSystem(new JS2.RingoFileAdapter());
 
   js2.ROOT = root;
+  js2.DECORATOR = new JS2.Decorator.Node();
   return js2;
-};
+})(this);
+
+exports.js2 = JS2;

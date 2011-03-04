@@ -4,8 +4,13 @@ exports.apply = function (root) {
   var JS2 = root.JS2 = mainFunction;
   var js2 = root.js2 = JS2;
   js2.ROOT = JS2;
+
   <%= core %>
 
+  <%= js 'Common/NodeFileAdapter.js2' %>
+  JS2.fs = new JS2.FileSystem(new JS2.NodeFileAdapter());
+
   js2.ROOT = root;
+  js2.DECORATOR = new JS2.Decorator.Node();
   return js2;
 };

@@ -1,4 +1,17 @@
+(function (root) {
+  // temporarily set root 
+// to JS2 global var for this scope
+function mainFunction (arg) {
+  if (typeof arg == 'string') {
+    return JS2.Parser.parse(arg).toString();
+  } else if (arg instanceof Array) {
+    return new JS2.Array(arg);
+  } else {
+    return new JS2.Array();
+  }
+}
 
+  
 // CLASS HELPERS
 (function (undefined, JS2) {
 
@@ -123,3 +136,82 @@
 
   return JS2;
 })(undefined, JS2);
+
+  JS2.Array = function (arr) {
+  if (arr instanceof Array) {
+    this.append(arr);
+  }
+};
+
+JS2.Array.prototype = new Array();
+JS2.Array.prototype.each = function(f) {
+  for (var i=0; i<this.length; i++) {
+    f.call(this, this[i], i );
+  }
+  return this;
+};
+
+JS2.Array.prototype.toString = function() {
+  return this.join(',');
+};
+
+
+JS2.Array.prototype.until = function(f) {
+  for (var i=0; i<this.length; i++) {
+    if (f.call(this, this[i], i )) return true;;
+  }
+  return false;
+};
+
+
+JS2.Array.prototype.collect = function(f) {
+  var ret = new JS2.Array();
+  this.each(function($1,$2,$3){ ret.push(f.call(this, $1, $2)) });
+  return ret;
+};
+
+JS2.Array.prototype.reduce = function(f, val) {
+  var value = val;
+  this.each(function($1,$2,$3){ value = f.call(this, $1, value) });
+};
+
+JS2.Array.prototype.reject = function(f) {
+  var ret = new JS2.Array();
+  if (f instanceof RegExp) {
+    this.each(function($1,$2,$3){ if (!$1.match(f)) ret.push($1) });
+  } else if (typeof f == 'string' || typeof f == 'number') {
+    this.each(function($1,$2,$3){ if ($1 != f) ret.push($1) });
+  } else if (typeof f == 'function') {
+    this.each(function($1,$2,$3){ if (!f.call(this, $1, $2)) ret.push($1) });
+  }
+  return ret;
+};
+
+JS2.Array.prototype.select = function(f) {
+  var ret = new JS2.Array();
+  if (f instanceof RegExp) {
+    this.each(function($1,$2,$3){ if ($1.match(f)) ret.push($1) });
+  } else if (typeof f == 'string' || typeof f == 'number') {
+    this.each(function($1,$2,$3){ if ($1 == f) ret.push($1) });
+  } else if (typeof f == 'function') {
+    this.each(function($1,$2,$3){ if (f.call(this, $1, $2)) ret.push($1) });
+  }
+  return ret;
+};
+
+JS2.Array.prototype.append = function(arr) {
+  this.push.apply(this, arr);
+  return this;
+};
+
+JS2.Array.prototype.empty = function() {
+  return this.length == 0;
+};
+
+JS2.Array.prototype.any = function() {
+  return this.length > 0;
+};
+
+
+  return JS2;
+})(this);

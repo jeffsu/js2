@@ -7,17 +7,21 @@ class Updater {
     this.verbose = true;
   }
 
-  function update() {
+  function update(force, funct) {
     var self = this;
     this.fs.find(this.inDir, 'js2', this.recursive).each(#{
-      self.tryUpdate($1); 
+      self.tryUpdate($1, force, funct); 
     });
   }
 
-  function tryUpdate(file) {
+  function tryUpdate(file, force, funct) {
     var outFile = file.replace(this.inDir, this.outDir).replace(/\.js2$/, '.js');
-    if (this.fs.mtime(file) > this.fs.mtime(outFile)) {
-      this.fs.write(outFile, JS2(this.fs.read(file)));
+    if (force || this.fs.mtime(file) > this.fs.mtime(outFile)) {
+      if (funct) {
+        this.fs.write(outFile, funct(JS2(this.fs.read(file))));
+      } else {
+        this.fs.write(outFile, JS2(this.fs.read(file)));
+      }
     }
   }
 }

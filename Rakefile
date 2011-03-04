@@ -58,20 +58,20 @@ task :dist do
     js("core/#{f}")
   end.join("\n");
 
-  common = %W{ Array FileSystem Updater Commander NodeFileAdapter  }.collect do |f|
+  common = %W{ Array FileSystem Updater Commander Decorators }.collect do |f|
     js("Common/#{f}.js2")
   end.join("\n");
 
   core += common
 
-  Dir["./dist-templates/*.erb"].each do |file|
+  Dir["./flavors/*.erb"].each do |file|
     puts "processing: #{file}"
     template = ERB.new(File.read(file)) 
-    outfile = file.sub(/-templates/, '').sub(/\.erb$/, '')
+    outfile = file.sub(/\.erb$/, '')
     File.open(outfile, 'w') { |f| f << template.result(binding) }
   end
 
-  sh "cp ./dist/js2-node.js ./dist/npm/lib/js2-node.js"
-  sh "cp ./dist/js2-ringo.js ./dist/ringo/lib/js2.js"
+  sh "cp ./flavors/node.js ./dist/npm/lib/js2.js"
+  sh "cp ./flavors/ringo.js ./dist/ringo/lib/js2.js"
 end
 

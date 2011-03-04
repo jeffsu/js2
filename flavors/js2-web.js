@@ -15,11 +15,6 @@ function mainFunction (arg) {
 // CLASS HELPERS
 (function (undefined, JS2) {
 
-  function $super () {
-    var s = arguments.callee.caller.$super;
-    if (s) return s.apply(this, arguments);
-  }
-
   var OO = function (klass, par) {
     this.klass = klass;
     this.par   = par;
@@ -56,12 +51,21 @@ function mainFunction (arg) {
       return [ root, klassName ];
     },
 
+    makeSuper: function(newMethod, oldMethod) {
+      if (!oldMethod) return newMethod;
+
+      return function() {
+        this.$super = oldMethod;
+        return newMethod.apply(this, arguments);
+      };
+    },
+
     addMember: function(name, member) {
       if (this.forbiddenMembers.hasOwnProperty(name)) return;
 
       var proto = this.klass.prototype;
-      if (typeof proto[name] == 'function') {
-        member.$super = proto[name];
+      if (typeof proto[name] == 'function' && !(proto[name] instanceof RegExp)) {
+        member = this.makeSuper(member, proto[name]);
       }
 
       proto[name] = member;
@@ -72,7 +76,7 @@ function mainFunction (arg) {
 
       if (typeof this.klass[name] == 'function') {
         if (!this.klass.hasOwnProperty(name)) {
-          member.$super = this.klass[name];
+          member = this.makeSuper(member, this.klass[name]);
         }
       }
       
@@ -84,7 +88,6 @@ function mainFunction (arg) {
   JS2.Class.oo = new OO(JS2.Class);
   JS2.Class.prototype = {
     initialize: function () {},
-    $super: $super,
     oo: JS2.Class.oo
   };
 

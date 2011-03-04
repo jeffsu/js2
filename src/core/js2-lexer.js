@@ -42,7 +42,7 @@
       while (!this.tokens.finished()) {
         if (! this.consume()) {
           if (root) {
-            console.log("ERROR" + this.tokens.str);
+            console.log("ERROR:\n" + this.tokens.toArray().join("\n") + "\n" + this.tokens.str);
             break;
           } else {
             return false;
@@ -115,9 +115,9 @@
     ID: IDS.DSTRING
   });
 
-  JS2.Lexer.REGEX.extend('Lexer.IREGEX', {
+  JS2.Lexer.REGEX.extend('Lexer.ISTRING', {
     REGEX_NEXT: /^((\\#|[^#])*?)(#{|})/,
-    REGEX: /^%{/,
+    REGEX: /^%\{/,
     ID: IDS.ISTRING,
     sanitize: function(str) {
       return str.replace('"', '\\"');
@@ -153,7 +153,7 @@
     }
   });
 
-  JS2.Lexer.REGEX.extend('Lexer.ISTRING', {
+  JS2.Lexer.ISTRING.extend('Lexer.HEREDOC', {
     REGEX_NEXT: /^((\\#|[^#])*?)(#{|\r?\n)/,
     REGEX: /^<<\-?(\w+)\r?\n/m,
     ID: IDS.HEREDOC,

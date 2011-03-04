@@ -1,4 +1,6 @@
-(function() {return JS2.Class.extend('Test1.Foo', {
+var js2 = require('js2').js2;
+var JS2 = js2;
+exports['Test1.Foo'] = (function() {return JS2.Class.extend('Test1.Foo', {
   "member":"member",
   "regexMember":/member/,
   "stuffs":[ 'hello', 'world' ],

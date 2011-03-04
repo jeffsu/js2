@@ -1,4 +1,4 @@
-exports.apply = function (root) {
+exports.JS2 = (function (root) {
   // temporarily set root 
 // to JS2 global var for this scope
 function mainFunction (arg) {
@@ -11,19 +11,16 @@ function mainFunction (arg) {
   }
 }
 
+  var console = {};
+  console.log = function (m) { system.print(m) };
 
   var JS2 = root.JS2 = mainFunction;
   var js2 = root.js2 = JS2;
-  js2.ROOT = JS2;
 
+  JS2.ROOT = JS2;
   
 // CLASS HELPERS
 (function (undefined, JS2) {
-
-  function $super () {
-    var s = arguments.callee.caller.$super;
-    if (s) return s.apply(this, arguments);
-  }
 
   var OO = function (klass, par) {
     this.klass = klass;
@@ -63,6 +60,7 @@ function mainFunction (arg) {
 
     makeSuper: function(newMethod, oldMethod) {
       if (!oldMethod) return newMethod;
+
       return function() {
         this.$super = oldMethod;
         return newMethod.apply(this, arguments);
@@ -73,7 +71,7 @@ function mainFunction (arg) {
       if (this.forbiddenMembers.hasOwnProperty(name)) return;
 
       var proto = this.klass.prototype;
-      if (typeof proto[name] == 'function') {
+      if (typeof proto[name] == 'function' && !(proto[name] instanceof RegExp)) {
         member = this.makeSuper(member, proto[name]);
       }
 
@@ -97,7 +95,6 @@ function mainFunction (arg) {
   JS2.Class.oo = new OO(JS2.Class);
   JS2.Class.prototype = {
     initialize: function () {},
-    $super: $super,
     oo: JS2.Class.oo
   };
 
@@ -191,7 +188,7 @@ function mainFunction (arg) {
       while (!this.tokens.finished()) {
         if (! this.consume()) {
           if (root) {
-            console.log("ERROR" + this.tokens.str);
+            console.log("ERROR:\n" + this.tokens.toArray().join("\n") + "\n" + this.tokens.str);
             break;
           } else {
             return false;
@@ -264,7 +261,7 @@ function mainFunction (arg) {
     ID: IDS.DSTRING
   });
 
-  JS2.Lexer.REGEX.extend('Lexer.IREGEX', {
+  JS2.Lexer.REGEX.extend('Lexer.ISTRING', {
     REGEX_NEXT: /^((\\#|[^#])*?)(#{|})/,
     REGEX: /^%\{/,
     ID: IDS.ISTRING,
@@ -302,7 +299,7 @@ function mainFunction (arg) {
     }
   });
 
-  JS2.Lexer.REGEX.extend('Lexer.ISTRING', {
+  JS2.Lexer.ISTRING.extend('Lexer.HEREDOC', {
     REGEX_NEXT: /^((\\#|[^#])*?)(#{|\r?\n)/,
     REGEX: /^<<\-?(\w+)\r?\n/m,
     ID: IDS.HEREDOC,
@@ -677,7 +674,7 @@ function mainFunction (arg) {
       var last = v.last;
       var m = last.match(/^\w+(\.?[\w$]+)*/);
       last = last.substr(m[0].length);
-      if (JS2.EXPORT_MODE) {
+      if (JS2.DECORATOR.useExport()) {
         return "exports['" + m[0] + "'] = (function() {return JS2.Class.extend('"+m[0]+"'," + last + ")})();";
       } else {
         return "(function() {return JS2.Class.extend('"+m[0]+"'," + last + ")})();";
@@ -1138,10 +1135,11 @@ exports['Commander'] = (function() {return JS2.Class.extend('Commander', {
   },
 
   compile:function () {
+    console.log('COMPILE');
     var inDir = this.opts.main[0];
     var self = this;
 
-    this.getUpdater().update(true, function($1,$2,$3){ return JS2.FILE_DECORATOR(self.handleSource($1)) });
+    this.getUpdater().update(true, function($1,$2,$3){ return JS2.DECORATOR.file((self.handleSource($1))); });
   },
 
   handleSource:function (code) {
@@ -1189,7 +1187,7 @@ exports['Decorator.Pure'] = (function() {return JS2.Class.extend('Decorator.Pure
 
 exports['Decorator.Node'] = (function() {return JS2.Class.extend('Decorator.Node', {
   file:function (code) {
-    return "require('js2');\n" + code;
+    return "var js2 = require('js2').js2;\nvar JS2 = js2;\n" + code;
   },
 
   useExport:function () {
@@ -1200,13 +1198,13 @@ exports['Decorator.Node'] = (function() {return JS2.Class.extend('Decorator.Node
 
 
 
-  exports['NodeFileAdapter'] = (function() {return JS2.Class.extend('NodeFileAdapter', {
+  exports['RingoFileAdapter'] = (function() {return JS2.Class.extend('RingoFileAdapter', {
   initialize:function () {
     this.fs = require('fs'); 
   }, 
 
   isDirectory:function (file) {
-    return this.fs.statSync(file).isDirectory();
+    return this.fs.isDirectory(file);
   },
 
   setInterval:function (code, interval) {
@@ -1214,32 +1212,32 @@ exports['Decorator.Node'] = (function() {return JS2.Class.extend('Decorator.Node
   },
 
   isFile:function (file) {
-    return this.fs.statSync(file).isFile();
+    return this.fs.isFile(file);
   },
 
   mkdir:function (file) {
-    return this.fs.mkdirSync(file);
+    return this.fs.makeDirectory(file);
   },
 
   readdir:function (file) {
-    return this.fs.readdirSync(file);
+    return this.fs.list(file);
   },
 
   expandPath:function (file) {
-    return this.fs.realpathSync(file);
+    return this.fs.canonical(file);
   },
 
   read:function (file) {
-    return this.fs.readFileSync(file, 'utf8');
+    return this.fs.read(file);
   },
 
   write:function (file, data) {
-    return this.fs.writeFileSync(file, data, 'utf8');
+    return this.fs.write(file, data);
   },
 
   mtime:function (file) {
     try {
-      return this.fs.statSync(file).mtime.getTime();
+      return this.fs.openRaw(file).lastModified().getTime();
     } catch(e) {
       return 0;
     }
@@ -1247,9 +1245,16 @@ exports['Decorator.Node'] = (function() {return JS2.Class.extend('Decorator.Node
 })})();
 
 
-  JS2.fs = new JS2.FileSystem(new JS2.NodeFileAdapter());
+  JS2.fs = new JS2.FileSystem(new JS2.RingoFileAdapter());
 
   js2.ROOT = root;
-  js2.FILE_DECORATOR = function(code) { return code; };
+  js2.DECORATOR = new JS2.Decorator.Node();
   return js2;
+})(this);
+
+exports.js2 = JS2;
+exports.compile = function (inDir, outDir) {
+  var c = new JS2.Commander(['compile', '-b', inDir, outDir ]);
+  c.cli();
+  return exports.js2;
 };

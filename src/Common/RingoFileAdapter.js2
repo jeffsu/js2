@@ -1,15 +1,10 @@
 class RingoFileAdapter {
   function initialize() {
     this.fs = require('fs'); 
-    this.ringoFile = require('file');
   } 
 
-  function file(file) {
-    return new this.javaFile(file);
-  }
-
   function isDirectory(file) {
-    return this.file(file).isDirectory();
+    return this.fs.isDirectory(file);
   }
 
   function setInterval(code, interval) {
@@ -17,19 +12,19 @@ class RingoFileAdapter {
   }
 
   function isFile(file) {
-    return this.file(file).isFile();
+    return this.fs.isFile(file);
   }
 
   function mkdir(file) {
-    return this.(file).isFile();
+    return this.fs.makeDirectory(file);
   }
 
   function readdir(file) {
-    return this.fs.readdirSync(file);
+    return this.fs.list(file);
   }
 
   function expandPath(file) {
-    return this.fs.realpathSync(file);
+    return this.fs.canonical(file);
   }
 
   function read(file) {
@@ -42,7 +37,7 @@ class RingoFileAdapter {
 
   function mtime(file) {
     try {
-      return this.fs.statSync(file).mtime.getTime();
+      return this.fs.openRaw(file).lastModified().getTime();
     } catch(e) {
       return 0;
     }

@@ -1,5 +1,5 @@
 (function (undefined, JS2) {
-  Parser = {
+  JS2.Parser = {
     parse: function(str) {
       var lexer   = new JS2.Lexer(str);
       var tokens  = lexer.tokenize(true);
@@ -16,7 +16,7 @@
   var IDS = JS2.Lexer.IDS;
   IDS['NODE'] = -1;
 
-  Validator = JS2.Class.extend({
+  var Validator = JS2.Class.extend({
     initialize: function(content) {
       this.content = content;
     },
@@ -157,8 +157,11 @@
       var last = v.last;
       var m = last.match(/^\w+(\.?[\w$]+)*/);
       last = last.substr(m[0].length);
-      
-      return "(function() {return JS2.Class.extend('"+m[0]+"'," + last + ")})();";
+      if (JS2.DECORATOR.useExport()) {
+        return "exports['" + m[0] + "'] = (function() {return JS2.Class.extend('"+m[0]+"'," + last + ")})();";
+      } else {
+        return "(function() {return JS2.Class.extend('"+m[0]+"'," + last + ")})();";
+      }
     }
   });
 
@@ -336,7 +339,6 @@
     }
   });
 
-  JS2.Parser = Parser;
   JS2.require = function(file) {
     var str = JS2.Parser.parseFile(file + '.js2').toString(); 
     eval(str);
