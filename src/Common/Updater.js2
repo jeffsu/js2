@@ -1,5 +1,6 @@
 class Updater {
-  function initialize(fs, inDir, outDir) {
+  function initialize(fs, inDir, outDir, recursive) {
+    this.recursive = recursive;
     this.fs      = fs; 
     this.inDir   = this.fs.expandPath(inDir);
     this.outDir  = this.fs.expandPath(outDir);
@@ -8,7 +9,7 @@ class Updater {
 
   function update() {
     var self = this;
-    this.fs.find(this.inDir, 'js2').each(#{
+    this.fs.find(this.inDir, 'js2', this.recursive).each(#{
       self.tryUpdate($1); 
     });
   }

@@ -66,7 +66,7 @@ class Commander {
   function getUpdater() {
     var inDir  = this.opts.main[0] || '.';
     var outDir = this.opts.main[1] || inDir;
-    return new JS2.Updater(this.fs, inDir, outDir);
+    return new JS2.Updater(this.fs, inDir, outDir, this.opts.recursive);
   }
 
   function watch() {

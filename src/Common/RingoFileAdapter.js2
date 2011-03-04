@@ -1,10 +1,15 @@
-class NodeFileAdapter {
+class RingoFileAdapter {
   function initialize() {
     this.fs = require('fs'); 
+    this.ringoFile = require('file');
   } 
 
+  function file(file) {
+    return new this.javaFile(file);
+  }
+
   function isDirectory(file) {
-    return this.fs.statSync(file).isDirectory();
+    return this.file(file).isDirectory();
   }
 
   function setInterval(code, interval) {
@@ -12,11 +17,11 @@ class NodeFileAdapter {
   }
 
   function isFile(file) {
-    return this.fs.statSync(file).isFile();
+    return this.file(file).isFile();
   }
 
   function mkdir(file) {
-    return this.fs.mkdirSync(file);
+    return this.(file).isFile();
   }
 
   function readdir(file) {
@@ -28,11 +33,11 @@ class NodeFileAdapter {
   }
 
   function read(file) {
-    return this.fs.readFileSync(file, 'utf8');
+    return this.fs.read(file);
   }
 
   function write(file, data) {
-    return this.fs.writeFileSync(file, data, 'utf8');
+    return this.fs.write(file, data);
   }
 
   function mtime(file) {

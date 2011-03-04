@@ -1,6 +1,6 @@
 // temporarily set root 
 // to JS2 global var for this scope
-JS2 = (function () { return function (arg) {
+function mainFunction (arg) {
   if (typeof arg == 'string') {
     return JS2.Parser.parse(arg).toString();
   } else if (arg instanceof Array) {
@@ -8,5 +8,4 @@ JS2 = (function () { return function (arg) {
   } else {
     return new JS2.Array();
   }
-}})();
-js2 = JS2;
+}

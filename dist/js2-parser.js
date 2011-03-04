@@ -924,11 +924,11 @@ JS2.Array.prototype.any = function() {
     this.adapter = adapter;
   },
 
-  find:function (dir, ext) {
-    return this._find(this.expandPath(dir), new RegExp('\\.' + ext + '$'));
+  find:function (dir, ext, recursive) {
+    return this._find(this.expandPath(dir), new RegExp('\\.' + ext + '$'), recursive);
   },
 
-  _find:function (dir, regex) {
+  _find:function (dir, regex, recursive) {
     var parts = this.adapter.readdir(dir); 
 
     var files = js2();
@@ -938,7 +938,10 @@ JS2.Array.prototype.any = function() {
       if (self.isFile(file) && file.match(regex)) {
         files.push(file); 
       } else if (self.isDirectory(file)) {
-        files.append(self._find(file, regex)); 
+        var found = self._find(file, regex, recursive);
+        for (var i=0; i<found.length; i++) {
+          files.push(found[i]); 
+        }
       }
     });
 
@@ -1006,7 +1009,8 @@ JS2.Array.prototype.any = function() {
 
 
 (function() {return JS2.Class.extend('Updater', {
-  initialize:function (fs, inDir, outDir) {
+  initialize:function (fs, inDir, outDir, recursive) {
+    this.recursive = recursive;
     this.fs      = fs; 
     this.inDir   = this.fs.expandPath(inDir);
     this.outDir  = this.fs.expandPath(outDir);
@@ -1015,7 +1019,7 @@ JS2.Array.prototype.any = function() {
 
   update:function () {
     var self = this;
-    this.fs.find(this.inDir, 'js2').each(function($1,$2,$3){
+    this.fs.find(this.inDir, 'js2', this.recursive).each(function($1,$2,$3){
       self.tryUpdate($1); 
     });
   },
@@ -1096,7 +1100,7 @@ JS2.Array.prototype.any = function() {
   getUpdater:function () {
     var inDir  = this.opts.main[0] || '.';
     var outDir = this.opts.main[1] || inDir;
-    return new JS2.Updater(this.fs, inDir, outDir);
+    return new JS2.Updater(this.fs, inDir, outDir, this.opts.recursive);
   },
 
   watch:function () {
@@ -1124,7 +1128,7 @@ JS2.Array.prototype.any = function() {
   }, 
 
   isDirectory:function (file) {
-    return this.fs.stat(file).isDirectory();
+    return this.fs.statSync(file).isDirectory();
   },
 
   setInterval:function (code, interval) {

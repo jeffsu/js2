@@ -3,11 +3,11 @@ class FileSystem {
     this.adapter = adapter;
   }
 
-  function find(dir, ext) {
-    return this._find(this.expandPath(dir), new RegExp('\\.' + ext + '$'));
+  function find(dir, ext, recursive) {
+    return this._find(this.expandPath(dir), new RegExp('\\.' + ext + '$'), recursive);
   }
 
-  function _find(dir, regex) {
+  function _find(dir, regex, recursive) {
     var parts = this.adapter.readdir(dir); 
 
     var files = js2();
@@ -17,7 +17,10 @@ class FileSystem {
       if (self.isFile(file) && file.match(regex)) {
         files.push(file); 
       } else if (self.isDirectory(file)) {
-        files.append(self._find(file, regex)); 
+        var found = self._find(file, regex, recursive);
+        for (var i=0; i<found.length; i++) {
+          files.push(found[i]); 
+        }
       }
     });
 

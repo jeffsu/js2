@@ -1,4 +1,20 @@
-(function (root) {
+exports.apply = function (root) {
+  // temporarily set root 
+// to JS2 global var for this scope
+function mainFunction (arg) {
+  if (typeof arg == 'string') {
+    return JS2.Parser.parse(arg).toString();
+  } else if (arg instanceof Array) {
+    return new JS2.Array(arg);
+  } else {
+    return new JS2.Array();
+  }
+}
+
+
+  var JS2 = root.JS2 = mainFunction;
+  var js2 = root.js2 = JS2;
+  js2.ROOT = JS2;
   
 // CLASS HELPERS
 (function (undefined, JS2) {
@@ -1169,5 +1185,7 @@ JS2.Array.prototype.any = function() {
 })})();
 
 
-  return JS2;
-})(this);
+
+  js2.ROOT = root;
+  return js2;
+};
