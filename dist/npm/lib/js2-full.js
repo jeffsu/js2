@@ -1,4 +1,21 @@
-(function (root) {
+exports.JS2 = (function (root) {
+  // temporarily set root 
+// to JS2 global var for this scope
+function mainFunction (arg) {
+  if (typeof arg == 'string') {
+    return JS2.Parser.parse(arg).toString();
+  } else if (arg instanceof Array) {
+    return new JS2.Array(arg);
+  } else {
+    return new JS2.Array();
+  }
+}
+
+
+  var JS2 = root.JS2 = mainFunction;
+  var js2 = root.js2 = JS2;
+
+  JS2.ROOT = JS2;
   
 // CLASS HELPERS
 (function (undefined, JS2) {
@@ -1214,30 +1231,69 @@ exports['Decorator.Node'] = (function() {return JS2.Class.extend('Decorator.Node
 
 
 
-  (function (undefined, JS2) {
-  JS2.require = function(file, callback) {
-    var xmlhttp;
-    if (window.XMLHttpRequest) { // code for IE7+, Firefox, Chrome, Opera, Safari
-      xmlhttp = new XMLHttpRequest();
-    } else { 
-      xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
-    }
 
-    xmlhttp.onreadystatechange = function() {
-      if (xmlhttp.readyState==4 && xmlhttp.status==200) {
-        try {
-          eval(JS2.render(xmlhttp.responseText));
-        } catch(e) {
-          console.log(JS2.render(xmlhttp.responseText));
-        }
-        if (callback) callback(xmlhttp.responseText);
-      }
-    }
+  exports['NodeFileAdapter'] = (function() {return JS2.Class.extend('NodeFileAdapter', {
+  initialize:function () {
+    this.fs = require('fs'); 
+  }, 
 
-    xmlhttp.open("GET",file,true);
-    xmlhttp.send();
+  isDirectory:function (file) {
+    return this.fs.statSync(file).isDirectory();
+  },
+
+  setInterval:function (code, interval) {
+    return setInterval(code, interval);
+  },
+
+  dirname:function (file) {
+    var path = this.expandPath(file);
+    return file.replace(/[^\/]*$/, '');
+  },
+
+  isFile:function (file) {
+    return this.fs.statSync(file).isFile();
+  },
+
+  mkdir:function (file) {
+    return this.fs.mkdirSync(file, 0755);
+  },
+
+  readdir:function (file) {
+    return this.fs.readdirSync(file);
+  },
+
+  expandPath:function (file) {
+    return this.fs.realpathSync(file);
+  },
+
+  read:function (file) {
+    return this.fs.readFileSync(file, 'utf8');
+  },
+
+  write:function (file, data) {
+    return this.fs.writeFileSync(file, data, 'utf8');
+  },
+
+  mtime:function (file) {
+    try {
+      return this.fs.statSync(file).mtime.getTime();
+    } catch(e) {
+      return 0;
+    }
   }
-})(undefined, JS2);
+})})();
 
-  return JS2;
-})(window);
+
+  JS2.fs = new JS2.FileSystem(new JS2.NodeFileAdapter());
+
+  js2.ROOT = root;
+  js2.DECORATOR = new JS2.Decorator.Node();
+  return js2;
+})(this);
+
+exports.js2 = exports.JS2;
+exports.compile = function (inDir, outDir) {
+  var c = new JS2.Commander(['compile', '-b', inDir, outDir ]);
+  c.cli();
+  return exports.js2;
+};

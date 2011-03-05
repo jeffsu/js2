@@ -11,12 +11,17 @@ class NodeFileAdapter {
     return setInterval(code, interval);
   }
 
+  function dirname(file) {
+    var path = this.expandPath(file);
+    return file.replace(/[^\/]*$/, '');
+  }
+
   function isFile(file) {
     return this.fs.statSync(file).isFile();
   }
 
   function mkdir(file) {
-    return this.fs.mkdirSync(file);
+    return this.fs.mkdirSync(file, 0755);
   }
 
   function readdir(file) {

@@ -1,20 +1,19 @@
 exports.JS2 = (function (root) {
-  <%= js 'core/js2-boot.js' %>
   var console = {};
   console.log = function (m) { system.print(m) };
 
+  <%= js 'core/js2-boot.js' %>
+
   var JS2 = root.JS2 = mainFunction;
   var js2 = root.js2 = JS2;
+  js2.ROOT = JS2;
 
-  JS2.ROOT = JS2;
-  <%= core %>
-
-  <%= js 'Common/RingoFileAdapter.js2' %>
-  JS2.fs = new JS2.FileSystem(new JS2.RingoFileAdapter());
+  <%= js 'core/js2-class.js' %>
+  <%= js 'Common/Array.js2' %>
 
   js2.ROOT = root;
   js2.DECORATOR = new JS2.Decorator.Node();
   return js2;
 })(this);
 
-exports.js2 = JS2;
+exports.js2 = exports.JS2;

@@ -7,6 +7,6 @@
   "os" : [ "linux", "darwin", "freebsd" ],
   "directories" : { "lib" : "./dist/npm/lib/", "bin" : "./dist/npm/bin/" },
   "bin" : { "js2" : "./bin/js2-node", "js2-node" : "./bin/js2-node" },
-  "main" : "./lib/js2-node",
+  "main" : "./lib/js2",
   "engines" : { "node" : ">=0.1.97" }
 }

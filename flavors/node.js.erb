@@ -1,10 +1,10 @@
-exports.apply = function (root) {
+var JS2 = exports.JS2 = (function (root) {
   <%= js 'core/js2-boot.js' %>
 
   var JS2 = root.JS2 = mainFunction;
   var js2 = root.js2 = JS2;
-  js2.ROOT = JS2;
 
+  JS2.ROOT = JS2;
   <%= core %>
 
   <%= js 'Common/NodeFileAdapter.js2' %>
@@ -13,4 +13,11 @@ exports.apply = function (root) {
   js2.ROOT = root;
   js2.DECORATOR = new JS2.Decorator.Node();
   return js2;
+})(this);
+
+exports.js2 = exports.JS2;
+exports.compile = function (inDir, outDir) {
+  var c = new JS2.Commander(['compile', '-b', inDir, outDir ]);
+  c.cli();
+  return exports.js2;
 };

@@ -171,8 +171,7 @@ JS2.Array.prototype.collect = function(f) {
 };
 
 JS2.Array.prototype.reduce = function(f, val) {
-  var value = val;
-  this.each(function($1,$2,$3){ value = f.call(this, $1, value) });
+  this.each(function($1,$2,$3){ val = f.call(this, $1, val) });
 };
 
 JS2.Array.prototype.reject = function(f) {

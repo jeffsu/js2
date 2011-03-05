@@ -882,8 +882,7 @@ JS2.Array.prototype.collect = function(f) {
 };
 
 JS2.Array.prototype.reduce = function(f, val) {
-  var value = val;
-  this.each(function($1,$2,$3){ value = f.call(this, $1, value) });
+  this.each(function($1,$2,$3){ val = f.call(this, $1, val) });
 };
 
 JS2.Array.prototype.reject = function(f) {
@@ -934,10 +933,13 @@ exports['FileSystem'] = (function() {return JS2.Class.extend('FileSystem', {
   },
 
   _find:function (dir, regex, recursive) {
+    if (!this.isDirectory(dir))  return [];
+
     var parts = this.adapter.readdir(dir); 
 
     var files = js2();
     var self = this;
+
     js2(parts).reject(/^\.\.?$/).each(function($1,$2,$3){
       var file = dir + '/' + $1;
       if (self.isFile(file) && file.match(regex)) {
@@ -953,20 +955,33 @@ exports['FileSystem'] = (function() {return JS2.Class.extend('FileSystem', {
     return files;
   },
 
+  canonical:function (file) {
+    var abs = this.expandPath(file);
+    abs = abs.replace(/\/$/, '');
+    return abs;
+  },
+
   mkpath:function (file) {
-    var dirname = this.dirname(file);
+    var dirname = this.canonical(this.dirname(file));
+
     var subdirs = js2(dirname.split('/'));
+    subdirs.shift();
+    var toMake = '';
 
     var self = this;
-    subdirs.reduce(function($1,$2,$3){
-      self.mkdir($2); 
-      return $2 + '/' + $1;
+    subdirs.each(function($1,$2,$3){
+      toMake += '/' + $1;
+      self.mkdir(toMake); 
     });
   },
 
   // ADAPTER USAGE
   dirname:function (file) {
     return this.adapter.dirname(file);
+  },
+
+  readdir:function (file) {
+    return this.adapter.readdir(file);
   },
 
   read:function (file) {
@@ -982,15 +997,20 @@ exports['FileSystem'] = (function() {return JS2.Class.extend('FileSystem', {
     return this.adapter.mtime(file);
   },
 
+  exists:function (file) {
+    return this.isDirectory(file) || this.isFile(file);
+  },
+
   mkdir:function (file) {
-    return this.adapter.mkdir(file);
+    if (!this.exists(file)) {
+      return this.adapter.mkdir(file);
+    }
   },
 
   isFile:function (file) {
     try {
       return this.adapter.isFile(file);
     } catch(e) {
-      console.log(e);
       return false;
     }
   },
@@ -1017,20 +1037,36 @@ exports['Updater'] = (function() {return JS2.Class.extend('Updater', {
   initialize:function (fs, inDir, outDir, recursive) {
     this.recursive = recursive;
     this.fs      = fs; 
-    this.inDir   = this.fs.expandPath(inDir);
-    this.outDir  = this.fs.expandPath(outDir);
+    this.inDir   = this.fs.canonical(inDir);
+    this.outDir  = this.fs.canonical(outDir);
     this.verbose = true;
   },
 
   update:function (force, funct) {
     var self = this;
+    this.matchDirs(this.inDir);
     this.fs.find(this.inDir, 'js2', this.recursive).each(function($1,$2,$3){
       self.tryUpdate($1, force, funct); 
     });
   },
 
+  matchDirs:function (dir) {
+    var subs = this.fs.readdir(dir);
+    for(var _i4=0,_c4=subs,_l4=_c4.length,sub;sub=_c4[_i4]||_i4<_l4;_i4++){
+      var path = dir + '/' + sub;
+      if (this.fs.isDirectory(path)) {
+        this.fs.mkdir(path.replace(this.inDir, this.outDir));
+        this.matchDirs(path);
+      }
+    }
+  },
+
   tryUpdate:function (file, force, funct) {
     var outFile = file.replace(this.inDir, this.outDir).replace(/\.js2$/, '.js');
+
+    var dir = this.fs.dirname(file);
+    if (! this.fs.isDirectory(dir)) this.fs.mkpath(dir);
+
     if (force || this.fs.mtime(file) > this.fs.mtime(outFile)) {
       if (funct) {
         this.fs.write(outFile, funct(JS2(this.fs.read(file))));

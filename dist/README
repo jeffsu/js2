@@ -1,0 +1,2 @@
+must clone another git repo
+git clone github@github.com:jeffsu/js2-ringo ringo

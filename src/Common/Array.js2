@@ -32,8 +32,7 @@ JS2.Array.prototype.collect = function(f) {
 };
 
 JS2.Array.prototype.reduce = function(f, val) {
-  var value = val;
-  this.each(#{ value = f.call(this, $1, value) });
+  this.each(#{ val = f.call(this, $1, val) });
 };
 
 JS2.Array.prototype.reject = function(f) {

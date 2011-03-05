@@ -72,6 +72,8 @@ task :dist do
   end
 
   sh "cp ./flavors/node.js ./dist/npm/lib/js2.js"
+
   sh "cp ./flavors/ringo.js ./dist/ringo/lib/js2.js"
+  sh "cp ./flavors/ringo-full.js ./dist/ringo/lib/js2-full.js"
 end
 
