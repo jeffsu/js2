@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-var JS2 = require('../lib/js2-full').JS2;
+var JS2 = require('../lib/js2').JS2;
 process.argv.shift();
 process.argv.shift();
 var commander = new JS2.Commander(process.argv);

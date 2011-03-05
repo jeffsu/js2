@@ -1,6 +1,6 @@
 var js2 = require('js2').js2;
 var JS2 = js2;
-exports['Test1.Foo'] = (function() {return JS2.Class.extend('Test1.Foo', {
+var Test1.Foo=exports['Test1.Foo']=JS2.Class.extend( {
   "member":"member",
   "regexMember":/member/,
   "stuffs":[ 'hello', 'world' ],
@@ -14,7 +14,7 @@ exports['Test1.Foo'] = (function() {return JS2.Class.extend('Test1.Foo', {
       console.log(stuff);
     }
   }
-})})();
+});
 
 JS2.test(function(assert){
   var test = new Test1.Foo(); 

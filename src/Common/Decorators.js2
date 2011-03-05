@@ -1,10 +1,10 @@
-class Decorator.Pure {
+class Decorator.Browser {
   function file(code) {
     return code;
   }
 
-  function useExport() {
-    return false; 
+  function klass(name, par, source) {
+    return par+".extend('"+name+"',"+source+");";
   }
 }
 
@@ -13,8 +13,17 @@ class Decorator.Node {
     return "var js2 = require('js2').js2;\nvar JS2 = js2;\n" + code;
   }
 
-  function useExport() {
-    return true; 
+  function klass(name, par, source) {
+    return "var "+name+"=exports['"+name+"']="+par+".extend("+source+");";
   }
 }
 
+class Decorator.Ringo {
+  function file(code) {
+    return "var js2 = require('js2').js2;\nvar JS2 = js2;\n" + code;
+  }
+
+  function klass(name, par, source) {
+    return "var "+name+"=exports['"+name+"']="+par+".extend("+source+");";
+  }
+}

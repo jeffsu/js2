@@ -99,6 +99,11 @@ function mainFunction (arg) {
     oo: JS2.Class.oo
   };
 
+  var namedClasses = {};
+  JS2.getClass = function(name) {
+    return namedClasses[name];
+  };
+
   var noInit = false;
   JS2.Class.extend = function(name, klassDef) {
     var klass = function() { if (!noInit) this.initialize.apply(this, arguments); };
@@ -107,6 +112,7 @@ function mainFunction (arg) {
     if (typeof name != 'string') {
       klassDef = name;
     } else {
+      namedClasses[name] = klass;
       var namespace = this.oo.createNamespace(name);
       namespace[0][namespace[1]] = klass;
     }
@@ -132,7 +138,8 @@ function mainFunction (arg) {
   };
 
   var assert = {
-    'eq': function(expected, val) { if (expected != val) console.log("Expected "+expected+", but got "+val+".") },
+    'eq': function(val, expected) { if (expected != val) console.log("Expected "+expected+", but got "+val+".") },
+    'isFalse': function(val) { if (val) console.log("Expected false, but got "+val+".") },
     'isTrue': function(val) { if (!val) console.log("Expected true, but got " +val+".") }
   };
 
@@ -222,7 +229,7 @@ JS2.Array.prototype.any = function() {
 
 
   js2.ROOT = root;
-  js2.DECORATOR = new JS2.Decorator.Node();
+  js2.DECORATOR = new JS2.Decorator.Ringo();
   return js2;
 })(this);
 

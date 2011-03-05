@@ -7,12 +7,17 @@ class Commander {
     "  * compile <inDir> [outDir]  -- Compiles a directory and puts js files into outDir.  If outDir is not specified, inDir will be used\n" + 
     "    Options:\n" +
     "      -r                      -- Traverse directories recursively\n" +
-    "      -b                      -- Compile for web browsers\n" +
+    "      -m=<mode>               -- Compile for different modes: node, ringo, or browser\n" +
     "  * compile <file>            -- Compiles a single js2 file into js\n" +
     "  * watch <inDir> <outDir>    -- Similar to compile, but update will keep looping while watching for modifications\n" +
     "    Options:\n" +
     "      -r                      -- Traverse directories recursively\n" +
     "      -i=<seconds>            -- Interval time in seconds between loops\n";
+
+  var DEFAULT_CONFIG = {
+    compile: { inDir: 'src', outDir: 'lib', recursive: true, decorator: 'Node'  },
+    watch: { inDir: 'src', outDir: 'lib', recursive: true, decorator: 'Node' }
+  };
 
   function initialize (argv) {
     this.argv = argv;
@@ -50,30 +55,34 @@ class Commander {
 
   var options = {
     'r': 'recursive',
-    'b': 'browsers',
-    'i': 'interval'
+    'i': 'interval',
+    'm': 'mode'
   };
 
   function parseOpts(argv) {
     this.opts = { main: [] };
     var opts = this.opts;
+
     for (var i=0; i<argv.length; i++) {
       var arg = argv[i];
-      if (arg.match(/^-(\w)(=(.*))?$/)) {
-        opts[this.options[arg[1]]] = arg[3] || true;
+      var m   = arg.match(/^-(\w)(=(\w+))?$/);
+      if (m) {
+        var key = this.options[m[1]];
+        if (! key) console.log('Invalid option: ' + m[1]);
+        opts[key] = m[3] || true;
       } else {
         opts.main.push(arg); 
       }
-      if (opts['browsers']) {
-        JS2.EXPORT_MODE = false;
-      } else {
-        JS2.EXPORT_MODE = true;
-      }
+    }
+
+    switch(opts['mode']) {
+      case 'ringo': JS2.DECORATOR = new JS2.Decorator.Ringo(); break;
+      case 'node': JS2.DECORATOR  = new JS2.Decorator.Node(); break;
+      default: JS2.DECORATOR      = new JS2.Decorator.Browser(); break;
     }
   }
 
   function compile() {
-    console.log('COMPILE');
     var inDir = this.opts.main[0];
     var self = this;
 

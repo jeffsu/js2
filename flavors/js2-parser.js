@@ -79,6 +79,11 @@
     oo: JS2.Class.oo
   };
 
+  var namedClasses = {};
+  JS2.getClass = function(name) {
+    return namedClasses[name];
+  };
+
   var noInit = false;
   JS2.Class.extend = function(name, klassDef) {
     var klass = function() { if (!noInit) this.initialize.apply(this, arguments); };
@@ -87,6 +92,7 @@
     if (typeof name != 'string') {
       klassDef = name;
     } else {
+      namedClasses[name] = klass;
       var namespace = this.oo.createNamespace(name);
       namespace[0][namespace[1]] = klass;
     }
@@ -112,7 +118,8 @@
   };
 
   var assert = {
-    'eq': function(expected, val) { if (expected != val) console.log("Expected "+expected+", but got "+val+".") },
+    'eq': function(val, expected) { if (expected != val) console.log("Expected "+expected+", but got "+val+".") },
+    'isFalse': function(val) { if (val) console.log("Expected false, but got "+val+".") },
     'isTrue': function(val) { if (!val) console.log("Expected true, but got " +val+".") }
   };
 
@@ -510,7 +517,7 @@
     }
   };
 
-  var KEYWORDS = { 'var': null, 'class': null, 'function': null, 'in': null, 'with': null, 'curry': null };
+  var KEYWORDS = { 'var': null, 'class': null, 'function': null, 'in': null, 'with': null, 'curry': null};
   var IDS = JS2.Lexer.IDS;
   IDS['NODE'] = -1;
 
@@ -653,13 +660,13 @@
     toString: function() {
       var v  = this.validate(/(class)(\s+)/);
       var last = v.last;
-      var m = last.match(/^\w+(\.?[\w$]+)*/);
-      last = last.substr(m[0].length);
-      if (JS2.DECORATOR.useExport()) {
-        return "exports['" + m[0] + "'] = (function() {return JS2.Class.extend('"+m[0]+"'," + last + ")})();";
-      } else {
-        return "(function() {return JS2.Class.extend('"+m[0]+"'," + last + ")})();";
-      }
+      var m = last.match(/^([\w$]+(\.[\w$]+)*)(\s+extends\s+([\w$]+(\.?[\w$]+))*)?/);
+
+      var name = m[1];
+      var par  = m[4] || 'JS2.Class';
+      var source = last.substr(m[0].length);
+
+      return JS2.DECORATOR.klass(name, par, source);
     }
   });
 
@@ -923,7 +930,7 @@ JS2.Array.prototype.any = function() {
 };
 
 
-exports['FileSystem'] = (function() {return JS2.Class.extend('FileSystem', {
+JS2.Class.extend('FileSystem', {
   initialize:function (adapter) {
     this.adapter = adapter;
   },
@@ -1030,10 +1037,10 @@ exports['FileSystem'] = (function() {return JS2.Class.extend('FileSystem', {
   expandPath:function (file) {
     return this.adapter.expandPath(file);
   }
-})})();
+});
 
 
-exports['Updater'] = (function() {return JS2.Class.extend('Updater', {
+JS2.Class.extend('Updater', {
   initialize:function (fs, inDir, outDir, recursive) {
     this.recursive = recursive;
     this.fs      = fs; 
@@ -1075,10 +1082,10 @@ exports['Updater'] = (function() {return JS2.Class.extend('Updater', {
       }
     }
   }
-})})();
+});
 
 
-exports['Commander'] = (function() {return JS2.Class.extend('Commander', {
+JS2.Class.extend('Commander', {
   "BANNER":"js2 <command> [options] <arguments>\n" +
     "Commands:\n" +
     "  * run <file>                -- Executes file\n" +
@@ -1086,12 +1093,17 @@ exports['Commander'] = (function() {return JS2.Class.extend('Commander', {
     "  * compile <inDir> [outDir]  -- Compiles a directory and puts js files into outDir.  If outDir is not specified, inDir will be used\n" + 
     "    Options:\n" +
     "      -r                      -- Traverse directories recursively\n" +
-    "      -b                      -- Compile for web browsers\n" +
+    "      -m=<mode>               -- Compile for different modes: node, ringo, or browser\n" +
     "  * compile <file>            -- Compiles a single js2 file into js\n" +
     "  * watch <inDir> <outDir>    -- Similar to compile, but update will keep looping while watching for modifications\n" +
     "    Options:\n" +
     "      -r                      -- Traverse directories recursively\n" +
     "      -i=<seconds>            -- Interval time in seconds between loops\n",
+
+  "DEFAULT_CONFIG":{
+    compile: { inDir: 'src', outDir: 'lib', recursive: true, decorator: 'Node'  },
+    watch: { inDir: 'src', outDir: 'lib', recursive: true, decorator: 'Node' }
+  },
 
   initialize:function (argv) {
     this.argv = argv;
@@ -1129,30 +1141,34 @@ exports['Commander'] = (function() {return JS2.Class.extend('Commander', {
 
   "options":{
     'r': 'recursive',
-    'b': 'browsers',
-    'i': 'interval'
+    'i': 'interval',
+    'm': 'mode'
   },
 
   parseOpts:function (argv) {
     this.opts = { main: [] };
     var opts = this.opts;
+
     for (var i=0; i<argv.length; i++) {
       var arg = argv[i];
-      if (arg.match(/^-(\w)(=(.*))?$/)) {
-        opts[this.options[arg[1]]] = arg[3] || true;
+      var m   = arg.match(/^-(\w)(=(\w+))?$/);
+      if (m) {
+        var key = this.options[m[1]];
+        if (! key) console.log('Invalid option: ' + m[1]);
+        opts[key] = m[3] || true;
       } else {
         opts.main.push(arg); 
       }
-      if (opts['browsers']) {
-        JS2.EXPORT_MODE = false;
-      } else {
-        JS2.EXPORT_MODE = true;
-      }
+    }
+
+    switch(opts['mode']) {
+      case 'ringo': JS2.DECORATOR = new JS2.Decorator.Ringo(); break;
+      case 'node': JS2.DECORATOR  = new JS2.Decorator.Node(); break;
+      default: JS2.DECORATOR      = new JS2.Decorator.Browser(); break;
     }
   },
 
   compile:function () {
-    console.log('COMPILE');
     var inDir = this.opts.main[0];
     var self = this;
 
@@ -1188,30 +1204,39 @@ exports['Commander'] = (function() {return JS2.Class.extend('Commander', {
   showBanner:function () {
     console.log(this.BANNER);
   }
-})})();
+});
 
 
 
-exports['Decorator.Pure'] = (function() {return JS2.Class.extend('Decorator.Pure', {
+JS2.Class.extend('Decorator.Browser', {
   file:function (code) {
     return code;
   },
 
-  useExport:function () {
-    return false; 
+  klass:function (name, par, source) {
+    return par+".extend('"+name+"',"+source+");";
   }
-})})();
+});
 
-exports['Decorator.Node'] = (function() {return JS2.Class.extend('Decorator.Node', {
+JS2.Class.extend('Decorator.Node', {
   file:function (code) {
     return "var js2 = require('js2').js2;\nvar JS2 = js2;\n" + code;
   },
 
-  useExport:function () {
-    return true; 
+  klass:function (name, par, source) {
+    return "var "+name+"=exports['"+name+"']="+par+".extend("+source+");";
   }
-})})();
+});
 
+JS2.Class.extend('Decorator.Ringo', {
+  file:function (code) {
+    return "var js2 = require('js2').js2;\nvar JS2 = js2;\n" + code;
+  },
+
+  klass:function (name, par, source) {
+    return "var "+name+"=exports['"+name+"']="+par+".extend("+source+");";
+  }
+});
 
 
   (function (undefined, JS2) {

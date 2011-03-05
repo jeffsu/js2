@@ -1,0 +1,17 @@
+class Foo {
+  function hello() {
+    return "hello";
+  }
+
+}
+
+class Bar extends Foo {
+  function hello() {
+    return this.$super(); 
+  } 
+}
+
+js2.test(#(assert){
+  var bar = new Bar();
+  assert.eq(bar.hello(), "hello");
+});

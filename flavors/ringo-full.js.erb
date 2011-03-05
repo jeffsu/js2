@@ -13,7 +13,7 @@ exports.JS2 = (function (root) {
   JS2.fs = new JS2.FileSystem(new JS2.RingoFileAdapter());
 
   js2.ROOT = root;
-  js2.DECORATOR = new JS2.Decorator.Node();
+  js2.DECORATOR = new JS2.Decorator.Ringo();
   return js2;
 })(this);
 

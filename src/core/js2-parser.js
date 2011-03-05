@@ -12,7 +12,7 @@
     }
   };
 
-  var KEYWORDS = { 'var': null, 'class': null, 'function': null, 'in': null, 'with': null, 'curry': null };
+  var KEYWORDS = { 'var': null, 'class': null, 'function': null, 'in': null, 'with': null, 'curry': null};
   var IDS = JS2.Lexer.IDS;
   IDS['NODE'] = -1;
 
@@ -155,13 +155,13 @@
     toString: function() {
       var v  = this.validate(/(class)(\s+)/);
       var last = v.last;
-      var m = last.match(/^\w+(\.?[\w$]+)*/);
-      last = last.substr(m[0].length);
-      if (JS2.DECORATOR.useExport()) {
-        return "exports['" + m[0] + "'] = (function() {return JS2.Class.extend('"+m[0]+"'," + last + ")})();";
-      } else {
-        return "(function() {return JS2.Class.extend('"+m[0]+"'," + last + ")})();";
-      }
+      var m = last.match(/^([\w$]+(\.[\w$]+)*)(\s+extends\s+([\w$]+(\.?[\w$]+))*)?/);
+
+      var name = m[1];
+      var par  = m[4] || 'JS2.Class';
+      var source = last.substr(m[0].length);
+
+      return JS2.DECORATOR.klass(name, par, source);
     }
   });
 
