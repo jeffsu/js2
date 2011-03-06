@@ -2,8 +2,8 @@
   ---
   layout: default
   ---
-%h1 JS2: Javascript Syntactic Sugar
-
+%h1 JS2
+%h2 Javascript Syntactic Sugar
 %p
   JS2 is for anyone who writes Javascript whether it be for browsers or for serverside scripting (nodejs and ringojs).  JS2 provides superset of javascript (which is backwards compatible with normal javascript) for features like: classes, inheritance, methods, currying, and shorthand sugar for common patterns.
 
@@ -11,12 +11,26 @@
 %p
   Jeff Su (me@jeffsu.com)
 
-%h2 Try It
+%h2 Try
 
 %textarea.code!=  "class Hello {\n  function world() {\n    alert('hello');\n  }\n}\nvar hello = new Hello();\nhello.world()"
 %input{ :type => 'button', :value => 'Run' }
 
-%h2 Documentation
+%h2 Install
+%p
+  NodeJS
+  %pre!
+    npm install js2
+
+  RingoJS
+  %pre!
+    ringo-admin install jeffsu/js2
+
+  Ruby
+  %pre!
+    gem install js2 --pre
+
+%h2 Docs
 %ul
   %li
     %a{ :href => 'http://github.com/jeffsu/js2/wiki' } Introduction
@@ -25,8 +39,7 @@
   %li
     %a{ :href => 'http://github.com/jeffsu/js2/wiki/Getting-Started' } Getting Started
 
-%h2 Get Source
-
+%h2 Source
 %p
   Clone it with 
   %a{ :href => 'http://git-scm.com' } git 
@@ -34,7 +47,6 @@
 
   %pre!
     git clone git://github.com/jeffsu/js2
-
 %p
   Download Project here: 
   %a{ :href => 'http://github.com/jeffsu/js2/zipball/master' } zip 
