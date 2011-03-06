@@ -6,13 +6,21 @@
 %p
   Jeff Su (me@jeffsu.com)
 
-%h2 Try 
+%h2 Try It
 
-%textarea.code!=  "class Hello {\n  function world() { console.log('hello'); }\n }"
+%textarea.code!=  "class Hello {\n  function world() {\n    alert('hello');\n  }\n}\nvar hello = new Hello();\nhello.world()"
 %input{ :type => 'button', :value => 'Run' }
 
+%h2 Documentation
+  %ul
+    %li
+      %a{ :href => 'http://github.com/jeffsu/js2/wiki' } Introduction
+    %li
+      %a{ :href => 'http://github.com/jeffsu/js2/wiki/Installation' } Installation
+    %li
+      %a{ :href => 'http://github.com/jeffsu/js2/wiki/Getting-Started' } Getting Started
 
-%h2 Source
+%h2 Get Source
 
 %p
   Clone it with 
@@ -33,6 +41,6 @@
     .code
       width: 100%
       font-family: monospace
-      height: 200px
+      height: 150px
       padding: 4px
       font-size: 1.2em
