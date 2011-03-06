@@ -104,13 +104,13 @@ Syntactic Sugar
 Interpolated Strings
 --------------------
     var name    = "John Doe";
-    var message = "Welcome #{name}";
     var message = %{Welcome #{name}};
 
 Heredocs
 --------
     var string = <<END
-    Random text with interpolated variable #{name}
+      Random text with indentation
+      interpolated variable #{name}
     END
 
 Foreach
@@ -120,11 +120,18 @@ Foreach
       alert(thing);
     }
 
-Functions
----------
-    var say1 => (name) { alert(name); }
-    var say2 => { alert($1); }
-    node.click(->{ alert('clicked'); })
+Shorthand Functions
+-------------------
+    var say1 = #(arg){ alert(arg); }
+    var say2 = #{ alert($1); }
+    node.click(#{ alert('clicked'); })
+
+Enumerable Extensions
+---------------------
+   var array = js2([ 'hello', 'world' ]);
+   array.each(#{ alert($1) });
+   array.reject(/hello/).each(#{ alert($1) });
+   .. etc ..
 
 Curry
 -----
