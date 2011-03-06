@@ -1,4 +1,25 @@
 (function (root) {
+  // temporarily set root 
+// to JS2 global var for this scope
+function mainFunction (arg) {
+  if (typeof arg == 'string') {
+    return JS2.Parser.parse(arg).toString();
+  } else if (arg instanceof Array) {
+    return new JS2.Array(arg);
+  } else {
+    return new JS2.Array();
+  }
+}
+
+  if (!root.console) {
+    root.console = {};
+    console.log = function (m) {};
+  }
+
+  var JS2 = root.JS2 = mainFunction;
+  var js2 = root.js2 = JS2;
+
+  JS2.ROOT = JS2;
   
 // CLASS HELPERS
 (function (undefined, JS2) {
@@ -1264,5 +1285,10 @@ JS2.Class.extend('Decorator.Ringo', {
   }
 })(undefined, JS2);
 
+
+  js2.DECORATOR = new JS2.Decorator.Browser();
+  js2.ROOT = root;
+
   return JS2;
+
 })(window);
