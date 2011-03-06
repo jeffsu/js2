@@ -3,12 +3,14 @@
 
 JS2 is syntactic sugar on top of Javascript.  It adds common programming functionality to Javascript that was 
 inspired by other languages (Java, Ruby, Perl).  Since JS2 is a superset of Javascript, Javascript 
-remains fully compatible with JS2.  JS2 is available in 3 different flavors and is written in Javascript:
+remains fully compatible with JS2.  JS2 is available in 4 different flavors and is written in Javascript:
 
-  * ruby gem (ruby & jruby)
-  * nodejs
-  * ringojs
-  * web browser
+  * [[ruby]]
+  * [[nodejs]]
+  * [[ringojs]]
+  * [[browser]]
+
+Example:
 
     class Vehicle {
       function move() {
