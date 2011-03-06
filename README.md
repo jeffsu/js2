@@ -35,7 +35,7 @@ Example:
 
 Installation
 ============
-For more detailed instructions, go [[here|https://github.com/jeffsu/js2/wiki/Installation]].
+For more detailed instructions, go [here](|https://github.com/jeffsu/js2/wiki/Installation).
 
 For Ruby (using Google Chrome's V8 engine)
 ------------------------------------------
@@ -152,3 +152,7 @@ Curry
     }
     say3("Welcome John Doe");
 
+Where do you go from here?
+=====================
+
+Well, you can visit the [wiki](https://github.com/jeffsu/js2/wiki/Getting-Started) on getting started.
