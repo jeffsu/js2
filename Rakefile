@@ -94,5 +94,8 @@ task :dist do
   sh "cp ./flavors/ringo-full.js ./dist/ringo/lib/js2-full.js"
 
   sh "cp ./flavors/ruby.js ./dist/gem/lib/js2/js2.js"
+
+  sh "cp ./flavors/browser.js ./js2.js"
+  sh "cp ./flavors/browser-full.js ./js2-full.js"
 end
 
