@@ -14,7 +14,7 @@
 %h2 Try
 
 %textarea.code!=  "class Hello {\n  function world() {\n    alert('hello');\n  }\n}\nvar hello = new Hello();\nhello.world()"
-%input{ :type => 'button', :value => 'Run' }
+%input.run{ :type => 'button', :value => 'Run' }
 
 %h2 Install
 %p
@@ -61,3 +61,9 @@
       height: 150px
       padding: 4px
       font-size: 1.2em
+
+:javascript
+  $('.run').click(function () {
+    eval(js2.render($('.code')));
+  });
+

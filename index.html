@@ -12,7 +12,7 @@ layout: default
 </p>
 <h2>Try</h2>
 <textarea class='code'>class Hello {&#x000A;  function world() {&#x000A;    alert('hello');&#x000A;  }&#x000A;}&#x000A;var hello = new Hello();&#x000A;hello.world()</textarea>
-<input type='button' value='Run' />
+<input class='run' type='button' value='Run' />
 <h2>Install</h2>
 <p>
   NodeJS
@@ -55,3 +55,10 @@ layout: default
     padding: 4px;
     font-size: 1.2em; }
 </style>
+<script type='text/javascript'>
+  //<![CDATA[
+    $('.run').click(function () {
+      eval(js2.render($('.code')));
+    });
+  //]]>
+</script>
