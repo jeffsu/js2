@@ -35,7 +35,7 @@ Example:
 
 Installation
 ============
-For more detailed instructions, go [[here|https://github.com/jeffsu/js2/wiki/Installation]].
+For more detailed instructions, go [here](|https://github.com/jeffsu/js2/wiki/Installation).
 
 For Ruby (using Google Chrome's V8 engine)
 ------------------------------------------
