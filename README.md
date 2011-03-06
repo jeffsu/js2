@@ -128,10 +128,10 @@ Shorthand Functions
 
 Enumerable Extensions
 ---------------------
-   var array = js2([ 'hello', 'world' ]);
-   array.each(#{ alert($1) });
-   array.reject(/hello/).each(#{ alert($1) });
-   .. etc ..
+    var array = js2([ 'hello', 'world' ]);
+    array.each(#{ alert($1) });
+    array.reject(/hello/).each(#{ alert($1) });
+    .. etc ..
 
 Curry
 -----
