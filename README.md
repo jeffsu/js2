@@ -152,3 +152,7 @@ Curry
     }
     say3("Welcome John Doe");
 
+Where do you go from here?
+=====================
+
+Well, you can visit the [wiki](https://github.com/jeffsu/js2/wiki/Getting-Started) on getting started.
