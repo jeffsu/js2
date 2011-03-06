@@ -8,9 +8,9 @@
 
 %h2 Try 
 
-%textarea!
-  class Hello { function world() { } } 
-  
+%textarea.code!=  "class Hello {\n  function world() { console.log('hello'); }\n }"
+%input{ :type => 'button', :value => 'Run' }
+
 
 %h2 Source
 
@@ -28,4 +28,11 @@
   or 
   %a{ :href => 'http://github.com/jeffsu/js2/tarball/master' } tar
 
-
+%style
+  :sass
+    .code
+      width: 100%
+      font-family: monospace
+      height: 200px
+      padding: 4px
+      font-size: 1.2em

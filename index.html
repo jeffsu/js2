@@ -6,7 +6,8 @@ layout: default
   Jeff Su (me@jeffsu.com)
 </p>
 <h2>Try</h2>
-<textarea>class Hello { function world() { } }</textarea>
+<textarea class='code'>class Hello {&#x000A;  function world() { console.log('hello'); }&#x000A; }</textarea>
+<input type='button' value='Run' />
 <h2>Source</h2>
 <p>
   Clone it with
@@ -20,3 +21,11 @@ layout: default
   or
   <a href='http://github.com/jeffsu/js2/tarball/master'>tar</a>
 </p>
+<style>
+  .code {
+    width: 100%;
+    font-family: monospace;
+    height: 200px;
+    padding: 4px;
+    font-size: 1.2em; }
+</style>
