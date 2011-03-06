@@ -11,6 +11,12 @@ class RingoFileAdapter {
     return setInterval(code, interval);
   }
 
+  function dirname(file) {
+    var path = this.expandPath(file);
+    return file.replace(/[^\/]*$/, '');
+  }
+
+
   function isFile(file) {
     return this.fs.isFile(file);
   }

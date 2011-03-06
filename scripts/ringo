@@ -1,0 +1,4 @@
+var JS2 = require('../flavors/ringo-full').JS2;
+system.args.shift();
+system.print(system.args);
+(new JS2.Commander(system.args)).cli();

@@ -1,45 +1,61 @@
 [JS2](http://github.com/jeffsu/js2) - Javascript Syntactic Sugar
 ======================================================================
 
-JS2 is a superset javascript.  It attempts to add common functionality to Javascript that was 
+JS2 is syntactic sugar on top of Javascript.  It adds common programming functionality to Javascript that was 
 inspired by other languages (Java, Ruby, Perl).  Since JS2 is a superset of Javascript, Javascript 
-remains fully compatible with JS2.  JS2 is available in 2 different flavors:
+remains fully compatible with JS2.  JS2 is available in 3 different flavors and is written in Javascript:
   * ruby gem (ruby & jruby)
   * nodejs
+  * ringojs
+  * web browser
 
-    class Car {
-      function maxSpeed() {
-        return 60;
+    class Vehicle {
+      function move() {
+        return "I move";
+      }
+    }
+
+    class Car extends Vehicle {
+      function move() {
+        return "I roll";
       }
     }
 
     class SportsCar extends Car {
-      function speed() {
-        return this.$super() + 20;
+      function move() {
+        return this.$super + ' quickly';
       }
     }
 
     var ferrari = new SportsCar();
+    console.log(ferrari.move());
 
-Quick Setup
-===========
+Installation
+============
+For more detailed instructions, go [[here|https://github.com/jeffsu/js2/wiki/Installation]].
 
-Nodejs (using Google Chrome's V8 engine)
-----------------------------------------
-    install node js  
-    install npm
-    npm install js2
-   
-Ruby
-----
-    gem install js2
-
+For Ruby (using Google Chrome's V8 engine)
+------------------------------------------
     # for ruby mri
     gem install rubyracer
+    gem install js2
 
-    # for jruby 
-    gem install rubyrhino
 
+For NodeJS
+----------
+This is the fastest implementation and is the preferred way to run compilations
+First, install nodejs and npm (node's package manager)  
+
+    npm install js2
+
+For RingoJS
+-----------
+First, install ringo.
+
+    ringo-admin install jeffsu/js2-ringo
+
+Currently, there are no executables shipped with the ringo package, so follow the instructions here. 
+  
 
 Object Oriented Programming Sugar
 =================================

@@ -1,6 +1,4 @@
-var js2 = require('js2').js2;
-var JS2 = js2;
-var Foo=exports['Foo']=JS2.Class.extend( {
+JS2.Class.extend('Foo', {
   "member":"member",
   "regexMember":/member/,
   "stuffs":[ 'hello', 'world' ],

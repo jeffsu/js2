@@ -1005,9 +1005,7 @@ JS2.Class.extend('FileSystem', {
   },
 
   readdir:function (file) {
-    var files = this.adapter.readdir(file);
-    console.log(files);
-    return files;
+    return this.adapter.readdir(file);
   },
 
   read:function (file) {

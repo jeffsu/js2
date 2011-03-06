@@ -1,13 +1,11 @@
-var js2 = require('js2').js2;
-var JS2 = js2;
-var Foo=exports['Foo']=JS2.Class.extend( {
+JS2.Class.extend('Foo', {
   hello:function () {
     return "hello";
   }
 
 });
 
-var Bar=exports['Bar']=Foo.extend( {
+Foo.extend('Bar', {
   hello:function () {
     return this.$super(); 
   } 

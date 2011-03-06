@@ -1272,6 +1272,12 @@ JS2.Class.extend('Decorator.Ringo', {
     return setInterval(code, interval);
   },
 
+  dirname:function (file) {
+    var path = this.expandPath(file);
+    return file.replace(/[^\/]*$/, '');
+  },
+
+
   isFile:function (file) {
     return this.fs.isFile(file);
   },
