@@ -1,10 +1,10 @@
-var front;
-curry {
-
+var curr = curry {
+  return "foo"
 }
 
-var space;
+var funct = #{ return "foo" };
 
-#{ }
-
-var back;
+js2.test(#(assert){
+  assert.eq("foo", funct());
+  assert.eq("foo", curr());
+});

@@ -5,6 +5,23 @@ namespace :test do
   end
 
 
+  task :ringo => :dist do
+    sh "./scripts/js2-node compile -m=ringo tests/src tests/ringo"
+    Dir['tests/ringo/*.js'].each { |f| `ringo #{f}` }
+  end
+
+  task :node => :dist do
+    sh "./scripts/js2-node compile -m=node tests/src tests/node"
+    Dir['tests/node/*.js'].each { |f| `node #{f}` }
+  end
+
+  task :ruby => :dist do
+    sh "./dist/gem/bin/js2 compile -m=browser tests/src tests/ruby"
+    Dir['tests/ruby/*.js'].each { |f| `./dist/gem/bin/js2 run #{f}` }
+  end
+
+
+
   task :test => :dist do
     get_test_files.each do |file|
       got      = `node scripts/compile.js #{file}`
@@ -75,5 +92,7 @@ task :dist do
 
   sh "cp ./flavors/ringo.js ./dist/ringo/lib/js2.js"
   sh "cp ./flavors/ringo-full.js ./dist/ringo/lib/js2-full.js"
+
+  sh "cp ./flavors/ruby.js ./dist/gem/lib/js2/js2.js"
 end
 

@@ -1,4 +1,21 @@
 (function (root) {
+  // temporarily set root 
+// to JS2 global var for this scope
+function mainFunction (arg) {
+  if (typeof arg == 'string') {
+    return JS2.Parser.parse(arg).toString();
+  } else if (arg instanceof Array) {
+    return new JS2.Array(arg);
+  } else {
+    return new JS2.Array();
+  }
+}
+
+
+  var JS2 = root.JS2 = mainFunction;
+  var js2 = root.js2 = JS2;
+
+  JS2.ROOT = JS2;
   
 // CLASS HELPERS
 (function (undefined, JS2) {
@@ -988,7 +1005,9 @@ JS2.Class.extend('FileSystem', {
   },
 
   readdir:function (file) {
-    return this.adapter.readdir(file);
+    var files = this.adapter.readdir(file);
+    console.log(files);
+    return files;
   },
 
   read:function (file) {
@@ -1239,30 +1258,10 @@ JS2.Class.extend('Decorator.Ringo', {
 });
 
 
-  (function (undefined, JS2) {
-  JS2.require = function(file, callback) {
-    var xmlhttp;
-    if (window.XMLHttpRequest) { // code for IE7+, Firefox, Chrome, Opera, Safari
-      xmlhttp = new XMLHttpRequest();
-    } else { 
-      xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
-    }
 
-    xmlhttp.onreadystatechange = function() {
-      if (xmlhttp.readyState==4 && xmlhttp.status==200) {
-        try {
-          eval(JS2.render(xmlhttp.responseText));
-        } catch(e) {
-          console.log(JS2.render(xmlhttp.responseText));
-        }
-        if (callback) callback(xmlhttp.responseText);
-      }
-    }
-
-    xmlhttp.open("GET",file,true);
-    xmlhttp.send();
-  }
-})(undefined, JS2);
+  JS2.fs = new JS2.FileSystem(JS2_RUBY_FILE_ADAPTER);
+  js2.DECORATOR = new JS2.Decorator.Browser();
+  js2.ROOT = root;
 
   return JS2;
-})(window);
+})(this);

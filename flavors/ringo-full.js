@@ -1308,8 +1308,8 @@ JS2.Class.extend('Decorator.Ringo', {
 
   JS2.fs = new JS2.FileSystem(new JS2.RingoFileAdapter());
 
-  js2.ROOT = root;
   js2.DECORATOR = new JS2.Decorator.Ringo();
+  js2.ROOT = root;
   return js2;
 })(this);
 

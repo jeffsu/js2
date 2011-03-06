@@ -1,4 +1,4 @@
-class Test1.Foo {
+class Foo {
   var member      = "member";
   var regexMember = /member/;
   var stuffs      = [ 'hello', 'world' ];
@@ -15,7 +15,7 @@ class Test1.Foo {
 }
 
 JS2.test(#(assert){
-  var test = new Test1.Foo(); 
+  var test = new Foo(); 
   assert.eq('hello', test.getStuffs()[0]);
 });
 

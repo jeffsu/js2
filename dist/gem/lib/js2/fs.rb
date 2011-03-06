@@ -1,9 +1,5 @@
 require 'fileutils'
 class JS2::FS
-  def initialize(context) 
-    @ctx = context
-  end
-
   def read(file)
     File.read(file)
   end
@@ -13,7 +9,8 @@ class JS2::FS
     return Dir["#{lookup}/*.#{ext}"].collect { |f| File.expand_path(f) }.reject { |f| f.match(/^\./) }
   end
 
-  def realpath(file)
+
+  def expandPath(file)
     return File.expand_path(file)
   end
 
@@ -21,9 +18,18 @@ class JS2::FS
     return File.directory?(dir)
   end
 
-  def mkPath(file)
+  def dirname(file)
+    return File.dirname(file)
+  end
+
+  def readdir(file)
+    return Dir.entries(file).reject { |f| f.match(/^\.\.?/) }
+  end
+
+
+  def mkdir(file)
     dir = File.dirname(file)
-    FileUtils.mkdir_p(dir) unless File.directory?(dir)
+    FileUtils.mkdir(dir) unless File.directory?(dir)
   end
 
   def isFile(dir)
@@ -36,7 +42,7 @@ class JS2::FS
   end
 
   def mtime(file)
-    File.stat(file).mtime
+    File.stat(file).mtime.to_i
   rescue
     return 0
   end

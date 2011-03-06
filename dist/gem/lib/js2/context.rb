@@ -8,8 +8,9 @@ module JS2
   class Context
     def initialize
       @ctx = JS2::Engine.new
-      @ctx.eval(File.read(File.dirname(__FILE__) + '/js2-ruby.js'))
+      @ctx['JS2_RUBY_FILE_ADAPTER'] = FS.new
       @ctx['console'] = Console.new
+      @ctx.eval(File.read(File.dirname(__FILE__) + '/js2.js'))
       @js2 = @ctx['JS2']
     end
 
@@ -30,8 +31,5 @@ module JS2
       @ctx.eval(render(str))
     end
 
-    def method_missing(method, *args)
-      @ctx.send(method, args)
-    end
   end
 end

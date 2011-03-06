@@ -1,6 +1,6 @@
 var js2 = require('js2').js2;
 var JS2 = js2;
-var Test1.Foo=exports['Test1.Foo']=JS2.Class.extend( {
+var Foo=exports['Foo']=JS2.Class.extend( {
   "member":"member",
   "regexMember":/member/,
   "stuffs":[ 'hello', 'world' ],
@@ -17,7 +17,7 @@ var Test1.Foo=exports['Test1.Foo']=JS2.Class.extend( {
 });
 
 JS2.test(function(assert){
-  var test = new Test1.Foo(); 
+  var test = new Foo(); 
   assert.eq('hello', test.getStuffs()[0]);
 });
 

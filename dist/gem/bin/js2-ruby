@@ -4,7 +4,10 @@ dir = File.expand_path('../../lib/', __FILE__)
 dir = File.directory?(dir) ? (dir + '/') : ''
 
 require "#{dir}js2"
-require "#{dir}js2/command"
-require "#{dir}js2/fs"
-
-JS2::Command.new(ARGV).run
+if (ARGV[0] == 'run') 
+  file = ARGV[1]
+  c = JS2::Context.new
+  c.eval(File.read(file))
+else
+  JS2::Command.new(ARGV).cli
+end

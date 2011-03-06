@@ -1,3 +1,4 @@
+var foo, bar;
 <<END
   hello world
   #{foo} bar

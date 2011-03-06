@@ -1,3 +1,4 @@
+var scope = {};
 curry with (scope) {
 
 }

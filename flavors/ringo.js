@@ -229,7 +229,6 @@ JS2.Array.prototype.any = function() {
 
 
   js2.ROOT = root;
-  js2.DECORATOR = new JS2.Decorator.Ringo();
   return js2;
 })(this);
 

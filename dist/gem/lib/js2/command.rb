@@ -9,12 +9,8 @@ module JS2
       @ctx['argv'] = argv
     end
 
-    def get_updater(indir, outdir)
-      @ctx.eval("new JS2.Updater('#{indir}', '#{outdir}', true)")
-    end
-
-    def run
-      @ctx.eval("new JS2.Command(argv)")
+    def cli
+      @ctx.eval("new JS2.Commander(argv).cli()")
     end
   end
 end

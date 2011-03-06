@@ -1,12 +1,12 @@
 var js2 = require('js2').js2;
 var JS2 = js2;
-var front;
-(function(){return function($1,$2,$3){
-
+var curr = (function(){return function($1,$2,$3){
+  return "foo"
 }})();
 
-var space;
+var funct = function($1,$2,$3){ return "foo" };
 
-function($1,$2,$3){ };
-
-var back;
+js2.test(function(assert){
+  assert.eq("foo", funct());
+  assert.eq("foo", curr());
+});

@@ -1,11 +1,11 @@
-this.foo => {
-  alert('hello world');
+this.foo = #{
+  return 'hello world';
 };
 
-this.bar = -> {
-  alert('hello world');
+this.bar = #{
+  return 'hello world';
 };
 
-this.baz = -> (foo, bar) {
-  alert('hello world');
+this.baz = #(foo, bar) {
+  return 'hello world';
 };

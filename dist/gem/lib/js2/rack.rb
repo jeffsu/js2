@@ -1,4 +1,3 @@
-require 'js2'
 require 'yaml'
 
 module JS2
