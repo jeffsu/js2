@@ -13,7 +13,24 @@
 
 %h2 Try
 
-%textarea.code!=  "class Hello {\n  function world() {\n    alert('hello');\n  }\n}\nvar hello = new Hello();\nhello.world()"
+%textarea.code!
+  :plain
+    class Hello {
+      function world() {
+        alert('hello');
+      }
+    }
+
+    class Foo extends Hello {
+      function world() {
+        this.$super();
+        alert('world');
+      }
+    }
+
+    var foo = new Foo();
+    foo.world();
+
 %input.run{ :type => 'button', :value => 'Run' }
 
 %h2 Install
@@ -58,12 +75,12 @@
     .code
       width: 100%
       font-family: monospace
-      height: 150px
+      height: 300px
       padding: 4px
       font-size: 1.2em
 
 :javascript
   $('.run').click(function () {
-    eval(js2.render($('.code')));
+    eval(js2.render($('.code').val()));
   });
 
