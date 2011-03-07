@@ -23,7 +23,9 @@ exports.compile = function (inDir, outDir, opts) {
   for (var i=0; i<opts.length; i++) argv.push(opts[i]);
   argv.push(inDir);
   argv.push(outDir);
+
   var c = new JS2.Commander(argv);
   c.cli();
+
   return exports.js2;
 };

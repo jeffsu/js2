@@ -1189,15 +1189,7 @@ JS2.Class.extend('Commander', {
     var inDir = this.opts.main[0];
     var self = this;
 
-    this.getUpdater().update(true, function($1,$2,$3){ return JS2.DECORATOR.file((self.handleSource($1))); });
-  },
-
-  handleSource:function (code) {
-    if (this.opts.browsers) {
-      return code; 
-    } else {
-      return code;
-    }
+    this.getUpdater().update(true, function($1,$2,$3){ return JS2.DECORATOR.file($1); });
   },
 
   getUpdater:function () {
@@ -1215,7 +1207,7 @@ JS2.Class.extend('Commander', {
 
     // HACK to get this integrated with ruby
     updater.update();
-    setInterval(function($1,$2,$3){ console.log('updating'); updater.update() }, interval * 1000);
+    setInterval(function($1,$2,$3){ console.log('updating'); updater.update(true, function($1,$2,$3){ return JS2.DECORATOR.file($1); }); }, interval * 1000);
   },
 
   showBanner:function () {

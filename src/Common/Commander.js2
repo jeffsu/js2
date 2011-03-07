@@ -86,15 +86,7 @@ class Commander {
     var inDir = this.opts.main[0];
     var self = this;
 
-    this.getUpdater().update(true, #{ return JS2.DECORATOR.file((self.handleSource($1))); });
-  }
-
-  function handleSource(code) {
-    if (this.opts.browsers) {
-      return code; 
-    } else {
-      return code;
-    }
+    this.getUpdater().update(true, #{ return JS2.DECORATOR.file($1); });
   }
 
   function getUpdater() {
@@ -112,7 +104,7 @@ class Commander {
 
     // HACK to get this integrated with ruby
     updater.update();
-    setInterval(#{ console.log('updating'); updater.update() }, interval * 1000);
+    setInterval(#{ console.log('updating'); updater.update(true, #{ return JS2.DECORATOR.file($1); }); }, interval * 1000);
   }
 
   function showBanner() {

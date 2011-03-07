@@ -1,3 +1,5 @@
+var js2 = require('js2').js2;
+var JS2 = js2;
 var bar = "bar";
 var test1 = "foobar";
 var test2 = 'foobar';
