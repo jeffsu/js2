@@ -28,7 +28,7 @@ module JS2
     end
 
     def call(env)
-      `#{@bin} compile -r #{@in_dir} #{@out_dir}` if @valid
+      `#{@bin} compile #{@in_dir} #{@out_dir}` if @valid
       @app.call(env)
     end
   end
