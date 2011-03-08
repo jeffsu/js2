@@ -4,7 +4,6 @@ namespace :test do
     return  ENV['TEST'] ? [ "./tests/#{ENV['TEST']}.js2" ] : Dir['./tests/*.js2']
   end
 
-
   task :ringo => :dist do
     sh "./scripts/js2-node compile -m=ringo tests/src tests/ringo"
     Dir['tests/ringo/*.js'].each { |f| `ringo #{f}` }
@@ -19,8 +18,6 @@ namespace :test do
     sh "./dist/gem/bin/js2 compile -m=browser tests/src tests/ruby"
     Dir['tests/ruby/*.js'].each { |f| `./dist/gem/bin/js2 run #{f}` }
   end
-
-
 
   task :test => :dist do
     get_test_files.each do |file|
