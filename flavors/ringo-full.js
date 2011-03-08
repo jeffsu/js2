@@ -1111,12 +1111,12 @@ JS2.Class.extend('Commander', {
     "  * render <file>             -- Shows JS2 compiled output\n" +
     "  * compile <inDir> [outDir]  -- Compiles a directory and puts js files into outDir.  If outDir is not specified, inDir will be used\n" + 
     "    Options:\n" +
-    "      -r                      -- Traverse directories recursively\n" +
-    "      -m=<mode>               -- Compile for different modes: node, ringo, or browser\n" +
+    "      -n                      -- Do NOT traverse directories recursively\n" +
+    "      -f=<format>             -- Compile for different formats: node, ringo, or browser\n" +
     "  * compile <file>            -- Compiles a single js2 file into js\n" +
     "  * watch <inDir> <outDir>    -- Similar to compile, but update will keep looping while watching for modifications\n" +
     "    Options:\n" +
-    "      -r                      -- Traverse directories recursively\n" +
+    "      -n                      -- Do NOT traverse directories recursively\n" +
     "      -i=<seconds>            -- Interval time in seconds between loops\n",
 
   "DEFAULT_CONFIG":{
@@ -1125,43 +1125,29 @@ JS2.Class.extend('Commander', {
   },
 
   initialize:function (argv) {
-    this.argv = argv;
-    this.command = this.argv.shift();
     this.fs      = JS2.fs;
-    this.parseOpts(argv);
+    this.config  = new JS2.Config(this.fs, argv);
+    this.command = this.config.command;
   },
 
   cli:function () {
     if (this[this.command]) {
-      if (this.argv.length == 0) {
-        this.loadArgvFromConfig();
-      }
-
-      this[this.command](this.argv);
+      this[this.command]();
     } else {
       this.showBanner();
     }
   },
 
-  loadArgvFromConfig:function () {
+  render:function () {
+    console.log(js2.render(this.fs.read(this.config.args[0])));
   },
 
-  render:function (argv) {
-    console.log(js2.render(this.fs.read(argv[0])));
-  },
-
-  run:function (argv) {
+  run:function () {
     var file;
     var i = 0;
-    while (file = argv[i++]) {
+    while (file = this.config.args[i++]) {
       eval(js2.render(this.fs.read(file))); 
     }
-  },
-
-  "options":{
-    'r': 'recursive',
-    'i': 'interval',
-    'm': 'mode'
   },
 
   parseOpts:function (argv) {

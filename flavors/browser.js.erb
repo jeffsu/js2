@@ -1,6 +1,21 @@
 (function (root) {
   <%= js 'core/js2-boot.js' %>
+
+  if (!root.console) {
+    root.console = {};
+    console.log = function (m) {};
+  }
+
+  var JS2 = root.JS2 = mainFunction;
+  var js2 = root.js2 = JS2;
+
+  JS2.ROOT = JS2;
+
   <%= js 'core/js2-class.js' %>
   <%= js 'Common/Array.js2' %>
+
+  js2.ROOT = root;
+
   return JS2;
+
 })(window);

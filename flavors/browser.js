@@ -11,6 +11,17 @@ function mainFunction (arg) {
   }
 }
 
+
+  if (!root.console) {
+    root.console = {};
+    console.log = function (m) {};
+  }
+
+  var JS2 = root.JS2 = mainFunction;
+  var js2 = root.js2 = JS2;
+
+  JS2.ROOT = JS2;
+
   
 // CLASS HELPERS
 (function (undefined, JS2) {
@@ -219,5 +230,9 @@ JS2.Array.prototype.any = function() {
 };
 
 
+
+  js2.ROOT = root;
+
   return JS2;
+
 })(window);

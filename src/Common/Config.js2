@@ -1,0 +1,60 @@
+class Config {
+  var CLI_REGEX = /^-(r|i|f)(:?=(\w+))$/;
+  var optsLookup = { 
+    'n': 'non-recursive',
+    'i': 'interval',
+    'f': 'format'
+  };
+
+  function initialize(fs, argv) {
+    this.format    = 'browser';
+    this.recursive = true;
+    this.interval  = 2;
+    this.sourceDir = './app/js2';
+    this.outDir    = './public/javascripts';
+    this.args      = [];
+
+    this.fs = fs;
+
+    if (! this.loadConfigFile('./config/js2.json')) {
+      this.loadConfigFile('./js2.json');
+    }
+
+    if (argv) {
+      while (argv.length) {
+        var opt = argv.shift(); 
+        var m = opt.match(CLI_REGEX);
+        if (m) {
+          this[optsLookup[m[0]]] = m[1] || true; 
+        } else if (! this.command) {
+          this.command = command;
+        } else {
+          this.args.push(opt);
+        }
+      }
+    }
+
+    this.interval = parseInt(this.interval);
+
+  }
+
+  function loadConfigFile(file) {
+    if (this.fs.isFile(file)) {
+      try {
+        var config = JSON.parse(this.fs.read(file).replace(/\n/g, ''));
+
+        this.format    = config.format    || this.format;
+        this.recursive = config['non-recursive'] ? true : this.recursive;
+        this.interval  = config['interval'] ? config['interval'] : this.interval;
+        this.sourceDir = config['source-dir'] || this.sourceDir;
+        this.outDir    = config['out-dir'] || this.outDir;
+
+        return true;
+      } catch(e) {
+        console.log(e.toString());
+      }
+    }
+    return false;
+  }
+
+}
