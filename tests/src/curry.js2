@@ -1,4 +1,5 @@
-var scope = {};
+var scope = { foo: 'bar' };
+
 curry with (scope) {
 
 }
@@ -8,5 +9,9 @@ curry (arg1) with (scope) {
 }
 
 curry (arg1) {
+
+}
+
+curry (arg1) with (this) {
 
 }

@@ -23,11 +23,11 @@ class Config {
     if (argv) {
       while (argv.length) {
         var opt = argv.shift(); 
-        var m = opt.match(CLI_REGEX);
+        var m = opt.match(this.CLI_REGEX);
         if (m) {
-          this[optsLookup[m[0]]] = m[1] || true; 
+          this[this.optsLookup[m[0]]] = m[1] || true; 
         } else if (! this.command) {
-          this.command = command;
+          this.command = opt;
         } else {
           this.args.push(opt);
         }
@@ -44,7 +44,7 @@ class Config {
         var config = JSON.parse(this.fs.read(file).replace(/\n/g, ''));
 
         this.format    = config.format    || this.format;
-        this.recursive = config['non-recursive'] ? true : this.recursive;
+        this.recursive = config['non-recursive'] ? false : this.recursive;
         this.interval  = config['interval'] ? config['interval'] : this.interval;
         this.sourceDir = config['source-dir'] || this.sourceDir;
         this.outDir    = config['out-dir'] || this.outDir;

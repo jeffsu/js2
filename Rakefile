@@ -5,17 +5,17 @@ namespace :test do
   end
 
   task :ringo => :dist do
-    sh "./scripts/js2-node compile -m=ringo tests/src tests/ringo"
+    sh "./scripts/js2-node compile -f=ringo tests/src tests/ringo"
     Dir['tests/ringo/*.js'].each { |f| `ringo #{f}` }
   end
 
   task :node => :dist do
-    sh "./scripts/js2-node compile -m=node tests/src tests/node"
+    sh "./scripts/js2-node compile -f=node tests/src tests/node"
     Dir['tests/node/*.js'].each { |f| `node #{f}` }
   end
 
   task :ruby => :dist do
-    sh "./dist/gem/bin/js2 compile -m=browser tests/src tests/ruby"
+    sh "./dist/gem/bin/js2 compile -f=browser tests/src tests/ruby"
     Dir['tests/ruby/*.js'].each { |f| `./dist/gem/bin/js2 run #{f}` }
   end
 
@@ -72,7 +72,7 @@ task :dist do
     js("core/#{f}")
   end.join("\n");
 
-  common = %W{ Array FileSystem Updater Commander Decorators }.collect do |f|
+  common = %W{ Array FileSystem Updater Config Commander Decorators }.collect do |f|
     js("Common/#{f}.js2")
   end.join("\n");
 

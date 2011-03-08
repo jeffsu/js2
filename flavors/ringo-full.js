@@ -843,7 +843,11 @@ function mainFunction (arg) {
 
     toString: function() {
       var v = this.validate(/(curry)(\s*)(Braces)?(\s*)(with)?(\s*)(Braces)?(\s*)(Block)/);
-      var ret = [ '(function(){return function' ];
+
+      var scopeOuter = (v[5] ? v[7].toString() : "()");
+      var scopeInner = scopeOuter.replace(/\bthis\b/, '$this');
+
+      var ret = [ '(function' + scopeInner + '{return function' ];
 
       // args
       ret.push(v[3] ? v[3].toString() : '($1,$2,$3)');
@@ -855,7 +859,7 @@ function mainFunction (arg) {
       ret.push("})");
 
       // scope
-      ret.push(v[5] ? v[7].toString() : "()");
+      ret.push(scopeOuter);
 
       if (this.addSemiColon) ret.push(';');
 
@@ -1104,6 +1108,68 @@ JS2.Class.extend('Updater', {
 });
 
 
+JS2.Class.extend('Config', {
+  "CLI_REGEX":/^-(r|i|f)(:?=(\w+))$/,
+  "optsLookup":{ 
+    'n': 'non-recursive',
+    'i': 'interval',
+    'f': 'format'
+  },
+
+  initialize:function (fs, argv) {
+    this.format    = 'browser';
+    this.recursive = true;
+    this.interval  = 2;
+    this.sourceDir = './app/js2';
+    this.outDir    = './public/javascripts';
+    this.args      = [];
+
+    this.fs = fs;
+
+    if (! this.loadConfigFile('./config/js2.json')) {
+      this.loadConfigFile('./js2.json');
+    }
+
+    if (argv) {
+      while (argv.length) {
+        var opt = argv.shift(); 
+        var m = opt.match(this.CLI_REGEX);
+        if (m) {
+          this[this.optsLookup[m[0]]] = m[1] || true; 
+        } else if (! this.command) {
+          this.command = opt;
+        } else {
+          this.args.push(opt);
+        }
+      }
+    }
+
+    this.interval = parseInt(this.interval);
+
+  },
+
+  loadConfigFile:function (file) {
+    if (this.fs.isFile(file)) {
+      try {
+        var config = JSON.parse(this.fs.read(file).replace(/\n/g, ''));
+
+        this.format    = config.format    || this.format;
+        this.recursive = config['non-recursive'] ? false : this.recursive;
+        this.interval  = config['interval'] ? config['interval'] : this.interval;
+        this.sourceDir = config['source-dir'] || this.sourceDir;
+        this.outDir    = config['out-dir'] || this.outDir;
+
+        return true;
+      } catch(e) {
+        console.log(e.toString());
+      }
+    }
+    return false;
+  }
+
+});
+
+
 JS2.Class.extend('Commander', {
   "BANNER":"js2 <command> [options] <arguments>\n" +
     "Commands:\n" +
@@ -1150,46 +1216,21 @@ JS2.Class.extend('Commander', {
     }
   },
 
-  parseOpts:function (argv) {
-    this.opts = { main: [] };
-    var opts = this.opts;
-
-    for (var i=0; i<argv.length; i++) {
-      var arg = argv[i];
-      var m   = arg.match(/^-(\w)(=(\w+))?$/);
-      if (m) {
-        var key = this.options[m[1]];
-        if (! key) console.log('Invalid option: ' + m[1]);
-        opts[key] = m[3] || true;
-      } else {
-        opts.main.push(arg); 
-      }
-    }
-
-    switch(opts['mode']) {
-      case 'ringo': JS2.DECORATOR = new JS2.Decorator.Ringo(); break;
-      case 'node': JS2.DECORATOR  = new JS2.Decorator.Node(); break;
-      default: JS2.DECORATOR      = new JS2.Decorator.Browser(); break;
-    }
-  },
-
   compile:function () {
-    var inDir = this.opts.main[0];
     var self = this;
-
     this.getUpdater().update(true, function($1,$2,$3){ return JS2.DECORATOR.file($1); });
   },
 
   getUpdater:function () {
-    var inDir  = this.opts.main[0] || '.';
-    var outDir = this.opts.main[1] || inDir;
-    return new JS2.Updater(this.fs, inDir, outDir, this.opts.recursive);
+    var inDir  = this.config.args[0] || '.';
+    var outDir = this.config.args[1] || inDir;
+    return new JS2.Updater(this.fs, inDir, outDir, this.config.recursive);
   },
 
   watch:function () {
     var updater = this.getUpdater();
     var self = this;
-    var interval = this.opts.interval || 2;
+    var interval = this.config.interval || 2;
     console.log('Input Directory:' + updater.inDir + ' -> Output Directory:' + updater.outDir);
     if (updater.recursive) console.log('RECURSIVE');
 

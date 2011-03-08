@@ -319,7 +319,11 @@
 
     toString: function() {
       var v = this.validate(/(curry)(\s*)(Braces)?(\s*)(with)?(\s*)(Braces)?(\s*)(Block)/);
-      var ret = [ '(function(){return function' ];
+
+      var scopeOuter = (v[5] ? v[7].toString() : "()");
+      var scopeInner = scopeOuter.replace(/\bthis\b/, '$this');
+
+      var ret = [ '(function' + scopeInner + '{return function' ];
 
       // args
       ret.push(v[3] ? v[3].toString() : '($1,$2,$3)');
@@ -331,7 +335,7 @@
       ret.push("})");
 
       // scope
-      ret.push(v[5] ? v[7].toString() : "()");
+      ret.push(scopeOuter);
 
       if (this.addSemiColon) ret.push(';');
 

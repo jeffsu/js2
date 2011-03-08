@@ -45,46 +45,21 @@ class Commander {
     }
   }
 
-  function parseOpts(argv) {
-    this.opts = { main: [] };
-    var opts = this.opts;
-
-    for (var i=0; i<argv.length; i++) {
-      var arg = argv[i];
-      var m   = arg.match(/^-(\w)(=(\w+))?$/);
-      if (m) {
-        var key = this.options[m[1]];
-        if (! key) console.log('Invalid option: ' + m[1]);
-        opts[key] = m[3] || true;
-      } else {
-        opts.main.push(arg); 
-      }
-    }
-
-    switch(opts['mode']) {
-      case 'ringo': JS2.DECORATOR = new JS2.Decorator.Ringo(); break;
-      case 'node': JS2.DECORATOR  = new JS2.Decorator.Node(); break;
-      default: JS2.DECORATOR      = new JS2.Decorator.Browser(); break;
-    }
-  }
-
   function compile() {
-    var inDir = this.opts.main[0];
     var self = this;
-
     this.getUpdater().update(true, #{ return JS2.DECORATOR.file($1); });
   }
 
   function getUpdater() {
-    var inDir  = this.opts.main[0] || '.';
-    var outDir = this.opts.main[1] || inDir;
-    return new JS2.Updater(this.fs, inDir, outDir, this.opts.recursive);
+    var inDir  = this.config.args[0] || '.';
+    var outDir = this.config.args[1] || inDir;
+    return new JS2.Updater(this.fs, inDir, outDir, this.config.recursive);
   }
 
   function watch() {
     var updater = this.getUpdater();
     var self = this;
-    var interval = this.opts.interval || 2;
+    var interval = this.config.interval || 2;
     console.log('Input Directory:' + updater.inDir + ' -> Output Directory:' + updater.outDir);
     if (updater.recursive) console.log('RECURSIVE');
 
