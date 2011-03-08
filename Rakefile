@@ -97,5 +97,8 @@ task :dist do
 
   sh "cp ./flavors/browser.js ./dist/browser/js2.js"
   sh "cp ./flavors/browser-full.js ./dist/browser/js2-full.js"
+
+  sh "cp ./flavors/browser.js ./js2.js"
+  sh "cp ./flavors/browser-full.js ./js2-full.js"
 end
 
