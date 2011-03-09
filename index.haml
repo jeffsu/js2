@@ -33,29 +33,20 @@
 
 %input.run{ :type => 'button', :value => 'Run' }
 
-%h2 Download
-%p
-  %ol
-    %li 
-      Download the full version (js2 + compiler):
-      %a{ :href => '/js2/javascript/js2-full.js' } here
-    %li 
-      Download the minimal version (for already compiled js2): 
-      %a{ :href => '/js2/javascript/js2-full.js' } here
-
-
 %h2 Install
 %p
   %h3 Browser
   %p There are 2 ways to run js2 in the web browser.  The first is to import js2 files and compile them on the client side web browsers, but this is slow and should only be used for testing.  The second is to compile js2 on the server side and then run the raw javascript on the web browser.
 
-  Option 1 (easy): Download 
+  %strong Option 1 (easy): 
+  Download 
   %a{ :href => '/js2/javascript/js2-full.js' } js2-full.js
   and include it in a script tag.  Here is some sample code:
   %pre!
     JS2.require("/javascripts/my-code.js2", function (code) { eval(code) });
 
-  Option 2 (preferred): Download 
+  %strong Option 2 (preferred): 
+  Download 
   %a{ :href => '/js2/javascript/js2.js' } js2.js
   and include it in a script tag.  Just make sure you include it before any compiled js2 code.
 
