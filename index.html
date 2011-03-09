@@ -42,11 +42,20 @@ foo.world();</textarea>
 </p>
 <h2>Install</h2>
 <p>
-  NodeJS
+  <h3>Browser</h3>
+  <p>There are 2 ways to run js2 in the web browser.  The first is to import js2 files and compile them on the client side web browsers, but this is slow and should only be used for testing.  The second is to compile js2 on the server side and then run the raw javascript on the web browser.</p>
+  Option 1 (easy): Download
+  <a href='/js2/javascript/js2-full.js'>js2-full.js</a>
+  and include it in a script tag.  Here is some sample code:
+  <pre>JS2.require("/javascripts/my-code.js2", function (code) { eval(code) });</pre>
+  Option 2 (preferred): Download
+  <a href='/js2/javascript/js2.js'>js2.js</a>
+  and include it in a script tag.  Just make sure you include it before any compiled js2 code.
+  <h3>NodeJS</h3>
   <pre>npm install js2</pre>
-  RingoJS
+  <h3>RingoJS</h3>
   <pre>ringo-admin install jeffsu/js2</pre>
-  Ruby
+  <h3>Ruby</h3>
   <pre>gem install js2 --pre</pre>
 </p>
 <h2>Docs</h2>
