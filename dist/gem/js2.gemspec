@@ -14,6 +14,6 @@ spec = Gem::Specification.new do |s|
   #s.rdoc_options << '--title' <<  'Builder -- Easy XML Building'
   s.author   = "Jeff Su"
   s.email    = "me@jeffsu.com"
-  s.homepage = "http://jeffsu.github.com"
+  s.homepage = "http://jeffsu.github.com/js2"
   s.add_dependency('therubyracer')
 end
