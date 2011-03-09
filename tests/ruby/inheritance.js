@@ -1,14 +1,14 @@
-JS2.Class.extend('Foo', {
-  hello:function () {
+JS2.Class.extend('Foo', function(KLASS){
+  KLASS.oo.addMember("hello",function () {
     return "hello";
-  }
+  });
 
 });
 
-Foo.extend('Bar', {
-  hello:function () {
+Foo.extend('Bar', function(KLASS){
+  KLASS.oo.addMember("hello",function () {
     return this.$super(); 
-  } 
+  }); 
 });
 
 js2.test(function(assert){

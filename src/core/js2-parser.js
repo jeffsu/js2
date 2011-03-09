@@ -191,8 +191,8 @@
 
     toString: function() {
       var str = this.$super();
-      return str.replace(/,(\s+\})$/, "$1");
-    } 
+      return str.replace(/^{/, 'function(KLASS){').replace(/}$/, "}");
+    }
   });
 
   var Method = Content.extend({
@@ -209,7 +209,7 @@
 
     toString: function () {
       var v  = this.validate(/^(function)(\s+)(I)(\s*)(Braces)(\s*)(Block)/);
-      return v[3] + ':' + "function" + v[2] + v[5] + ' ' + v[7] + ',';
+      return 'KLASS.oo.addMember("' + v[3] + '",' + "function" + v[2] + v[5] + ' ' + v[7] + ');';
     }
   });
 
@@ -224,11 +224,9 @@
       var last = v.last.replace(/;$/, '');
       if (last.length == 0) last = 'null';
 
-      return '"' + v[3] + '":' + last + ',';
+      return 'KLASS.oo.addMember("' + v[3] + '",' + last + ');';
     }
   });
-
-
 
   var Braces = Content.extend({
     name: 'Braces',

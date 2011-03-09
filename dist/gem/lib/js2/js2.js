@@ -123,12 +123,16 @@ function mainFunction (arg) {
     var oo   = klass.oo;
     proto.oo = oo;
 
-    for (var name in klassDef) {
-      oo.addMember(name, klassDef[name]);
-    }
-
     for (var name in this) {
       oo.addStaticMember(name, this[name]);
+    }
+
+    if (typeof klassDef == 'function') {
+      klassDef(klass, oo);
+    } else {
+      for (var name in klassDef) {
+        oo.addMember(name, klassDef[name]);
+      }
     }
 
     return klass;
@@ -713,8 +717,8 @@ function mainFunction (arg) {
 
     toString: function() {
       var str = this.$super();
-      return str.replace(/,(\s+\})$/, "$1");
-    } 
+      return str.replace(/^{/, 'function(KLASS){').replace(/}$/, "}");
+    }
   });
 
   var Method = Content.extend({
@@ -731,7 +735,7 @@ function mainFunction (arg) {
 
     toString: function () {
       var v  = this.validate(/^(function)(\s+)(I)(\s*)(Braces)(\s*)(Block)/);
-      return v[3] + ':' + "function" + v[2] + v[5] + ' ' + v[7] + ',';
+      return 'KLASS.oo.addMember("' + v[3] + '",' + "function" + v[2] + v[5] + ' ' + v[7] + ');';
     }
   });
 
@@ -746,11 +750,9 @@ function mainFunction (arg) {
       var last = v.last.replace(/;$/, '');
       if (last.length == 0) last = 'null';
 
-      return '"' + v[3] + '":' + last + ',';
+      return 'KLASS.oo.addMember("' + v[3] + '",' + last + ');';
     }
   });
-
-
 
   var Braces = Content.extend({
     name: 'Braces',
@@ -951,16 +953,16 @@ JS2.Array.prototype.any = function() {
 };
 
 
-JS2.Class.extend('FileSystem', {
-  initialize:function (adapter) {
+JS2.Class.extend('FileSystem', function(KLASS){
+  KLASS.oo.addMember("initialize",function (adapter) {
     this.adapter = adapter;
-  },
+  });
 
-  find:function (dir, ext, recursive) {
+  KLASS.oo.addMember("find",function (dir, ext, recursive) {
     return this._find(this.expandPath(dir), new RegExp('\\.' + ext + '$'), recursive);
-  },
+  });
 
-  _find:function (dir, regex, recursive) {
+  KLASS.oo.addMember("_find",function (dir, regex, recursive) {
     if (!this.isDirectory(dir))  return [];
 
     var parts = this.adapter.readdir(dir); 
@@ -981,15 +983,15 @@ JS2.Class.extend('FileSystem', {
     });
 
     return files;
-  },
+  });
 
-  canonical:function (file) {
+  KLASS.oo.addMember("canonical",function (file) {
     var abs = this.expandPath(file);
     abs = abs.replace(/\/$/, '');
     return abs;
-  },
+  });
 
-  mkpath:function (file) {
+  KLASS.oo.addMember("mkpath",function (file) {
     var dirname = this.canonical(this.dirname(file));
 
     var subdirs = js2(dirname.split('/'));
@@ -1001,84 +1003,84 @@ JS2.Class.extend('FileSystem', {
       toMake += '/' + $1;
       self.mkdir(toMake); 
     });
-  },
+  });
 
   // ADAPTER USAGE
-  dirname:function (file) {
+  KLASS.oo.addMember("dirname",function (file) {
     return this.adapter.dirname(file);
-  },
+  });
 
-  readdir:function (file) {
+  KLASS.oo.addMember("readdir",function (file) {
     return this.adapter.readdir(file);
-  },
+  });
 
-  read:function (file) {
+  KLASS.oo.addMember("read",function (file) {
     var data = this.adapter.read(file);
     return data;
-  },
+  });
 
-  write:function (file, data) {
+  KLASS.oo.addMember("write",function (file, data) {
     return this.adapter.write(file, data);
-  },
+  });
 
-  mtime:function (file) {
+  KLASS.oo.addMember("mtime",function (file) {
     return this.adapter.mtime(file);
-  },
+  });
 
-  exists:function (file) {
+  KLASS.oo.addMember("exists",function (file) {
     return this.isDirectory(file) || this.isFile(file);
-  },
+  });
 
-  mkdir:function (file) {
+  KLASS.oo.addMember("mkdir",function (file) {
     if (!this.exists(file)) {
       return this.adapter.mkdir(file);
     }
-  },
+  });
 
-  isFile:function (file) {
+  KLASS.oo.addMember("isFile",function (file) {
     try {
       return this.adapter.isFile(file);
     } catch(e) {
       return false;
     }
-  },
+  });
 
-  setInterval:function (code, interval) {
+  KLASS.oo.addMember("setInterval",function (code, interval) {
     return this.adapter.setInterval(code, interval);
-  },
+  });
 
-  isDirectory:function (file) {
+  KLASS.oo.addMember("isDirectory",function (file) {
     try {
       return this.adapter.isDirectory(file);
     } catch(e) {
       return false;
     }
-  },
+  });
 
-  expandPath:function (file) {
+  KLASS.oo.addMember("expandPath",function (file) {
     return this.adapter.expandPath(file);
-  }
+  });
 });
 
 
-JS2.Class.extend('Updater', {
-  initialize:function (fs, inDir, outDir, recursive) {
+JS2.Class.extend('Updater', function(KLASS){
+  KLASS.oo.addMember("initialize",function (fs, inDir, outDir, recursive) {
     this.recursive = recursive;
     this.fs      = fs; 
     this.inDir   = this.fs.canonical(inDir);
     this.outDir  = this.fs.canonical(outDir);
     this.verbose = true;
-  },
+  });
 
-  update:function (force, funct) {
+  KLASS.oo.addMember("update",function (force, funct) {
     var self = this;
     this.matchDirs(this.inDir);
     this.fs.find(this.inDir, 'js2', this.recursive).each(function($1,$2,$3){
       self.tryUpdate($1, force, funct); 
     });
-  },
+  });
 
-  matchDirs:function (dir) {
+  KLASS.oo.addMember("matchDirs",function (dir) {
     var subs = this.fs.readdir(dir);
     for(var _i4=0,_c4=subs,_l4=_c4.length,sub;sub=_c4[_i4]||_i4<_l4;_i4++){
       var path = dir + '/' + sub;
@@ -1087,9 +1089,9 @@ JS2.Class.extend('Updater', {
         this.matchDirs(path);
       }
     }
-  },
+  });
 
-  tryUpdate:function (file, force, funct) {
+  KLASS.oo.addMember("tryUpdate",function (file, force, funct) {
     var outFile = file.replace(this.inDir, this.outDir).replace(/\.js2$/, '.js');
 
     var dir = this.fs.dirname(file);
@@ -1102,19 +1104,19 @@ JS2.Class.extend('Updater', {
         this.fs.write(outFile, JS2(this.fs.read(file)));
       }
     }
-  }
+  });
 });
 
 
-JS2.Class.extend('Config', {
-  "CLI_REGEX":/^-(r|i|f)(=(\w+))$/,
-  "optsLookup":{ 
+JS2.Class.extend('Config', function(KLASS){
+  KLASS.oo.addMember("CLI_REGEX",/^-(r|i|f)(=(\w+))$/);
+  KLASS.oo.addMember("optsLookup",{ 
     'n': 'non-recursive',
     'i': 'interval',
     'f': 'format'
-  },
+  });
 
-  initialize:function (fs, argv) {
+  KLASS.oo.addMember("initialize",function (fs, argv) {
     this.format    = 'browser';
     this.recursive = true;
     this.interval  = 2;
@@ -1144,9 +1146,9 @@ JS2.Class.extend('Config', {
 
     this.recursive = !this['non-recursive'];
     this.interval = parseInt(this.interval);
-  },
+  });
 
-  loadConfigFile:function (file) {
+  KLASS.oo.addMember("loadConfigFile",function (file) {
     if (this.fs.isFile(file)) {
       try {
         var config = JSON.parse(this.fs.read(file).replace(/\n\r?/g, ''));
@@ -1164,13 +1166,13 @@ JS2.Class.extend('Config', {
       }
     }
     return false;
-  }
+  });
 
 });
 
 
-JS2.Class.extend('Commander', {
-  "BANNER":"js2 <command> [options] <arguments>\n" +
+JS2.Class.extend('Commander', function(KLASS){
+  KLASS.oo.addMember("BANNER","js2 <command> [options] <arguments>\n" +
     "Commands:\n" +
     "  * run <file>                -- Executes file\n" +
     "  * render <file>             -- Shows JS2 compiled output\n" +
@@ -1183,14 +1185,14 @@ JS2.Class.extend('Commander', {
     "    Options:\n" +
     "      -n                      -- Do NOT traverse directories recursively\n" +
     "      -f=<format>             -- Compile for different formats: node, ringo, or browser\n" +
-    "      -i=<seconds>            -- Interval time in seconds between loops\n",
+    "      -i=<seconds>            -- Interval time in seconds between loops\n");
 
-  "DEFAULT_CONFIG":{
+  KLASS.oo.addMember("DEFAULT_CONFIG",{
     compile: { inDir: 'src', outDir: 'lib', recursive: true, decorator: 'Node'  },
     watch: { inDir: 'src', outDir: 'lib', recursive: true, decorator: 'Node' }
-  },
+  });
 
-  initialize:function (argv) {
+  KLASS.oo.addMember("initialize",function (argv) {
     this.fs      = JS2.fs;
     this.config  = new JS2.Config(this.fs, argv);
     this.command = this.config.command;
@@ -1200,40 +1202,40 @@ JS2.Class.extend('Commander', {
       case 'node':     JS2.DECORATOR = new JS2.NodeDecorator(); break;
       default:  JS2.DECORATOR = new JS2.BrowserDecorator(); break;
     }
-  },
+  });
 
-  cli:function () {
+  KLASS.oo.addMember("cli",function () {
     if (this[this.command]) {
       this[this.command]();
     } else {
       this.showBanner();
     }
-  },
+  });
 
-  render:function () {
+  KLASS.oo.addMember("render",function () {
     console.log(js2.render(this.fs.read(this.config.args[0])));
-  },
+  });
 
-  run:function () {
+  KLASS.oo.addMember("run",function () {
     var file;
     var i = 0;
     while (file = this.config.args[i++]) {
       eval(js2.render(this.fs.read(file))); 
     }
-  },
+  });
 
-  compile:function () {
+  KLASS.oo.addMember("compile",function () {
     var self = this;
     this.getUpdater().update(true, function($1,$2,$3){ return JS2.DECORATOR.file($1); });
-  },
+  });
 
-  getUpdater:function () {
+  KLASS.oo.addMember("getUpdater",function () {
     var inDir  = this.config.args[0] || this.config.sourceDir || '.';
     var outDir = this.config.args[1] || this.config.outDir || inDir;
     return new JS2.Updater(this.fs, inDir, outDir, this.config.recursive);
-  },
+  });
 
-  watch:function () {
+  KLASS.oo.addMember("watch",function () {
     var updater = this.getUpdater();
     var self = this;
     var interval = this.config.interval || 2;
@@ -1243,43 +1245,43 @@ JS2.Class.extend('Commander', {
     // HACK to get this integrated with ruby
     updater.update();
     setInterval(function($1,$2,$3){ console.log('updating'); updater.update(true, function($1,$2,$3){ return JS2.DECORATOR.file($1); }); }, interval * 1000);
-  },
+  });
 
-  showBanner:function () {
+  KLASS.oo.addMember("showBanner",function () {
     console.log(this.BANNER);
-  }
+  });
 });
 
 
 
-JS2.Class.extend('BrowserDecorator', {
-  file:function (code) {
+JS2.Class.extend('BrowserDecorator', function(KLASS){
+  KLASS.oo.addMember("file",function (code) {
     return code;
-  },
+  });
 
-  klass:function (name, par, source) {
+  KLASS.oo.addMember("klass",function (name, par, source) {
     return par+".extend('"+name+"',"+source+");";
-  }
+  });
 });
 
-JS2.Class.extend('NodeDecorator', {
-  file:function (code) {
+JS2.Class.extend('NodeDecorator', function(KLASS){
+  KLASS.oo.addMember("file",function (code) {
     return "var js2 = require('js2').js2;\nvar JS2 = js2;\n" + code;
-  },
+  });
 
-  klass:function (name, par, source) {
+  KLASS.oo.addMember("klass",function (name, par, source) {
     return "var "+name+"=exports['"+name+"']="+par+".extend("+source+");";
-  }
+  });
 });
 
-JS2.Class.extend('RingoDecorator', {
-  file:function (code) {
+JS2.Class.extend('RingoDecorator', function(KLASS){
+  KLASS.oo.addMember("file",function (code) {
     return "var js2 = require('js2').js2;\nvar JS2 = js2;\n" + code;
-  },
+  });
 
-  klass:function (name, par, source) {
+  KLASS.oo.addMember("klass",function (name, par, source) {
     return "var "+name+"=exports['"+name+"']="+par+".extend("+source+");";
-  }
+  });
 });
 
 JS2.DECORATOR = JS2.DECORATOR || new JS2.BrowserDecorator();

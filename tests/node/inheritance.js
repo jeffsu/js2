@@ -1,16 +1,16 @@
 var js2 = require('js2').js2;
 var JS2 = js2;
-var Foo=exports['Foo']=JS2.Class.extend( {
-  hello:function () {
+var Foo=exports['Foo']=JS2.Class.extend( function(KLASS){
+  KLASS.oo.addMember("hello",function () {
     return "hello";
-  }
+  });
 
 });
 
-var Bar=exports['Bar']=Foo.extend( {
-  hello:function () {
+var Bar=exports['Bar']=Foo.extend( function(KLASS){
+  KLASS.oo.addMember("hello",function () {
     return this.$super(); 
-  } 
+  }); 
 });
 
 js2.test(function(assert){

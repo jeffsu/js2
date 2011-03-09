@@ -129,12 +129,16 @@ function mainFunction (arg) {
     var oo   = klass.oo;
     proto.oo = oo;
 
-    for (var name in klassDef) {
-      oo.addMember(name, klassDef[name]);
-    }
-
     for (var name in this) {
       oo.addStaticMember(name, this[name]);
+    }
+
+    if (typeof klassDef == 'function') {
+      klassDef(klass, oo);
+    } else {
+      for (var name in klassDef) {
+        oo.addMember(name, klassDef[name]);
+      }
     }
 
     return klass;
