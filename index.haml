@@ -27,7 +27,7 @@
       }
 
       function bar() {
-        return js2([ 'foo', 'bar' ]).collect(#{ $1 + '!' }).join(' ');
+        return js2([ 'foo', 'bar' ]).collect(\#{ $1 + '!' }).join(' ');
       }
     }
 
