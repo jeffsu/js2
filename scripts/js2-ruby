@@ -1,0 +1,4 @@
+#!/usr/bin/env ruby
+
+require  File.dirname(File.expand_path('', __FILE__)) + "/../dist/gem/lib/js2"
+JS2::Command.new(ARGV).cli

@@ -1,0 +1,5 @@
+{
+  "interval": 5,
+  "source-dir": "./app/js2",
+  "out-dir": "./public/javascripts"
+}

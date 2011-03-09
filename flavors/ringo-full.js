@@ -1183,6 +1183,7 @@ JS2.Class.extend('Commander', {
     "  * watch <inDir> <outDir>    -- Similar to compile, but update will keep looping while watching for modifications\n" +
     "    Options:\n" +
     "      -n                      -- Do NOT traverse directories recursively\n" +
+    "      -f=<format>             -- Compile for different formats: node, ringo, or browser\n" +
     "      -i=<seconds>            -- Interval time in seconds between loops\n",
 
   "DEFAULT_CONFIG":{
@@ -1222,8 +1223,8 @@ JS2.Class.extend('Commander', {
   },
 
   getUpdater:function () {
-    var inDir  = this.config.args[0] || '.';
-    var outDir = this.config.args[1] || inDir;
+    var inDir  = this.config.args[0] || this.config.inDir || '.';
+    var outDir = this.config.args[1] || this.config.outDir || inDir;
     return new JS2.Updater(this.fs, inDir, outDir, this.config.recursive);
   },
 
