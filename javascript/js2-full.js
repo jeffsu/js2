@@ -127,12 +127,16 @@ function mainFunction (arg) {
     var oo   = klass.oo;
     proto.oo = oo;
 
-    for (var name in klassDef) {
-      oo.addMember(name, klassDef[name]);
-    }
-
     for (var name in this) {
       oo.addStaticMember(name, this[name]);
+    }
+
+    if (typeof klassDef == 'function') {
+      klassDef(klass, oo);
+    } else {
+      for (var name in klassDef) {
+        oo.addMember(name, klassDef[name]);
+      }
     }
 
     return klass;
@@ -159,6 +163,7 @@ function mainFunction (arg) {
     [ 'SPACE', "\\s+" ],
     [ 'REGEX', "\\/" ],
     [ 'CLASS', "class" ],
+    [ 'STATIC', "static" ],
     [ 'SHORT_FUNCT', "#\\{|#\\(" ],
     [ 'FOREACH', "foreach" ],
     [ 'CURRY', "curry" ],
@@ -538,7 +543,7 @@ function mainFunction (arg) {
     }
   };
 
-  var KEYWORDS = { 'var': null, 'class': null, 'function': null, 'in': null, 'with': null, 'curry': null};
+  var KEYWORDS = { 'var': null, 'class': null, 'function': null, 'in': null, 'with': null, 'curry': null, 'static': null };
   var IDS = JS2.Lexer.IDS;
   IDS['NODE'] = -1;
 
@@ -706,6 +711,7 @@ function mainFunction (arg) {
       switch (token[0]) {
         case 'var': return Member;
         case 'function': return Method;
+        case 'static': return StaticMember;
       }
     },
 
@@ -717,8 +723,27 @@ function mainFunction (arg) {
 
     toString: function() {
       var str = this.$super();
-      return str.replace(/,(\s+\})$/, "$1");
-    } 
+      return str.replace(/^{/, 'function(KLASS, OO){').replace(/}$/, "}");
+    }
+  });
+
+  var StaticMember = Content.extend({
+    name: 'StaticMember',
+    handOff: function(token) {
+      if (this.started) this.closed = true;
+
+      switch (token[0]) {
+        case 'var': this.started = true; return Member;
+        case 'function': this.started = true; return Method;
+      }
+    },
+
+    toString: function() {
+      var member = this.handOffs[0];
+      if (!member) return '';
+      var ret = member.toString();
+      return ret.replace(/addMember/, 'addStaticMember');
+    }
   });
 
   var Method = Content.extend({
@@ -735,7 +760,7 @@ function mainFunction (arg) {
 
     toString: function () {
       var v  = this.validate(/^(function)(\s+)(I)(\s*)(Braces)(\s*)(Block)/);
-      return v[3] + ':' + "function" + v[2] + v[5] + ' ' + v[7] + ',';
+      return 'OO.addMember("' + v[3] + '",' + "function" + v[2] + v[5] + ' ' + v[7] + ');';
     }
   });
 
@@ -750,11 +775,9 @@ function mainFunction (arg) {
       var last = v.last.replace(/;$/, '');
       if (last.length == 0) last = 'null';
 
-      return '"' + v[3] + '":' + last + ',';
+      return 'OO.addMember("' + v[3] + '",' + last + ');';
     }
   });
-
-
 
   var Braces = Content.extend({
     name: 'Braces',
@@ -954,7 +977,6 @@ JS2.Array.prototype.any = function() {
   return this.length > 0;
 };
 
-
 JS2.Class.extend('FileSystem', {
   initialize:function (adapter) {
     this.adapter = adapter;
@@ -1064,7 +1086,6 @@ JS2.Class.extend('FileSystem', {
   }
 });
 
-
 JS2.Class.extend('Updater', {
   initialize:function (fs, inDir, outDir, recursive) {
     this.recursive = recursive;
@@ -1109,9 +1130,8 @@ JS2.Class.extend('Updater', {
   }
 });
 
-
 JS2.Class.extend('Config', {
-  "CLI_REGEX":/^-(r|i|f)(:?=(\w+))$/,
+  "CLI_REGEX":/^-(r|i|f)(=(\w+))$/,
   "optsLookup":{ 
     'n': 'non-recursive',
     'i': 'interval',
@@ -1137,7 +1157,7 @@ JS2.Class.extend('Config', {
         var opt = argv.shift(); 
         var m = opt.match(this.CLI_REGEX);
         if (m) {
-          this[this.optsLookup[m[0]]] = m[1] || true; 
+          this[this.optsLookup[m[1]]] = m[3] || true; 
         } else if (! this.command) {
           this.command = opt;
         } else {
@@ -1146,20 +1166,21 @@ JS2.Class.extend('Config', {
       }
     }
 
+    this.recursive = !this['non-recursive'];
     this.interval = parseInt(this.interval);
-
   },
 
   loadConfigFile:function (file) {
     if (this.fs.isFile(file)) {
       try {
-        var config = JSON.parse(this.fs.read(file).replace(/\n/g, ''));
+        var config = JSON.parse(this.fs.read(file).replace(/\n\r?/g, ''));
 
-        this.format    = config.format    || this.format;
-        this.recursive = config['non-recursive'] ? false : this.recursive;
+        this.format    = config.format || this.format;
         this.interval  = config['interval'] ? config['interval'] : this.interval;
         this.sourceDir = config['source-dir'] || this.sourceDir;
         this.outDir    = config['out-dir'] || this.outDir;
+
+        this['non-recursive'] = config['non-recursive'];
 
         return true;
       } catch(e) {
@@ -1170,7 +1191,6 @@ JS2.Class.extend('Config', {
   }
 
 });
-
 
 JS2.Class.extend('Commander', {
   "BANNER":"js2 <command> [options] <arguments>\n" +
@@ -1185,6 +1205,7 @@ JS2.Class.extend('Commander', {
     "  * watch <inDir> <outDir>    -- Similar to compile, but update will keep looping while watching for modifications\n" +
     "    Options:\n" +
     "      -n                      -- Do NOT traverse directories recursively\n" +
+    "      -f=<format>             -- Compile for different formats: node, ringo, or browser\n" +
     "      -i=<seconds>            -- Interval time in seconds between loops\n",
 
   "DEFAULT_CONFIG":{
@@ -1196,6 +1217,12 @@ JS2.Class.extend('Commander', {
     this.fs      = JS2.fs;
     this.config  = new JS2.Config(this.fs, argv);
     this.command = this.config.command;
+
+    switch(this.config.format) {
+      case 'ringo':    JS2.DECORATOR = new JS2.RingoDecorator(); break;
+      case 'node':     JS2.DECORATOR = new JS2.NodeDecorator(); break;
+      default:  JS2.DECORATOR = new JS2.BrowserDecorator(); break;
+    }
   },
 
   cli:function () {
@@ -1224,8 +1251,8 @@ JS2.Class.extend('Commander', {
   },
 
   getUpdater:function () {
-    var inDir  = this.config.args[0] || '.';
-    var outDir = this.config.args[1] || inDir;
+    var inDir  = this.config.args[0] || this.config.sourceDir || '.';
+    var outDir = this.config.args[1] || this.config.outDir || inDir;
     return new JS2.Updater(this.fs, inDir, outDir, this.config.recursive);
   },
 
@@ -1247,8 +1274,7 @@ JS2.Class.extend('Commander', {
 });
 
 
-
-JS2.Class.extend('Decorator.Browser', {
+JS2.Class.extend('BrowserDecorator', {
   file:function (code) {
     return code;
   },
@@ -1258,7 +1284,7 @@ JS2.Class.extend('Decorator.Browser', {
   }
 });
 
-JS2.Class.extend('Decorator.Node', {
+JS2.Class.extend('NodeDecorator', {
   file:function (code) {
     return "var js2 = require('js2').js2;\nvar JS2 = js2;\n" + code;
   },
@@ -1268,7 +1294,7 @@ JS2.Class.extend('Decorator.Node', {
   }
 });
 
-JS2.Class.extend('Decorator.Ringo', {
+JS2.Class.extend('RingoDecorator', {
   file:function (code) {
     return "var js2 = require('js2').js2;\nvar JS2 = js2;\n" + code;
   },
@@ -1278,6 +1304,7 @@ JS2.Class.extend('Decorator.Ringo', {
   }
 });
 
+JS2.DECORATOR = JS2.DECORATOR || new JS2.BrowserDecorator();
 
   (function (undefined, JS2) {
   JS2.require = function(file, callback) {
@@ -1305,7 +1332,7 @@ JS2.Class.extend('Decorator.Ringo', {
 })(undefined, JS2);
 
 
-  js2.DECORATOR = new JS2.Decorator.Browser();
+  js2.DECORATOR = new BrowserDecorator();
   js2.ROOT = root;
 
   return JS2;
