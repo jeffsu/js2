@@ -1332,8 +1332,8 @@ JS2.DECORATOR = JS2.DECORATOR || new JS2.BrowserDecorator();
 })(undefined, JS2);
 
 
-  js2.DECORATOR = new BrowserDecorator();
-  js2.ROOT = root;
+  JS2.DECORATOR = new JS2.BrowserDecorator();
+  JS2.ROOT = root;
 
   return JS2;
 
