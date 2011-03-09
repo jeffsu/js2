@@ -1,0 +1,3 @@
+0.3.3
+- using closure for classes instead of hashes
+- adding static methods

@@ -85,6 +85,10 @@ task :dist do
     File.open(outfile, 'w') { |f| f << template.result(binding) }
   end
 
+  sh "cp CHANGELOG ./dist/npm/"
+  sh "cp CHANGELOG ./dist/ringo/"
+  sh "cp CHANGELOG ./dist/gem/"
+
   sh "cp ./flavors/node.js ./dist/npm/lib/js2.js"
 
   sh "cp ./flavors/ringo.js ./dist/ringo/lib/js2.js"
