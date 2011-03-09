@@ -1,23 +1,30 @@
 var js2 = require('js2').js2;
 var JS2 = js2;
-var Foo=exports['Foo']=JS2.Class.extend( function(KLASS){
-  KLASS.oo.addMember("member","member");
-  KLASS.oo.addMember("regexMember",/member/);
-  KLASS.oo.addMember("stuffs",[ 'hello', 'world' ]);
+var Foo=exports['Foo']=JS2.Class.extend( function(KLASS, OO){
+  OO.addMember("member","member");
+  OO.addMember("regexMember",/member/);
+  OO.addMember("stuffs",[ 'hello', 'world' ]);
+  OO.addStaticMember("hello","hello");
 
-  KLASS.oo.addMember("getStuffs",function () {
+  OO.addMember("getStuffs",function () {
     return this.stuffs;
   });
 
-  KLASS.oo.addMember("sayHi",function () {
+  OO.addMember("sayHi",function () {
     for(var _i4=0,_c4=this.getStuffs(),_l4=_c4.length,stuff;stuff=_c4[_i4]||_i4<_l4;_i4++){
       console.log(stuff);
     }
+  });
+
+  OO.addStaticMember("sayHello",function () {
+    return "hello";
   });
 });
 
 JS2.test(function(assert){
   var test = new Foo(); 
   assert.eq('hello', test.getStuffs()[0]);
+  assert.eq('hello', Foo.sayHello());
+  assert.eq('hello', Foo.hello);
 });
 

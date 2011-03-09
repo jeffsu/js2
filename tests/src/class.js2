@@ -2,6 +2,7 @@ class Foo {
   var member      = "member";
   var regexMember = /member/;
   var stuffs      = [ 'hello', 'world' ];
+  static var hello = "hello";
 
   function getStuffs () {
     return this.stuffs;
@@ -12,10 +13,16 @@ class Foo {
       console.log(stuff);
     }
   }
+
+  static function sayHello() {
+    return "hello";
+  }
 }
 
 JS2.test(#(assert){
   var test = new Foo(); 
   assert.eq('hello', test.getStuffs()[0]);
+  assert.eq('hello', Foo.sayHello());
+  assert.eq('hello', Foo.hello);
 });
 

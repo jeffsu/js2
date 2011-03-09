@@ -12,7 +12,7 @@
     }
   };
 
-  var KEYWORDS = { 'var': null, 'class': null, 'function': null, 'in': null, 'with': null, 'curry': null};
+  var KEYWORDS = { 'var': null, 'class': null, 'function': null, 'in': null, 'with': null, 'curry': null, 'static': null };
   var IDS = JS2.Lexer.IDS;
   IDS['NODE'] = -1;
 
@@ -180,6 +180,7 @@
       switch (token[0]) {
         case 'var': return Member;
         case 'function': return Method;
+        case 'static': return StaticMember;
       }
     },
 
@@ -191,7 +192,26 @@
 
     toString: function() {
       var str = this.$super();
-      return str.replace(/^{/, 'function(KLASS){').replace(/}$/, "}");
+      return str.replace(/^{/, 'function(KLASS, OO){').replace(/}$/, "}");
+    }
+  });
+
+  var StaticMember = Content.extend({
+    name: 'StaticMember',
+    handOff: function(token) {
+      if (this.started) this.closed = true;
+
+      switch (token[0]) {
+        case 'var': this.started = true; return Member;
+        case 'function': this.started = true; return Method;
+      }
+    },
+
+    toString: function() {
+      var member = this.handOffs[0];
+      if (!member) return '';
+      var ret = member.toString();
+      return ret.replace(/addMember/, 'addStaticMember');
     }
   });
 
@@ -209,7 +229,7 @@
 
     toString: function () {
       var v  = this.validate(/^(function)(\s+)(I)(\s*)(Braces)(\s*)(Block)/);
-      return 'KLASS.oo.addMember("' + v[3] + '",' + "function" + v[2] + v[5] + ' ' + v[7] + ');';
+      return 'OO.addMember("' + v[3] + '",' + "function" + v[2] + v[5] + ' ' + v[7] + ');';
     }
   });
 
@@ -224,7 +244,7 @@
       var last = v.last.replace(/;$/, '');
       if (last.length == 0) last = 'null';
 
-      return 'KLASS.oo.addMember("' + v[3] + '",' + last + ');';
+      return 'OO.addMember("' + v[3] + '",' + last + ');';
     }
   });
 

@@ -56,13 +56,13 @@ namespace :test do
   end
 
 end
-task :test => [ 'test:test' ]
+task :test => [ 'dist', 'test:node', 'test:ringo', 'test:ruby' ]
 
 desc "ERBify all distributions"
 task :dist do
   def js(f)
     if (f.match(/\.js2$/)) 
-      return `js2-node render -f=browser ./src/#{f}`
+      return `js2 render -f=browser ./src/#{f}`
     else
       return File.read("./src/#{f}")
     end

@@ -234,7 +234,6 @@ JS2.Array.prototype.any = function() {
 };
 
 
-
   js2.ROOT = root;
 
   return JS2;

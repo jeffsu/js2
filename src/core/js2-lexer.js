@@ -4,6 +4,7 @@
     [ 'SPACE', "\\s+" ],
     [ 'REGEX', "\\/" ],
     [ 'CLASS', "class" ],
+    [ 'STATIC', "static" ],
     [ 'SHORT_FUNCT', "#\\{|#\\(" ],
     [ 'FOREACH', "foreach" ],
     [ 'CURRY', "curry" ],

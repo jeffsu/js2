@@ -1,12 +1,12 @@
-JS2.Class.extend('Foo', function(KLASS){
-  KLASS.oo.addMember("hello",function () {
+JS2.Class.extend('Foo', function(KLASS, OO){
+  OO.addMember("hello",function () {
     return "hello";
   });
 
 });
 
-Foo.extend('Bar', function(KLASS){
-  KLASS.oo.addMember("hello",function () {
+Foo.extend('Bar', function(KLASS, OO){
+  OO.addMember("hello",function () {
     return this.$super(); 
   }); 
 });
