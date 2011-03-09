@@ -9,7 +9,6 @@ class JS2::FS
     return Dir["#{lookup}/*.#{ext}"].collect { |f| File.expand_path(f) }.reject { |f| f.match(/^\./) }
   end
 
-
   def expandPath(file)
     return File.expand_path(file)
   end
@@ -27,9 +26,8 @@ class JS2::FS
   end
 
 
-  def mkdir(file)
-    dir = File.dirname(file)
-    FileUtils.mkdir(dir) unless File.directory?(dir)
+  def mkdir(dir)
+    FileUtils.mkdir(dir) unless File.exists?(dir)
   end
 
   def isFile(dir)

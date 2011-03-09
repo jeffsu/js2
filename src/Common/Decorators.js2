@@ -1,4 +1,4 @@
-class Decorator.Browser {
+class BrowserDecorator {
   function file(code) {
     return code;
   }
@@ -8,7 +8,7 @@ class Decorator.Browser {
   }
 }
 
-class Decorator.Node {
+class NodeDecorator {
   function file(code) {
     return "var js2 = require('js2').js2;\nvar JS2 = js2;\n" + code;
   }
@@ -18,7 +18,7 @@ class Decorator.Node {
   }
 }
 
-class Decorator.Ringo {
+class RingoDecorator {
   function file(code) {
     return "var js2 = require('js2').js2;\nvar JS2 = js2;\n" + code;
   }
@@ -27,3 +27,5 @@ class Decorator.Ringo {
     return "var "+name+"=exports['"+name+"']="+par+".extend("+source+");";
   }
 }
+
+JS2.DECORATOR = JS2.DECORATOR || new JS2.BrowserDecorator();

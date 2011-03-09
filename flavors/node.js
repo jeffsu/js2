@@ -1107,7 +1107,7 @@ JS2.Class.extend('Updater', {
 
 
 JS2.Class.extend('Config', {
-  "CLI_REGEX":/^-(r|i|f)(:?=(\w+))$/,
+  "CLI_REGEX":/^-(r|i|f)(=(\w+))$/,
   "optsLookup":{ 
     'n': 'non-recursive',
     'i': 'interval',
@@ -1133,7 +1133,7 @@ JS2.Class.extend('Config', {
         var opt = argv.shift(); 
         var m = opt.match(this.CLI_REGEX);
         if (m) {
-          this[this.optsLookup[m[0]]] = m[1] || true; 
+          this[this.optsLookup[m[1]]] = m[3] || true; 
         } else if (! this.command) {
           this.command = opt;
         } else {
@@ -1142,20 +1142,21 @@ JS2.Class.extend('Config', {
       }
     }
 
+    this.recursive = !this['non-recursive'];
     this.interval = parseInt(this.interval);
-
   },
 
   loadConfigFile:function (file) {
     if (this.fs.isFile(file)) {
       try {
-        var config = JSON.parse(this.fs.read(file).replace(/\n/g, ''));
+        var config = JSON.parse(this.fs.read(file).replace(/\n\r?/g, ''));
 
-        this.format    = config.format    || this.format;
-        this.recursive = config['non-recursive'] ? false : this.recursive;
+        this.format    = config.format || this.format;
         this.interval  = config['interval'] ? config['interval'] : this.interval;
         this.sourceDir = config['source-dir'] || this.sourceDir;
         this.outDir    = config['out-dir'] || this.outDir;
+
+        this['non-recursive'] = config['non-recursive'];
 
         return true;
       } catch(e) {
@@ -1193,6 +1194,12 @@ JS2.Class.extend('Commander', {
     this.fs      = JS2.fs;
     this.config  = new JS2.Config(this.fs, argv);
     this.command = this.config.command;
+
+    switch(this.config.format) {
+      case 'ringo':    JS2.DECORATOR = new JS2.RingoDecorator(); break;
+      case 'node':     JS2.DECORATOR = new JS2.NodeDecorator(); break;
+      default:  JS2.DECORATOR = new JS2.BrowserDecorator(); break;
+    }
   },
 
   cli:function () {
@@ -1221,7 +1228,7 @@ JS2.Class.extend('Commander', {
   },
 
   getUpdater:function () {
-    var inDir  = this.config.args[0] || this.config.inDir || '.';
+    var inDir  = this.config.args[0] || this.config.sourceDir || '.';
     var outDir = this.config.args[1] || this.config.outDir || inDir;
     return new JS2.Updater(this.fs, inDir, outDir, this.config.recursive);
   },
@@ -1245,7 +1252,7 @@ JS2.Class.extend('Commander', {
 
 
 
-JS2.Class.extend('Decorator.Browser', {
+JS2.Class.extend('BrowserDecorator', {
   file:function (code) {
     return code;
   },
@@ -1255,7 +1262,7 @@ JS2.Class.extend('Decorator.Browser', {
   }
 });
 
-JS2.Class.extend('Decorator.Node', {
+JS2.Class.extend('NodeDecorator', {
   file:function (code) {
     return "var js2 = require('js2').js2;\nvar JS2 = js2;\n" + code;
   },
@@ -1265,7 +1272,7 @@ JS2.Class.extend('Decorator.Node', {
   }
 });
 
-JS2.Class.extend('Decorator.Ringo', {
+JS2.Class.extend('RingoDecorator', {
   file:function (code) {
     return "var js2 = require('js2').js2;\nvar JS2 = js2;\n" + code;
   },
@@ -1274,6 +1281,8 @@ JS2.Class.extend('Decorator.Ringo', {
     return "var "+name+"=exports['"+name+"']="+par+".extend("+source+");";
   }
 });
+
+JS2.DECORATOR = JS2.DECORATOR || new JS2.BrowserDecorator();
 
 
 
@@ -1331,8 +1340,8 @@ JS2.Class.extend('Decorator.Ringo', {
 
   JS2.fs = new JS2.FileSystem(new JS2.NodeFileAdapter());
 
-  js2.ROOT      = root;
-  js2.DECORATOR = new JS2.Decorator.Node();
+  js2.DECORATOR = new JS2.NodeDecorator();
+  js2.ROOT = root;
 
   return js2;
 })(this);

@@ -24,6 +24,12 @@ class Commander {
     this.fs      = JS2.fs;
     this.config  = new JS2.Config(this.fs, argv);
     this.command = this.config.command;
+
+    switch(this.config.format) {
+      case 'ringo':    JS2.DECORATOR = new JS2.RingoDecorator(); break;
+      case 'node':     JS2.DECORATOR = new JS2.NodeDecorator(); break;
+      default:  JS2.DECORATOR = new JS2.BrowserDecorator(); break;
+    }
   }
 
   function cli() {
@@ -52,7 +58,7 @@ class Commander {
   }
 
   function getUpdater() {
-    var inDir  = this.config.args[0] || this.config.inDir || '.';
+    var inDir  = this.config.args[0] || this.config.sourceDir || '.';
     var outDir = this.config.args[1] || this.config.outDir || inDir;
     return new JS2.Updater(this.fs, inDir, outDir, this.config.recursive);
   }

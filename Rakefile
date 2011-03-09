@@ -62,7 +62,7 @@ desc "ERBify all distributions"
 task :dist do
   def js(f)
     if (f.match(/\.js2$/)) 
-      return `js2-node render ./src/#{f}`
+      return `js2-node render -f=browser ./src/#{f}`
     else
       return File.read("./src/#{f}")
     end

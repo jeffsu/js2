@@ -1,5 +1,5 @@
 class Config {
-  var CLI_REGEX = /^-(r|i|f)(:?=(\w+))$/;
+  var CLI_REGEX = /^-(r|i|f)(=(\w+))$/;
   var optsLookup = { 
     'n': 'non-recursive',
     'i': 'interval',
@@ -25,7 +25,7 @@ class Config {
         var opt = argv.shift(); 
         var m = opt.match(this.CLI_REGEX);
         if (m) {
-          this[this.optsLookup[m[0]]] = m[1] || true; 
+          this[this.optsLookup[m[1]]] = m[3] || true; 
         } else if (! this.command) {
           this.command = opt;
         } else {
@@ -34,20 +34,21 @@ class Config {
       }
     }
 
+    this.recursive = !this['non-recursive'];
     this.interval = parseInt(this.interval);
-
   }
 
   function loadConfigFile(file) {
     if (this.fs.isFile(file)) {
       try {
-        var config = JSON.parse(this.fs.read(file).replace(/\n/g, ''));
+        var config = JSON.parse(this.fs.read(file).replace(/\n\r?/g, ''));
 
-        this.format    = config.format    || this.format;
-        this.recursive = config['non-recursive'] ? false : this.recursive;
+        this.format    = config.format || this.format;
         this.interval  = config['interval'] ? config['interval'] : this.interval;
         this.sourceDir = config['source-dir'] || this.sourceDir;
         this.outDir    = config['out-dir'] || this.outDir;
+
+        this['non-recursive'] = config['non-recursive'];
 
         return true;
       } catch(e) {

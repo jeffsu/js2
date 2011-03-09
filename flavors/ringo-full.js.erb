@@ -10,9 +10,9 @@ exports.JS2 = (function (root) {
   <%= core %>
 
   <%= js 'Common/RingoFileAdapter.js2' %>
-  JS2.fs = new JS2.FileSystem(new JS2.RingoFileAdapter());
+  JS2.fs = new FileSystem(new RingoFileAdapter());
 
-  js2.DECORATOR = new JS2.Decorator.Ringo();
+  JS2.DECORATOR = new JS2.RingoDecorator();
   js2.ROOT = root;
   return js2;
 })(this);

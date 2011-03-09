@@ -10,8 +10,8 @@ var JS2 = exports.JS2 = (function (root) {
   <%= js 'Common/NodeFileAdapter.js2' %>
   JS2.fs = new JS2.FileSystem(new JS2.NodeFileAdapter());
 
-  js2.ROOT      = root;
-  js2.DECORATOR = new JS2.Decorator.Node();
+  js2.DECORATOR = new JS2.NodeDecorator();
+  js2.ROOT = root;
 
   return js2;
 })(this);
