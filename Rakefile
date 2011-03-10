@@ -58,48 +58,62 @@ namespace :test do
 end
 task :test => [ 'dist', 'test:node', 'test:ringo', 'test:ruby' ]
 
-desc "ERBify all distributions"
-task :dist do
-  def js(f)
-    if (f.match(/\.js2$/)) 
-      return `js2 render -f=browser ./src/#{f}`
-    else
-      return File.read("./src/#{f}")
+namespace :dist do
+  desc "ERBify all distributions"
+  task :erb do
+    version = File.read('./VERSION').chomp
+    def js(f)
+      if (f.match(/\.js2$/)) 
+        return `js2 render -f=browser ./src/#{f}`
+      else
+        return File.read("./src/#{f}")
+      end
     end
+
+    core =  %W{ js2-class.js js2-lexer.js js2-parser.js }.collect do |f|
+      js("core/#{f}")
+    end.join("\n");
+
+    common = %W{ Array FileSystem Updater Config Commander Decorators }.collect do |f|
+      js("Common/#{f}.js2")
+    end.join("\n");
+
+    core += common
+
+    Dir["./flavors/*.erb"].each do |file|
+      puts "processing: #{file}"
+      template = ERB.new(File.read(file)) 
+      outfile = file.sub(/\.erb$/, '')
+      File.open(outfile, 'w') { |f| f << template.result(binding) }
+    end
+
   end
 
-  core =  %W{ js2-class.js js2-lexer.js js2-parser.js }.collect do |f|
-    js("core/#{f}")
-  end.join("\n");
+  desc "Copy files to proper distributions"
+  task :cp do
+    sh "cp CHANGELOG ./dist/npm/"
+    sh "cp CHANGELOG ./dist/ringo/"
+    sh "cp CHANGELOG ./dist/gem/"
 
-  common = %W{ Array FileSystem Updater Config Commander Decorators }.collect do |f|
-    js("Common/#{f}.js2")
-  end.join("\n");
+    sh "cp ./flavors/node.js ./dist/npm/lib/js2.js"
 
-  core += common
+    sh "cp ./flavors/ringo.js ./dist/ringo/lib/js2.js"
+    sh "cp ./flavors/ringo-full.js ./dist/ringo/lib/js2-full.js"
 
-  Dir["./flavors/*.erb"].each do |file|
-    puts "processing: #{file}"
-    template = ERB.new(File.read(file)) 
-    outfile = file.sub(/\.erb$/, '')
-    File.open(outfile, 'w') { |f| f << template.result(binding) }
+    sh "cp ./flavors/ruby.js ./dist/gem/lib/js2/js2.js"
+
+    sh "cp ./flavors/browser.js ./dist/browser/js2.js"
+    sh "cp ./flavors/browser-full.js ./dist/browser/js2-full.js"
+
+    sh "cp ./flavors/browser.js ./js2.js"
+    sh "cp ./flavors/browser-full.js ./js2-full.js"
+
+    sh "cp ./flavors/js2.gemspec ./dist/gem/js2.gemspec"
+    sh "cp ./flavors/node.package.json ./dist/npm/package.json"
+    sh "cp ./flavors/ringo.package.json ./dist/ringo/package.json"
   end
 
-  sh "cp CHANGELOG ./dist/npm/"
-  sh "cp CHANGELOG ./dist/ringo/"
-  sh "cp CHANGELOG ./dist/gem/"
-
-  sh "cp ./flavors/node.js ./dist/npm/lib/js2.js"
-
-  sh "cp ./flavors/ringo.js ./dist/ringo/lib/js2.js"
-  sh "cp ./flavors/ringo-full.js ./dist/ringo/lib/js2-full.js"
-
-  sh "cp ./flavors/ruby.js ./dist/gem/lib/js2/js2.js"
-
-  sh "cp ./flavors/browser.js ./dist/browser/js2.js"
-  sh "cp ./flavors/browser-full.js ./dist/browser/js2-full.js"
-
-  sh "cp ./flavors/browser.js ./js2.js"
-  sh "cp ./flavors/browser-full.js ./js2-full.js"
 end
+task :dist => [ 'dist:erb', 'dist:cp' ]
+
 
