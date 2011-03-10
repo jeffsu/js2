@@ -5,6 +5,20 @@ class String
   end
 end
 
+namespace :publish do
+  task :gem do
+    sh "cd ./dist/gem/; rm *.gem; gem build js2.gemspec; gem push js2*.gem"
+  end
+
+  task :npm do
+    sh "cd ./dist/npm/; npm publish"
+  end
+
+  task :ringo do
+    sh "cd ./dist/ringo/; git stash; git pull; git stash pop; git add -A; git commit -a; git push"
+  end
+end
+
 namespace :test do
   def get_test_files
     return  ENV['TEST'] ? [ "./tests/#{ENV['TEST']}.js2" ] : Dir['./tests/*.js2']
@@ -22,7 +36,7 @@ namespace :test do
 
   task :ruby => :dist do
     sh "./dist/gem/bin/js2 compile -f=browser tests/src tests/ruby"
-    Dir['tests/ruby/*.js'].each { |f| puts `./dist/gem/bin/js2 run #{f}` }
+    Dir['tests/ruby/*.js'].each { |f| out = `./dist/gem/bin/js2 run #{f}`; puts out unless out.blank? }
   end
 
   task :test => :dist do
@@ -68,7 +82,7 @@ desc "ERBify all distributions"
 task :dist do
   def js(f)
     if (f.match(/\.js2$/)) 
-      return `js2 render -f=browser ./src/#{f}`
+      return `js2-node render -f=browser ./src/#{f}`
     else
       return File.read("./src/#{f}")
     end

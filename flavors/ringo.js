@@ -192,16 +192,16 @@ JS2.Array.prototype.collect = function(f) {
 
 // http://clojure.github.com/clojure/clojure.core-api.html#clojure.core/reduce
 JS2.Array.prototype.reduce = function(f, val) {
-  if (this.length == 0) return val === null ? f() : f(val); 
+  if (this.length == 0) return val; 
+  if (this.length == 1) return val == null ? f(this[0]) : f(val, this[0]);
 
   var i = 0;
-  if (val === null) val = this[i++];
+  if (val == null) val = this[i++];
 
-  var left, n = this.length;
   for (var n=this.length;i<n;i++) {
-    var right = this[i];
-    val = f(val, right);
+    val = f(val, this[i]);
   }
+
   return val;
 };
 
@@ -243,6 +243,7 @@ JS2.Array.prototype.empty = function() {
 JS2.Array.prototype.any = function() {
   return this.length > 0;
 };
+
 
 
   js2.ROOT = root;
