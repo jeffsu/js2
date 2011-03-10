@@ -1338,11 +1338,15 @@ JS2.DECORATOR = JS2.DECORATOR || new JS2.BrowserDecorator();
     xmlhttp.onreadystatechange = function() {
       if (xmlhttp.readyState==4 && xmlhttp.status==200) {
         try {
-          eval(JS2.render(xmlhttp.responseText));
+          var code = file.match(/js2$/) ? JS2.render(xmlhttp.responseText) : xmlhttp.responseText;
+          if (callback) { 
+            callback(code);
+          } else {
+            eval(code);
+          }
         } catch(e) {
-          console.log(JS2.render(xmlhttp.responseText));
+          if (window.console) console.log(e);
         }
-        if (callback) callback(xmlhttp.responseText);
       }
     }
 
