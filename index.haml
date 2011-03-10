@@ -30,6 +30,8 @@
     var foo = new Foo();
     alert(foo.world());
 
+    var arr = [ 1, 2, 3, 4 ];
+    alert(js2(arr).reduce(\#{ return $1 + $2 }));
 
 
 %input.run{ :type => 'button', :value => 'Run' }
@@ -96,7 +98,9 @@
       font-size: 1.2em
 
 :javascript
-  $('.run').click(function () {
-    eval(js2.render($('.code').val()));
+  $(function () {
+    $('.run').click(function () {
+      eval(js2.render($('.code').val()));
+    });
   });
 

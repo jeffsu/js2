@@ -24,7 +24,10 @@ class Foo extends Hello {
 }
 
 var foo = new Foo();
-alert(foo.world());</textarea>
+alert(foo.world());
+
+var arr = [ 1, 2, 3, 4 ];
+alert(js2(arr).reduce(#{ return $1 + $2 }));</textarea>
 <input class='run' type='button' value='Run' />
 <h2>Install</h2>
 <p>
@@ -81,8 +84,10 @@ alert(foo.world());</textarea>
 </style>
 <script type='text/javascript'>
   //<![CDATA[
-    $('.run').click(function () {
-      eval(js2.render($('.code').val()));
+    $(function () {
+      $('.run').click(function () {
+        eval(js2.render($('.code').val()));
+      });
     });
   //]]>
 </script>
