@@ -121,7 +121,7 @@
   };
 
   var assert = {
-    'eq': function(val, expected) { if (expected != val) console.log("Expected "+expected+", but got "+val+".") },
+    'eq': function(expected, actual) { if (expected != actual) console.log("Expected "+expected+", but got "+actual+".") },
     'isFalse': function(val) { if (val) console.log("Expected false, but got "+val+".") },
     'isTrue': function(val) { if (!val) console.log("Expected true, but got " +val+".") }
   };

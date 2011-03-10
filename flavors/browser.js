@@ -145,7 +145,7 @@ function mainFunction (arg) {
   };
 
   var assert = {
-    'eq': function(val, expected) { if (expected != val) console.log("Expected "+expected+", but got "+val+".") },
+    'eq': function(expected, actual) { if (expected != actual) console.log("Expected "+expected+", but got "+actual+".") },
     'isFalse': function(val) { if (val) console.log("Expected false, but got "+val+".") },
     'isTrue': function(val) { if (!val) console.log("Expected true, but got " +val+".") }
   };
@@ -187,13 +187,25 @@ JS2.Array.prototype.until = function(f) {
 
 
 JS2.Array.prototype.collect = function(f) {
-  var ret = new JS2.Array();
-  this.each(function($1,$2,$3){ ret.push(f.call(this, $1, $2)) });
+  var ret  = new JS2.Array();
+  var self = this;
+  this.each(function($1,$2,$3){ ret.push(f.call(self, $1, $2)) });
   return ret;
 };
 
+// http://clojure.github.com/clojure/clojure.core-api.html#clojure.core/reduce
 JS2.Array.prototype.reduce = function(f, val) {
-  this.each(function($1,$2,$3){ val = f.call(this, $1, val) });
+  if (this.length == 0) return val === null ? f() : f(val); 
+
+  var i = 0;
+  if (val === null) val = this[i++];
+
+  var left, n = this.length;
+  for (var n=this.length;i<n;i++) {
+    var right = this[i];
+    val = f(val, right);
+  }
+  return val;
 };
 
 JS2.Array.prototype.reject = function(f) {
@@ -203,7 +215,8 @@ JS2.Array.prototype.reject = function(f) {
   } else if (typeof f == 'string' || typeof f == 'number') {
     this.each(function($1,$2,$3){ if ($1 != f) ret.push($1) });
   } else if (typeof f == 'function') {
-    this.each(function($1,$2,$3){ if (!f.call(this, $1, $2)) ret.push($1) });
+    var self = this;
+    this.each(function($1,$2,$3){ if (!f.call(self, $1, $2)) ret.push($1) });
   }
   return ret;
 };
@@ -215,7 +228,8 @@ JS2.Array.prototype.select = function(f) {
   } else if (typeof f == 'string' || typeof f == 'number') {
     this.each(function($1,$2,$3){ if ($1 == f) ret.push($1) });
   } else if (typeof f == 'function') {
-    this.each(function($1,$2,$3){ if (f.call(this, $1, $2)) ret.push($1) });
+    var self = this;
+    this.each(function($1,$2,$3){ if (f.call(self, $1, $2)) ret.push($1) });
   }
   return ret;
 };

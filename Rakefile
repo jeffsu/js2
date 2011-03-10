@@ -1,4 +1,10 @@
 require 'erb'
+class String
+  def blank?
+    return !! self.match(/^\s*$/)
+  end
+end
+
 namespace :test do
   def get_test_files
     return  ENV['TEST'] ? [ "./tests/#{ENV['TEST']}.js2" ] : Dir['./tests/*.js2']
@@ -6,17 +12,17 @@ namespace :test do
 
   task :ringo => :dist do
     sh "./scripts/js2-node compile -f=ringo tests/src tests/ringo"
-    Dir['tests/ringo/*.js'].each { |f| `ringo #{f}` }
+    Dir['tests/ringo/*.js'].each { |f| out = `ringo #{f}`; puts out unless out.blank? }
   end
 
   task :node => :dist do
     sh "./scripts/js2-node compile -f=node tests/src tests/node"
-    Dir['tests/node/*.js'].each { |f| `node #{f}` }
+    Dir['tests/node/*.js'].each { |f| out = `node #{f}`;  puts out unless out.blank? }
   end
 
   task :ruby => :dist do
     sh "./dist/gem/bin/js2 compile -f=browser tests/src tests/ruby"
-    Dir['tests/ruby/*.js'].each { |f| `./dist/gem/bin/js2 run #{f}` }
+    Dir['tests/ruby/*.js'].each { |f| puts `./dist/gem/bin/js2 run #{f}` }
   end
 
   task :test => :dist do
