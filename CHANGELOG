@@ -1,3 +1,9 @@
+0.3.4
+  * coded reduce to clojure spec
+  * fixed collect and some other iterators
+
 0.3.3
-- using closure for classes instead of hashes
-- adding static methods
+  * using closure for classes instead of hashes
+  * adding static methods
+
+

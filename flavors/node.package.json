@@ -1,6 +1,6 @@
 { "name" : "js2",
   "description" : "Javascript Syntactic Sugar",
-  "version" : "Foo",
+  "version" : "0.3.5",
   "author" : "Jeff Su",
   "repository" : { "type" : "git" , "url" : "git://github.com/jeffsu/js2.git" },
   "bugs" : { "web" : "http://github.com/jeffsu/js2/issues" },
