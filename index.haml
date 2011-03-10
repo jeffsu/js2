@@ -17,19 +17,25 @@
   :plain
     class Hello {
       function world() {
-        alert('hello');
+        return "hello";
       }
     }
 
     class Foo extends Hello {
       function world() {
-        this.$super();
-        alert('world');
+        return this.$super() + " world";
+      }
+
+      function bar() {
+        return js2([ 'foo', 'bar' ]).collect(\#{ $1 + '!' }).join(' ');
       }
     }
 
     var foo = new Foo();
-    foo.world();
+    alert(foo.world());
+    alert(foo.bar());
+
+
 
 %input.run{ :type => 'button', :value => 'Run' }
 

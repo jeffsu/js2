@@ -13,19 +13,23 @@ layout: default
 <h2>Try</h2>
 <textarea class='code'>class Hello {
   function world() {
-    alert('hello');
+    return "hello";
   }
 }
 
 class Foo extends Hello {
   function world() {
-    this.$super();
-    alert('world');
+    return this.$super() + " world";
+  }
+
+  function bar() {
+    return js2([ 'foo', 'bar' ]).collect(#{ $1 + '!' }).join(' ');
   }
 }
 
 var foo = new Foo();
-foo.world();</textarea>
+alert(foo.world());
+alert(foo.bar());</textarea>
 <input class='run' type='button' value='Run' />
 <h2>Install</h2>
 <p>
