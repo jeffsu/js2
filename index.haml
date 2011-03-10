@@ -25,15 +25,10 @@
       function world() {
         return this.$super() + " world";
       }
-
-      function bar() {
-        return js2([ 'foo', 'bar' ]).collect(\#{ $1 + '!' }).join(' ');
-      }
     }
 
     var foo = new Foo();
     alert(foo.world());
-    alert(foo.bar());
 
 
 
