@@ -302,9 +302,8 @@
     handOff: function(token) {
       if (this.started) {
         this.closed = true;
-        var foo = (new Validator(this.tokens.toArray())).getString(2);
         this.semi = (new Validator(this.tokens.toArray())).validate(/^(\s*)([^\s\w$])/, 2) ? '' : ';';
-      }
+      } 
 
       switch (token[0]) {
         case '(': return Braces;
@@ -312,9 +311,35 @@
       }
     },
 
+
     toString: function() {
-      var v = this.validate(/(#)(Braces)?(\s*)(Block)/);
-      return "function" + (v[2] ? v[2] : "($1,$2,$3)") + v[4] + this.semi;
+      var scopes   = null;
+      var inScopes = null;
+
+      var v    = this.validate(/(#)(Braces)?(\s*)(Block)/);
+      var args = v[2] ? v[2].toString() : '($1,$2,$3)';
+      var body = v[4];
+
+      var braceSides = args.split(/\s*\bwith\b\s*/);
+      if (braceSides.length == 2) {
+        args   = braceSides[0] + ')';
+        scopes = '(' + braceSides[1];
+        inScopes = scopes;
+      }
+
+
+      if (scopes && scopes.match(/\bthis\b/)) {
+        inScopes = inScopes.replace(/\bthis\b/, '__self');
+        return '(function' + inScopes + '{' + 'var f = function' + args + body + ';' + ' return function() { return f.apply(__self, arguments)};})' + scopes + this.semi; 
+      } 
+      
+      else if (scopes) {
+        return '(function' + inScopes + '{' + 'return function' + args + body + ';' + '})' + scopes + this.semi; 
+      } 
+      
+      else {
+        return "function" + args + body + this.semi;
+      }
     }
   });
 

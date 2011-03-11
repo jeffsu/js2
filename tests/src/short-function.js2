@@ -1,11 +1,27 @@
-this.foo = #{
-  return 'hello world';
-};
+var simple = #{ return $1; };
+var args   = #(foo){ return foo };
 
-this.bar = #{
-  return 'hello world';
-};
+var scopeVar = "hello";
 
-this.baz = #(foo, bar) {
-  return 'hello world';
-};
+var scope  = #(foo with scopeVar){ return scopeVar; };
+var scope2 = #(with scopeVar){ return scopeVar; };
+
+class Foo  {
+  var bound = { foo: 'incorrect' };
+  var foo   = 'correct';
+
+  function testBound() {
+    this.bound.test1 = #(with this){ return this.foo; };
+  }
+}
+
+js2.test(#(assert){
+  assert.eq(simple('foo'), 'foo');
+  assert.eq(args('foo'), 'foo');
+  assert.eq(scope(), 'hello');
+  assert.eq(scope2(), 'hello');
+
+  var foo = new Foo();
+  foo.testBound();
+  assert.eq(foo.bound.test1(), 'correct');
+});

@@ -282,6 +282,7 @@
       this.index  = 0;
       this.str    = str;
       this.orig   = str;
+      this.before = [];
     },
 
     toArray: function() {
@@ -323,7 +324,9 @@
     },
 
     pop: function() {
-      return this.tokens.pop();
+      var ret = this.tokens.pop();
+      this.before.push(ret);
+      return ret;
     },
 
     peek: function() {
@@ -339,6 +342,7 @@
         case '(': this.braceCount++; break;
         case ')': this.braceCount--; break;
       }
+      this.before.unshift(token);
       return token;
     },
 
