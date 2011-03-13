@@ -6,6 +6,10 @@ class BrowserDecorator {
   function klass(name, par, source) {
     return par+".extend('"+name+"',"+source+");";
   }
+
+  function module(name, source) {
+    return "var "+name+"=exports['"+name+"']=JS2.Module.create("+source+");";
+  }
 }
 
 class NodeDecorator {
@@ -16,6 +20,10 @@ class NodeDecorator {
   function klass(name, par, source) {
     return "var "+name+"=exports['"+name+"']="+par+".extend("+source+");";
   }
+
+  function module(name, source) {
+    return "var "+name+"=exports['"+name+"']=JS2.Module.extend("+source+");";
+  }
 }
 
 class RingoDecorator {
@@ -25,6 +33,10 @@ class RingoDecorator {
 
   function klass(name, par, source) {
     return "var "+name+"=exports['"+name+"']="+par+".extend("+source+");";
+  }
+
+  function module(name, source) {
+    return "var "+name+"=exports['"+name+"']=JS2.Module.create("+source+");";
   }
 }
 
