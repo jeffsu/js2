@@ -26,22 +26,33 @@ function mainFunction (arg) {
     this.klass = klass;
     this.par   = par;
 
-    this['static'] = {
-      methods: {},
-      members: {},
-    };
-
-    this.methods  = {};
-    this.members  = {};
+    this.members       = {};
+    this.staticMembers = {};
     this.children = [];
 
-    if (this.par) this.par.oo.children.push(klass);
+    if (this.par) this.par.OO.children.push(klass);
   };
 
   OO.prototype = {
     forbiddenMembers: { 
       'prototype': undefined, 
-      'oo': undefined 
+      'OO': undefined 
+    },
+ 
+    include: function(module) {
+      var members = module.OO.members;
+      for (var name in members) {
+        if (members.hasOwnProperty(name)) {
+          this.addMember(name, members[name]);
+        }
+      }
+
+      var staticMembers = module.OO.staticMembers;
+      for (var name in staticMembers) {
+        if (staticMembers.hasOwnProperty(name)) {
+          this.addStaticMember(name, staticMembers[name]);
+        }
+      }
     },
 
     createNamespace: function(name) {
@@ -76,6 +87,7 @@ function mainFunction (arg) {
       }
 
       proto[name] = member;
+      this.members[name] = member;
     },
 
     addStaticMember: function(name, member) {
@@ -88,14 +100,15 @@ function mainFunction (arg) {
       }
       
       this.klass[name] = member;
+      this.staticMembers[name] = member;
     }
   };
 
   JS2.Class = function() { this.initialize.apply(this, arguments); };
-  JS2.Class.oo = new OO(JS2.Class);
+  JS2.Class.OO = new OO(JS2.Class);
   JS2.Class.prototype = {
     initialize: function () {},
-    oo: JS2.Class.oo
+    oo: JS2.Class.OO
   };
 
   var namedClasses = {};
@@ -106,13 +119,13 @@ function mainFunction (arg) {
   var noInit = false;
   JS2.Class.extend = function(name, klassDef) {
     var klass = function() { if (!noInit) this.initialize.apply(this, arguments); };
-    klass.oo  = new OO(klass, this);
+    klass.OO  = new OO(klass, this);
 
     if (typeof name != 'string') {
       klassDef = name;
     } else {
       namedClasses[name] = klass;
-      var namespace = this.oo.createNamespace(name);
+      var namespace = this.OO.createNamespace(name);
       namespace[0][namespace[1]] = klass;
     }
 
@@ -122,8 +135,8 @@ function mainFunction (arg) {
     noInit = false;
 
     klass.prototype = proto;
-    var oo   = klass.oo;
-    proto.oo = oo;
+    var oo   = klass.OO;
+    proto.OO = oo;
 
     for (var name in this) {
       oo.addStaticMember(name, this[name]);
@@ -139,6 +152,8 @@ function mainFunction (arg) {
 
     return klass;
   };
+
+  JS2.Module = JS2.Class;
 
   var assert = {
     'eq': function(expected, actual) { if (expected != actual) console.log("Expected "+expected+", but got "+actual+".") },
@@ -161,7 +176,9 @@ function mainFunction (arg) {
     [ 'SPACE', "\\s+" ],
     [ 'REGEX', "\\/" ],
     [ 'CLASS', "class" ],
+    [ 'MODULE', "module" ],
     [ 'STATIC', "static" ],
+    [ 'include', "include" ],
     [ 'SHORT_FUNCT', "#\\{|#\\(" ],
     [ 'FOREACH', "foreach" ],
     [ 'CURRY', "curry" ],
@@ -545,7 +562,7 @@ function mainFunction (arg) {
     }
   };
 
-  var KEYWORDS = { 'var': null, 'class': null, 'function': null, 'in': null, 'with': null, 'curry': null, 'static': null };
+  var KEYWORDS = { 'var': null, 'class': null, 'function': null, 'in': null, 'with': null, 'curry': null, 'static': null, 'module':null };
   var IDS = JS2.Lexer.IDS;
   IDS['NODE'] = -1;
 
@@ -698,6 +715,23 @@ function mainFunction (arg) {
     }
   });
 
+  var Module = Klass.extend({
+    name: 'Module',
+    toString: function() {
+      var v    = this.validate(/(module)(\s+)/);
+      var last = v.last;
+      var m = last.match(/^([\w$]+(\.[\w$]+)*)(.*)$/);
+      if (m) {
+        var name = m[1];
+        var rest = m[3];
+        return JS2.DECORATOR.module(name, source);
+      } else {
+        // raise error
+      }
+    }
+  });
+
+
   var Block = Content.extend({
     name: 'Block',
     handleToken: function(token) {
@@ -714,6 +748,7 @@ function mainFunction (arg) {
         case 'var': return Member;
         case 'function': return Method;
         case 'static': return StaticMember;
+        case 'include': return Include;
       }
     },
 
@@ -725,8 +760,21 @@ function mainFunction (arg) {
 
     toString: function() {
       var str = this.$super();
-      return str.replace(/^{/, 'function(KLASS, OO){').replace(/}$/, "}");
+      return str.replace(/^{/, 'function(KLASS, OO){');
     }
+  });
+
+  var Include = Content.extend({
+    name: 'Include',
+    handleToken: function(token) {
+      if (token == ';') this.closed = true;
+    },
+
+    toString: function() {
+      var v = this.validate(/^(include)(\s+)/);
+      return "OO.include(" + v.last.replace(/;$/, ');');
+    }
+    
   });
 
   var StaticMember = Content.extend({
@@ -1328,6 +1376,10 @@ JS2.Class.extend('BrowserDecorator', function(KLASS, OO){
   OO.addMember("klass",function (name, par, source) {
     return par+".extend('"+name+"',"+source+");";
   });
+
+  OO.addMember("module",function (name, source) {
+    return "var "+name+"=exports['"+name+"']=JS2.Module.create("+source+");";
+  });
 });
 
 JS2.Class.extend('NodeDecorator', function(KLASS, OO){
@@ -1338,6 +1390,10 @@ JS2.Class.extend('NodeDecorator', function(KLASS, OO){
   OO.addMember("klass",function (name, par, source) {
     return "var "+name+"=exports['"+name+"']="+par+".extend("+source+");";
   });
+
+  OO.addMember("module",function (name, source) {
+    return "var "+name+"=exports['"+name+"']=JS2.Module.extend("+source+");";
+  });
 });
 
 JS2.Class.extend('RingoDecorator', function(KLASS, OO){
@@ -1347,6 +1403,10 @@ JS2.Class.extend('RingoDecorator', function(KLASS, OO){
 
   OO.addMember("klass",function (name, par, source) {
     return "var "+name+"=exports['"+name+"']="+par+".extend("+source+");";
+  });
+
+  OO.addMember("module",function (name, source) {
+    return "var "+name+"=exports['"+name+"']=JS2.Module.create("+source+");";
   });
 });
 

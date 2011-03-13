@@ -30,22 +30,33 @@ function mainFunction (arg) {
     this.klass = klass;
     this.par   = par;
 
-    this['static'] = {
-      methods: {},
-      members: {},
-    };
-
-    this.methods  = {};
-    this.members  = {};
+    this.members       = {};
+    this.staticMembers = {};
     this.children = [];
 
-    if (this.par) this.par.oo.children.push(klass);
+    if (this.par) this.par.OO.children.push(klass);
   };
 
   OO.prototype = {
     forbiddenMembers: { 
       'prototype': undefined, 
-      'oo': undefined 
+      'OO': undefined 
+    },
+ 
+    include: function(module) {
+      var members = module.OO.members;
+      for (var name in members) {
+        if (members.hasOwnProperty(name)) {
+          this.addMember(name, members[name]);
+        }
+      }
+
+      var staticMembers = module.OO.staticMembers;
+      for (var name in staticMembers) {
+        if (staticMembers.hasOwnProperty(name)) {
+          this.addStaticMember(name, staticMembers[name]);
+        }
+      }
     },
 
     createNamespace: function(name) {
@@ -80,6 +91,7 @@ function mainFunction (arg) {
       }
 
       proto[name] = member;
+      this.members[name] = member;
     },
 
     addStaticMember: function(name, member) {
@@ -92,14 +104,15 @@ function mainFunction (arg) {
       }
       
       this.klass[name] = member;
+      this.staticMembers[name] = member;
     }
   };
 
   JS2.Class = function() { this.initialize.apply(this, arguments); };
-  JS2.Class.oo = new OO(JS2.Class);
+  JS2.Class.OO = new OO(JS2.Class);
   JS2.Class.prototype = {
     initialize: function () {},
-    oo: JS2.Class.oo
+    oo: JS2.Class.OO
   };
 
   var namedClasses = {};
@@ -110,13 +123,13 @@ function mainFunction (arg) {
   var noInit = false;
   JS2.Class.extend = function(name, klassDef) {
     var klass = function() { if (!noInit) this.initialize.apply(this, arguments); };
-    klass.oo  = new OO(klass, this);
+    klass.OO  = new OO(klass, this);
 
     if (typeof name != 'string') {
       klassDef = name;
     } else {
       namedClasses[name] = klass;
-      var namespace = this.oo.createNamespace(name);
+      var namespace = this.OO.createNamespace(name);
       namespace[0][namespace[1]] = klass;
     }
 
@@ -126,8 +139,8 @@ function mainFunction (arg) {
     noInit = false;
 
     klass.prototype = proto;
-    var oo   = klass.oo;
-    proto.oo = oo;
+    var oo   = klass.OO;
+    proto.OO = oo;
 
     for (var name in this) {
       oo.addStaticMember(name, this[name]);
@@ -143,6 +156,8 @@ function mainFunction (arg) {
 
     return klass;
   };
+
+  JS2.Module = JS2.Class;
 
   var assert = {
     'eq': function(expected, actual) { if (expected != actual) console.log("Expected "+expected+", but got "+actual+".") },

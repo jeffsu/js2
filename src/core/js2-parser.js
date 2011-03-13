@@ -12,7 +12,7 @@
     }
   };
 
-  var KEYWORDS = { 'var': null, 'class': null, 'function': null, 'in': null, 'with': null, 'curry': null, 'static': null };
+  var KEYWORDS = { 'var': null, 'class': null, 'function': null, 'in': null, 'with': null, 'curry': null, 'static': null, 'module':null };
   var IDS = JS2.Lexer.IDS;
   IDS['NODE'] = -1;
 
@@ -165,6 +165,23 @@
     }
   });
 
+  var Module = Klass.extend({
+    name: 'Module',
+    toString: function() {
+      var v    = this.validate(/(module)(\s+)/);
+      var last = v.last;
+      var m = last.match(/^([\w$]+(\.[\w$]+)*)(.*)$/);
+      if (m) {
+        var name = m[1];
+        var rest = m[3];
+        return JS2.DECORATOR.module(name, source);
+      } else {
+        // raise error
+      }
+    }
+  });
+
+
   var Block = Content.extend({
     name: 'Block',
     handleToken: function(token) {
@@ -181,6 +198,7 @@
         case 'var': return Member;
         case 'function': return Method;
         case 'static': return StaticMember;
+        case 'include': return Include;
       }
     },
 
@@ -192,8 +210,21 @@
 
     toString: function() {
       var str = this.$super();
-      return str.replace(/^{/, 'function(KLASS, OO){').replace(/}$/, "}");
+      return str.replace(/^{/, 'function(KLASS, OO){');
     }
+  });
+
+  var Include = Content.extend({
+    name: 'Include',
+    handleToken: function(token) {
+      if (token == ';') this.closed = true;
+    },
+
+    toString: function() {
+      var v = this.validate(/^(include)(\s+)/);
+      return "OO.include(" + v.last.replace(/;$/, ');');
+    }
+    
   });
 
   var StaticMember = Content.extend({
