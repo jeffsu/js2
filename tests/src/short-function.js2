@@ -11,7 +11,7 @@ class Foo  {
   var foo   = 'correct';
 
   function testBound() {
-    this.bound.test1 = #(with this){ return this.foo; };
+    this.bound.test1 = #(binds this){ return this.foo; };
   }
 }
 

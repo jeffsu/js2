@@ -18,6 +18,7 @@ function mainFunction (arg) {
   var JS2 = root.JS2 = mainFunction;
   var js2 = root.js2 = JS2;
   js2.ROOT = JS2;
+  js2.VERSION = "0.3.5";
 
   
 // CLASS HELPERS
@@ -30,6 +31,7 @@ function mainFunction (arg) {
     this.members       = {};
     this.staticMembers = {};
     this.children = [];
+    this.included = [];
 
     if (this.par) this.par.OO.children.push(klass);
   };
@@ -41,6 +43,7 @@ function mainFunction (arg) {
     },
  
     include: function(module) {
+      this.included.push(module);
       var members = module.OO.members;
       for (var name in members) {
         if (members.hasOwnProperty(name)) {
@@ -53,6 +56,10 @@ function mainFunction (arg) {
         if (staticMembers.hasOwnProperty(name)) {
           this.addStaticMember(name, staticMembers[name]);
         }
+      }
+
+      if (typeof staticMembers['included'] == 'function') {
+        staticMembers['included'](this.klass);
       }
     },
 

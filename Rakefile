@@ -83,8 +83,9 @@ namespace :dist do
   task :erb do
     version = File.read('./VERSION').chomp
     def js(f)
+      command = ENV['COMMAND'] || 'js2-node'
       if (f.match(/\.js2$/)) 
-        return `js2-node render -f=browser ./src/#{f}`
+        return `#{command} render -f=browser ./src/#{f}`
       else
         return File.read("./src/#{f}")
       end

@@ -1,6 +1,7 @@
 class Commander {
   var BANNER = 
     "js2 <command> [options] <arguments>\n" +
+    "VERSION: " + js2.VERSION + "\n" +
     "Commands:\n" +
     "  * run <file>                -- Executes file\n" +
     "  * render <file>             -- Shows JS2 compiled output\n" +

@@ -7,7 +7,7 @@ class BrowserDecorator {
     return par+".extend('"+name+"',"+source+");";
   }
 
-  function module(name, source) {
+  function createModule(name, source) {
     return "var "+name+"=exports['"+name+"']=JS2.Module.create("+source+");";
   }
 }
@@ -21,7 +21,7 @@ class NodeDecorator {
     return "var "+name+"=exports['"+name+"']="+par+".extend("+source+");";
   }
 
-  function module(name, source) {
+  function createModule(name, source) {
     return "var "+name+"=exports['"+name+"']=JS2.Module.extend("+source+");";
   }
 }
@@ -35,7 +35,7 @@ class RingoDecorator {
     return "var "+name+"=exports['"+name+"']="+par+".extend("+source+");";
   }
 
-  function module(name, source) {
+  function createModule(name, source) {
     return "var "+name+"=exports['"+name+"']=JS2.Module.create("+source+");";
   }
 }

@@ -128,6 +128,7 @@
     handOff: function(token) {
       switch (token[1]) {
         case IDS.CLASS: return Klass;
+        case IDS.MODULE: return Module;
         case IDS.FOREACH: return Foreach;
         case IDS.SHORT_FUNCT: return ShortFunct;
         case IDS.CURRY: return Curry;
@@ -170,11 +171,11 @@
     toString: function() {
       var v    = this.validate(/(module)(\s+)/);
       var last = v.last;
-      var m = last.match(/^([\w$]+(\.[\w$]+)*)(.*)$/);
+      var m = last.match(/^([\w$]+(\.[\w$]+)*)/);
       if (m) {
-        var name = m[1];
-        var rest = m[3];
-        return JS2.DECORATOR.module(name, source);
+        var name   = m[1];
+        var source = last.substr(name.length);
+        return JS2.DECORATOR.createModule(name, source);
       } else {
         // raise error
       }
@@ -348,7 +349,7 @@
       if (!m) {}  // raise error
 
       return {
-        braces: m[1] || '()',
+        braces: '(' + (m[1] || '') + ')',
         scope:  m[5],
         binds:  m[9]
       };
@@ -370,15 +371,15 @@
         // need to pass in __self and bind to __self
         if (args.binds) {
           var comma = scope == '' ? '' : ',';
-          scope     = scope.replace(/^/,  args.binds + comma);
-          inScope   = scope.replace(/^/, '__self' + comma);
+          inScope = scope.replace(/^/, '__self' + comma);
+          scope   = scope.replace(/^/,  args.binds + comma);
           
-          return '(function' + inScopes + '{' + 'var f = function' + args.braces + body + ';' + ' return function() { return f.apply(__self, arguments)};})(' + scope + ')' + this.semi; 
+          return '(function(' + inScope + '){' + 'var f = function' + args.braces + body + ';' + ' return function() { return f.apply(__self, arguments)};})(' + scope + ')' + this.semi; 
         } 
         
         // no binding, just use scoping 
         else {
-          return '(function(' + inScope + '){' + 'return function' + args.braces + body + ';' + '};)(' + scope + ')' + this.semi; 
+          return '(function(' + inScope + '){' + 'return function' + args.braces + body + ';' + '})(' + scope + ')' + this.semi; 
         }
       } 
       

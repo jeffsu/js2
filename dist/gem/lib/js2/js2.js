@@ -14,6 +14,7 @@ function mainFunction (arg) {
 
   var JS2 = root.JS2 = mainFunction;
   var js2 = root.js2 = JS2;
+  js2.VERSION = "0.3.5";
 
   JS2.ROOT = JS2;
   
@@ -27,6 +28,7 @@ function mainFunction (arg) {
     this.members       = {};
     this.staticMembers = {};
     this.children = [];
+    this.included = [];
 
     if (this.par) this.par.OO.children.push(klass);
   };
@@ -38,6 +40,7 @@ function mainFunction (arg) {
     },
  
     include: function(module) {
+      this.included.push(module);
       var members = module.OO.members;
       for (var name in members) {
         if (members.hasOwnProperty(name)) {
@@ -50,6 +53,10 @@ function mainFunction (arg) {
         if (staticMembers.hasOwnProperty(name)) {
           this.addStaticMember(name, staticMembers[name]);
         }
+      }
+
+      if (typeof staticMembers['included'] == 'function') {
+        staticMembers['included'](this.klass);
       }
     },
 
@@ -676,6 +683,7 @@ function mainFunction (arg) {
     handOff: function(token) {
       switch (token[1]) {
         case IDS.CLASS: return Klass;
+        case IDS.MODULE: return Module;
         case IDS.FOREACH: return Foreach;
         case IDS.SHORT_FUNCT: return ShortFunct;
         case IDS.CURRY: return Curry;
@@ -718,11 +726,11 @@ function mainFunction (arg) {
     toString: function() {
       var v    = this.validate(/(module)(\s+)/);
       var last = v.last;
-      var m = last.match(/^([\w$]+(\.[\w$]+)*)(.*)$/);
+      var m = last.match(/^([\w$]+(\.[\w$]+)*)/);
       if (m) {
-        var name = m[1];
-        var rest = m[3];
-        return JS2.DECORATOR.module(name, source);
+        var name   = m[1];
+        var source = last.substr(name.length);
+        return JS2.DECORATOR.createModule(name, source);
       } else {
         // raise error
       }
@@ -896,7 +904,7 @@ function mainFunction (arg) {
       if (!m) {}  // raise error
 
       return {
-        braces: m[1] || '()',
+        braces: '(' + (m[1] || '') + ')',
         scope:  m[5],
         binds:  m[9]
       };
@@ -918,15 +926,15 @@ function mainFunction (arg) {
         // need to pass in __self and bind to __self
         if (args.binds) {
           var comma = scope == '' ? '' : ',';
-          scope     = scope.replace(/^/,  args.binds + comma);
-          inScope   = scope.replace(/^/, '__self' + comma);
+          inScope = scope.replace(/^/, '__self' + comma);
+          scope   = scope.replace(/^/,  args.binds + comma);
           
-          return '(function' + inScopes + '{' + 'var f = function' + args.braces + body + ';' + ' return function() { return f.apply(__self, arguments)};})(' + scope + ')' + this.semi; 
+          return '(function(' + inScope + '){' + 'var f = function' + args.braces + body + ';' + ' return function() { return f.apply(__self, arguments)};})(' + scope + ')' + this.semi; 
         } 
         
         // no binding, just use scoping 
         else {
-          return '(function(' + inScope + '){' + 'return function' + args.braces + body + ';' + '};)(' + scope + ')' + this.semi; 
+          return '(function(' + inScope + '){' + 'return function' + args.braces + body + ';' + '})(' + scope + ')' + this.semi; 
         }
       } 
       
@@ -1300,6 +1308,7 @@ JS2.Class.extend('Config', function(KLASS, OO){
 
 JS2.Class.extend('Commander', function(KLASS, OO){
   OO.addMember("BANNER","js2 <command> [options] <arguments>\n" +
+    "VERSION: " + js2.VERSION + "\n" +
     "Commands:\n" +
     "  * run <file>                -- Executes file\n" +
     "  * render <file>             -- Shows JS2 compiled output\n" +
@@ -1390,7 +1399,7 @@ JS2.Class.extend('BrowserDecorator', function(KLASS, OO){
     return par+".extend('"+name+"',"+source+");";
   });
 
-  OO.addMember("module",function (name, source) {
+  OO.addMember("createModule",function (name, source) {
     return "var "+name+"=exports['"+name+"']=JS2.Module.create("+source+");";
   });
 });
@@ -1404,7 +1413,7 @@ JS2.Class.extend('NodeDecorator', function(KLASS, OO){
     return "var "+name+"=exports['"+name+"']="+par+".extend("+source+");";
   });
 
-  OO.addMember("module",function (name, source) {
+  OO.addMember("createModule",function (name, source) {
     return "var "+name+"=exports['"+name+"']=JS2.Module.extend("+source+");";
   });
 });
@@ -1418,7 +1427,7 @@ JS2.Class.extend('RingoDecorator', function(KLASS, OO){
     return "var "+name+"=exports['"+name+"']="+par+".extend("+source+");";
   });
 
-  OO.addMember("module",function (name, source) {
+  OO.addMember("createModule",function (name, source) {
     return "var "+name+"=exports['"+name+"']=JS2.Module.create("+source+");";
   });
 });

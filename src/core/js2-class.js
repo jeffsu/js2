@@ -9,6 +9,7 @@
     this.members       = {};
     this.staticMembers = {};
     this.children = [];
+    this.included = [];
 
     if (this.par) this.par.OO.children.push(klass);
   };
@@ -20,6 +21,7 @@
     },
  
     include: function(module) {
+      this.included.push(module);
       var members = module.OO.members;
       for (var name in members) {
         if (members.hasOwnProperty(name)) {
@@ -32,6 +34,10 @@
         if (staticMembers.hasOwnProperty(name)) {
           this.addStaticMember(name, staticMembers[name]);
         }
+      }
+
+      if (typeof staticMembers['included'] == 'function') {
+        staticMembers['included'](this.klass);
       }
     },
 
