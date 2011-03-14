@@ -890,34 +890,49 @@ function mainFunction (arg) {
       }
     },
 
+    parseArgs: function(str) {
+      // (arg1, arg2 with scope1, scope2 binds bindingVar)
+      var m =  str.match(/^\((\s*([\w\$]+)(\s*,\s*[\w\$]+)*)?(\s*with\s+(([\w\$]+)(\s*,\s*[\w\$]+)*))?(\s*binds\s+(.+))?\)/);
+      if (!m) {}  // raise error
+
+      return {
+        braces: m[1] || '()',
+        scope:  m[5],
+        binds:  m[9]
+      };
+    },
 
     toString: function() {
       var scopes   = null;
       var inScopes = null;
 
       var v    = this.validate(/(#)(Braces)?(\s*)(Block)/);
-      var args = v[2] ? v[2].toString() : '($1,$2,$3)';
+      var args = this.parseArgs(v[2] ? v[2].toString() : '($1,$2,$3)');
       var body = v[4];
 
-      var braceSides = args.split(/\s*\bwith\b\s*/);
-      if (braceSides.length == 2) {
-        args   = braceSides[0] + ')';
-        scopes = '(' + braceSides[1];
-        inScopes = scopes;
-      }
+      // we need a function within a function
+      if (args.binds || args.scope) {
+        var scope   = args.scope || '';
+        var inScope = scope;
 
-
-      if (scopes && scopes.match(/\bthis\b/)) {
-        inScopes = inScopes.replace(/\bthis\b/, '__self');
-        return '(function' + inScopes + '{' + 'var f = function' + args + body + ';' + ' return function() { return f.apply(__self, arguments)};})' + scopes + this.semi; 
+        // need to pass in __self and bind to __self
+        if (args.binds) {
+          var comma = scope == '' ? '' : ',';
+          scope     = scope.replace(/^/,  args.binds + comma);
+          inScope   = scope.replace(/^/, '__self' + comma);
+          
+          return '(function' + inScopes + '{' + 'var f = function' + args.braces + body + ';' + ' return function() { return f.apply(__self, arguments)};})(' + scope + ')' + this.semi; 
+        } 
+        
+        // no binding, just use scoping 
+        else {
+          return '(function(' + inScope + '){' + 'return function' + args.braces + body + ';' + '};)(' + scope + ')' + this.semi; 
+        }
       } 
       
-      else if (scopes) {
-        return '(function' + inScopes + '{' + 'return function' + args + body + ';' + '})' + scopes + this.semi; 
-      } 
-      
+      // just a normal function
       else {
-        return "function" + args + body + this.semi;
+        return "function" + args.braces + body + this.semi;
       }
     }
   });
