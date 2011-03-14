@@ -218,7 +218,7 @@
   var Include = Content.extend({
     name: 'Include',
     handleToken: function(token) {
-      if (token == ';') this.closed = true;
+      if (token[0] == ';') this.closed = true;
     },
 
     toString: function() {

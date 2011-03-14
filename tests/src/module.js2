@@ -1,0 +1,15 @@
+module MyModule {
+  function bar() {
+    return 'bar';
+  }
+}
+
+class MyClass {
+  include MyModule;
+
+}
+
+var obj = new MyClass();
+js2.test(#(assert){
+  assert.eq(obj.bar(), 'bar');
+});
