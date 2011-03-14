@@ -1400,7 +1400,7 @@ JS2.Class.extend('BrowserDecorator', function(KLASS, OO){
   });
 
   OO.addMember("createModule",function (name, source) {
-    return "var "+name+"=exports['"+name+"']=JS2.Module.create("+source+");";
+    return "JS2.Module.extend('"+name+"',"+source+");";
   });
 });
 
@@ -1428,7 +1428,7 @@ JS2.Class.extend('RingoDecorator', function(KLASS, OO){
   });
 
   OO.addMember("createModule",function (name, source) {
-    return "var "+name+"=exports['"+name+"']=JS2.Module.create("+source+");";
+    return "var "+name+"=exports['"+name+"']=JS2.Module.extend("+source+");";
   });
 });
 

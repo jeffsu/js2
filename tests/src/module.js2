@@ -2,14 +2,18 @@ module MyModule {
   function bar() {
     return 'bar';
   }
+
+  static function bar() {
+    return 'static bar';
+  }
 }
 
 class MyClass {
   include MyModule;
-
 }
 
 var obj = new MyClass();
 js2.test(#(assert){
   assert.eq(obj.bar(), 'bar');
+  assert.eq(MyClass.bar(), 'static bar');
 });

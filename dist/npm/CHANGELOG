@@ -1,3 +1,7 @@
+0.3.5
+  * Added scope and binding support to shorthand functions
+	* Added support for modules
+
 0.3.4
   * coded reduce to clojure spec
   * fixed collect and some other iterators

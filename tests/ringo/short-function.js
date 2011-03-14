@@ -8,18 +8,22 @@ var scopeVar = "hello";
 var scope  = (function(scopeVar){return function(foo){ return scopeVar; };})(scopeVar);
 var scope2 = (function(scopeVar){return function(){ return scopeVar; };})(scopeVar);
 
-var boundVar = { hello: 'hello' };
+var Foo=exports['Foo']=JS2.Class.extend(  function(KLASS, OO){
+  OO.addMember("bound",{ foo: 'incorrect' });
+  OO.addMember("foo",'correct');
 
-var bound  = (function(__self){var f = function($1,$2,$3){ return this.hello; }; return function() { return f.apply(__self, arguments)};})(boundVar);
-var bound2 = (function(__self,scopeVar){var f = function(foo){ return this.hello + foo + scopeVar; }; return function() { return f.apply(__self, arguments)};})(boundVar,scopeVar);
-var bound3 = (function(__self,scopeVar){var f = function(){ return this.hello + scopeVar; }; return function() { return f.apply(__self, arguments)};})(boundVar,scopeVar);
+  OO.addMember("testBound",function () {
+    this.bound.test1 = (function(__self){var f = function(){ return this.foo; }; return function() { return f.apply(__self, arguments)};})(this);
+  });
+});
 
 js2.test(function(assert){
   assert.eq(simple('foo'), 'foo');
   assert.eq(args('foo'), 'foo');
   assert.eq(scope(), 'hello');
   assert.eq(scope2(), 'hello');
-  assert.eq(bound(), 'hello');
-  assert.eq(bound2('world'), 'helloworldhello');
-  assert.eq(bound3(), 'hellohello');
+
+  var foo = new Foo();
+  foo.testBound();
+  assert.eq(foo.bound.test1(), 'correct');
 });
