@@ -18,7 +18,7 @@ function mainFunction (arg) {
   var JS2 = root.JS2 = mainFunction;
   var js2 = root.js2 = JS2;
   js2.ROOT = JS2;
-  js2.VERSION = "0.3.5";
+  js2.VERSION = "0.3.6";
 
   
 // CLASS HELPERS

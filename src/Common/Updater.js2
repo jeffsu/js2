@@ -33,6 +33,7 @@ class Updater {
     if (! this.fs.isDirectory(dir)) this.fs.mkpath(dir);
 
     if (force || this.fs.mtime(file) > this.fs.mtime(outFile)) {
+      JS2.LOGGER.info(file + ' -> ' + outFile);
       if (funct) {
         this.fs.write(outFile, funct(JS2(this.fs.read(file))));
       } else {

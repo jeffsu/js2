@@ -1,30 +1,31 @@
 class Commander {
   var BANNER = 
     "js2 <command> [options] <arguments>\n" +
-    "VERSION: " + js2.VERSION + "\n" +
+    "VERSION: " + JS2.VERSION + "\n" +
     "Commands:\n" +
     "  * run <file>                -- Executes file\n" +
     "  * render <file>             -- Shows JS2 compiled output\n" +
     "  * compile <inDir> [outDir]  -- Compiles a directory and puts js files into outDir.  If outDir is not specified, inDir will be used\n" + 
     "    Options:\n" +
     "      -n                      -- Do NOT traverse directories recursively\n" +
+    "      -v                      -- Verbose \n" +
     "      -f=<format>             -- Compile for different formats: node, ringo, or browser\n" +
     "  * compile <file>            -- Compiles a single js2 file into js\n" +
     "  * watch <inDir> <outDir>    -- Similar to compile, but update will keep looping while watching for modifications\n" +
     "    Options:\n" +
     "      -n                      -- Do NOT traverse directories recursively\n" +
     "      -f=<format>             -- Compile for different formats: node, ringo, or browser\n" +
+    "      -v                      -- Verbose \n" +
     "      -i=<seconds>            -- Interval time in seconds between loops\n";
-
-  var DEFAULT_CONFIG = {
-    compile: { inDir: 'src', outDir: 'lib', recursive: true, decorator: 'Node'  },
-    watch: { inDir: 'src', outDir: 'lib', recursive: true, decorator: 'Node' }
-  };
 
   function initialize (argv) {
     this.fs      = JS2.fs;
     this.config  = new JS2.Config(this.fs, argv);
     this.command = this.config.command;
+
+    // HACK for now
+    JS2.VERBOSE = this.config.verbose || false;
+    JS2.LOGGER  = { info: #{ if (JS2.VERBOSE) console.log($1) } };
 
     switch(this.config.format) {
       case 'ringo':    JS2.DECORATOR = new JS2.RingoDecorator(); break;
@@ -42,7 +43,7 @@ class Commander {
   }
 
   function render() {
-    console.log(js2.render(this.fs.read(this.config.args[0])));
+    JS2.LOGGER.info(js2.render(this.fs.read(this.config.args[0])));
   }
 
   function run() {
@@ -68,12 +69,13 @@ class Commander {
     var updater = this.getUpdater();
     var self = this;
     var interval = this.config.interval || 2;
-    console.log('Input Directory:' + updater.inDir + ' -> Output Directory:' + updater.outDir);
-    if (updater.recursive) console.log('RECURSIVE');
+    JS2.LOGGER.info('Input Directory:' + updater.inDir + ' -> Output Directory:' + updater.outDir);
+    if (updater.recursive) JS2.LOGGER.info('RECURSIVE');
 
     // HACK to get this integrated with ruby
-    updater.update();
-    setInterval(#{ console.log('updating'); updater.update(true, #{ return JS2.DECORATOR.file($1); }); }, interval * 1000);
+    var decor = #{ return JS2.DECORATOR.file($1) };
+    updater.update(true, decor);
+    this.fs.setInterval(#{ JS2.LOGGER.info('updating'); updater.update(false, decor); }, interval * 1000);
   }
 
   function showBanner() {

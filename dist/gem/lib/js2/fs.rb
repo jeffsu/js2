@@ -47,7 +47,7 @@ class JS2::FS
 
   def setInterval(code, time)
     while true
-      @ctx.eval(code)
+      code.call()
       sleep(time/1000)
     end
   end

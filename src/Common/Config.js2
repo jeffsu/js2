@@ -1,9 +1,10 @@
 class Config {
-  var CLI_REGEX = /^-(r|i|f)(=(\w+))$/;
+  var CLI_REGEX = /^-(r|i|f|n|v)(=(\w+))?$/;
   var optsLookup = { 
     'n': 'non-recursive',
     'i': 'interval',
-    'f': 'format'
+    'f': 'format',
+    'v': 'verbose'
   };
 
   function initialize(fs, argv) {
@@ -47,6 +48,7 @@ class Config {
         this.interval  = config['interval'] ? config['interval'] : this.interval;
         this.sourceDir = config['source-dir'] || this.sourceDir;
         this.outDir    = config['out-dir'] || this.outDir;
+        this.verbose   = ('verbose' in config) ? config['verbose'] : false;
 
         this['non-recursive'] = config['non-recursive'];
 
