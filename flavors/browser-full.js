@@ -1255,6 +1255,7 @@ JS2.Class.extend('Config', function(KLASS, OO){
     'i': 'interval',
     'f': 'format',
     'v': 'verbose'
+    'm': 'use_mtime'
   });
 
   OO.addMember("initialize",function (fs, argv) {
@@ -1301,6 +1302,7 @@ JS2.Class.extend('Config', function(KLASS, OO){
         this.verbose   = ('verbose' in config) ? config['verbose'] : false;
 
         this['non-recursive'] = config['non-recursive'];
+        this['use-mtime']     = config['use-mtime'];
 
         return true;
       } catch(e) {
@@ -1370,7 +1372,8 @@ JS2.Class.extend('Commander', function(KLASS, OO){
 
   OO.addMember("compile",function () {
     var self = this;
-    this.getUpdater().update(true, function($1,$2,$3){ return JS2.DECORATOR.file($1); });
+    var force = this.config['use-mtime'] ? false : true;
+    this.getUpdater().update(force, function($1,$2,$3){ return JS2.DECORATOR.file($1); });
   });
 
   OO.addMember("getUpdater",function () {

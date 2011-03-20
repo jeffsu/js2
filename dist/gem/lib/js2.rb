@@ -20,6 +20,8 @@ module JS2
 end
 
 dirname = File.dirname(File.expand_path('', __FILE__))
+JS2::ROOT = dirname
+
 %W{ context fs command rack }.each do |f|
   require "#{dirname}/js2/#{f}"
 end

@@ -5,6 +5,7 @@ class Config {
     'i': 'interval',
     'f': 'format',
     'v': 'verbose'
+    'm': 'use_mtime'
   };
 
   function initialize(fs, argv) {
@@ -51,6 +52,7 @@ class Config {
         this.verbose   = ('verbose' in config) ? config['verbose'] : false;
 
         this['non-recursive'] = config['non-recursive'];
+        this['use-mtime']     = config['use-mtime'];
 
         return true;
       } catch(e) {

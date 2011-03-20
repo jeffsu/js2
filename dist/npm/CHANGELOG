@@ -1,4 +1,7 @@
 0.3.6
+  * Verbosity mode
+  * Fixed ruby file "watch" mode
+  * Cleaned up rack hooks
 
 0.3.5
   * Added scope and binding support to shorthand functions

@@ -56,7 +56,8 @@ class Commander {
 
   function compile() {
     var self = this;
-    this.getUpdater().update(true, #{ return JS2.DECORATOR.file($1); });
+    var force = this.config['use-mtime'] ? false : true;
+    this.getUpdater().update(force, #{ return JS2.DECORATOR.file($1); });
   }
 
   function getUpdater() {
