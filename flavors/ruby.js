@@ -1245,12 +1245,12 @@ JS2.Class.extend('Updater', function(KLASS, OO){
 
 
 JS2.Class.extend('Config', function(KLASS, OO){
-  OO.addMember("CLI_REGEX",/^-(r|i|f|n|v)(=(\w+))?$/);
+  OO.addMember("CLI_REGEX",/^-(r|i|f|n|v|m)(=(\w+))?$/);
   OO.addMember("optsLookup",{ 
     'n': 'non-recursive',
     'i': 'interval',
     'f': 'format',
-    'v': 'verbose'
+    'v': 'verbose',
     'm': 'use_mtime'
   });
 

@@ -1,10 +1,10 @@
 class Config {
-  var CLI_REGEX = /^-(r|i|f|n|v)(=(\w+))?$/;
+  var CLI_REGEX = /^-(r|i|f|n|v|m)(=(\w+))?$/;
   var optsLookup = { 
     'n': 'non-recursive',
     'i': 'interval',
     'f': 'format',
-    'v': 'verbose'
+    'v': 'verbose',
     'm': 'use_mtime'
   };
 

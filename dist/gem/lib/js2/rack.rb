@@ -1,5 +1,4 @@
 require 'yaml'
-require 'ftools'
 
 module JS2
   # this is a hack for now until I can get v8 stable
@@ -16,12 +15,12 @@ module JS2
     def initialize(app)
       @app = app
 
-      config = YAML.read_file(ROOT + '/config/js2.yml') rescue DEFAULT_CONFIG
+      config = YAML.load_file(ROOT + '/config/js2.yml') rescue DEFAULT_CONFIG
 
-      @source_dir = config['source_dir']
-      @out_dir    = config['out_dir']
-      @bin        = config['bin']
-      @copy_js2   = config['copy_js2']
+      @source_dir = config['source_dir'] || './app/js2'
+      @out_dir    = config['out_dir'] || './public/javascripts'
+      @bin        = config['bin'] || 'js2'
+      @copy_js2   = config.has_key?('copy_js2') ? config['copy_js2'] : true
 
       @valid = @source_dir && @out_dir && !@bin.blank?
 
@@ -35,11 +34,11 @@ module JS2
         to_file = ROOT + '/public/javascripts/js2.js'
         unless File.exists?(to_file) 
           from_file = JS2::ROOT + '/js2/browser.js'
-          File.copy(from_file, to_file)
+          File.open(to_file, 'w') { |f| f << File.read(from_file) }
         end
       end
 
-      `#{@bin} compile -f=browser #{@source_dir} #{@out_dir}` if @valid
+      `#{@bin} compile -f=browser -m #{@source_dir} #{@out_dir}` if @valid
       @app.call(env)
     end
   end
