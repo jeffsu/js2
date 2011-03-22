@@ -18,6 +18,7 @@ function mainFunction (arg) {
 
   var JS2 = root.JS2 = mainFunction;
   var js2 = root.js2 = JS2;
+  js2.VERSION = "0.3.6";
 
   JS2.ROOT = JS2;
   
@@ -28,22 +29,39 @@ function mainFunction (arg) {
     this.klass = klass;
     this.par   = par;
 
-    this['static'] = {
-      methods: {},
-      members: {},
-    };
-
-    this.methods  = {};
-    this.members  = {};
+    this.members       = {};
+    this.staticMembers = {};
     this.children = [];
+    this.included = [];
 
-    if (this.par) this.par.oo.children.push(klass);
+    if (this.par) this.par.OO.children.push(klass);
   };
 
   OO.prototype = {
     forbiddenMembers: { 
       'prototype': undefined, 
-      'oo': undefined 
+      'OO': undefined 
+    },
+ 
+    include: function(module) {
+      this.included.push(module);
+      var members = module.OO.members;
+      for (var name in members) {
+        if (members.hasOwnProperty(name)) {
+          this.addMember(name, members[name]);
+        }
+      }
+
+      var staticMembers = module.OO.staticMembers;
+      for (var name in staticMembers) {
+        if (staticMembers.hasOwnProperty(name)) {
+          this.addStaticMember(name, staticMembers[name]);
+        }
+      }
+
+      if (typeof staticMembers['included'] == 'function') {
+        staticMembers['included'](this.klass);
+      }
     },
 
     createNamespace: function(name) {
@@ -78,6 +96,7 @@ function mainFunction (arg) {
       }
 
       proto[name] = member;
+      this.members[name] = member;
     },
 
     addStaticMember: function(name, member) {
@@ -90,14 +109,15 @@ function mainFunction (arg) {
       }
       
       this.klass[name] = member;
+      this.staticMembers[name] = member;
     }
   };
 
   JS2.Class = function() { this.initialize.apply(this, arguments); };
-  JS2.Class.oo = new OO(JS2.Class);
+  JS2.Class.OO = new OO(JS2.Class);
   JS2.Class.prototype = {
     initialize: function () {},
-    oo: JS2.Class.oo
+    oo: JS2.Class.OO
   };
 
   var namedClasses = {};
@@ -108,13 +128,13 @@ function mainFunction (arg) {
   var noInit = false;
   JS2.Class.extend = function(name, klassDef) {
     var klass = function() { if (!noInit) this.initialize.apply(this, arguments); };
-    klass.oo  = new OO(klass, this);
+    klass.OO  = new OO(klass, this);
 
     if (typeof name != 'string') {
       klassDef = name;
     } else {
       namedClasses[name] = klass;
-      var namespace = this.oo.createNamespace(name);
+      var namespace = this.OO.createNamespace(name);
       namespace[0][namespace[1]] = klass;
     }
 
@@ -124,8 +144,8 @@ function mainFunction (arg) {
     noInit = false;
 
     klass.prototype = proto;
-    var oo   = klass.oo;
-    proto.oo = oo;
+    var oo   = klass.OO;
+    proto.OO = oo;
 
     for (var name in this) {
       oo.addStaticMember(name, this[name]);
@@ -141,6 +161,8 @@ function mainFunction (arg) {
 
     return klass;
   };
+
+  JS2.Module = JS2.Class;
 
   var assert = {
     'eq': function(expected, actual) { if (expected != actual) console.log("Expected "+expected+", but got "+actual+".") },
@@ -163,7 +185,9 @@ function mainFunction (arg) {
     [ 'SPACE', "\\s+" ],
     [ 'REGEX', "\\/" ],
     [ 'CLASS', "class" ],
+    [ 'MODULE', "module" ],
     [ 'STATIC', "static" ],
+    [ 'include', "include" ],
     [ 'SHORT_FUNCT', "#\\{|#\\(" ],
     [ 'FOREACH', "foreach" ],
     [ 'CURRY', "curry" ],
@@ -441,6 +465,7 @@ function mainFunction (arg) {
       this.index  = 0;
       this.str    = str;
       this.orig   = str;
+      this.before = [];
     },
 
     toArray: function() {
@@ -482,7 +507,9 @@ function mainFunction (arg) {
     },
 
     pop: function() {
-      return this.tokens.pop();
+      var ret = this.tokens.pop();
+      this.before.push(ret);
+      return ret;
     },
 
     peek: function() {
@@ -498,6 +525,7 @@ function mainFunction (arg) {
         case '(': this.braceCount++; break;
         case ')': this.braceCount--; break;
       }
+      this.before.unshift(token);
       return token;
     },
 
@@ -543,7 +571,7 @@ function mainFunction (arg) {
     }
   };
 
-  var KEYWORDS = { 'var': null, 'class': null, 'function': null, 'in': null, 'with': null, 'curry': null, 'static': null };
+  var KEYWORDS = { 'var': null, 'class': null, 'function': null, 'in': null, 'with': null, 'curry': null, 'static': null, 'module':null };
   var IDS = JS2.Lexer.IDS;
   IDS['NODE'] = -1;
 
@@ -659,6 +687,7 @@ function mainFunction (arg) {
     handOff: function(token) {
       switch (token[1]) {
         case IDS.CLASS: return Klass;
+        case IDS.MODULE: return Module;
         case IDS.FOREACH: return Foreach;
         case IDS.SHORT_FUNCT: return ShortFunct;
         case IDS.CURRY: return Curry;
@@ -696,6 +725,23 @@ function mainFunction (arg) {
     }
   });
 
+  var Module = Klass.extend({
+    name: 'Module',
+    toString: function() {
+      var v    = this.validate(/(module)(\s+)/);
+      var last = v.last;
+      var m = last.match(/^([\w$]+(\.[\w$]+)*)/);
+      if (m) {
+        var name   = m[1];
+        var source = last.substr(name.length);
+        return JS2.DECORATOR.createModule(name, source);
+      } else {
+        // raise error
+      }
+    }
+  });
+
+
   var Block = Content.extend({
     name: 'Block',
     handleToken: function(token) {
@@ -712,6 +758,7 @@ function mainFunction (arg) {
         case 'var': return Member;
         case 'function': return Method;
         case 'static': return StaticMember;
+        case 'include': return Include;
       }
     },
 
@@ -723,8 +770,21 @@ function mainFunction (arg) {
 
     toString: function() {
       var str = this.$super();
-      return str.replace(/^{/, 'function(KLASS, OO){').replace(/}$/, "}");
+      return str.replace(/^{/, 'function(KLASS, OO){');
     }
+  });
+
+  var Include = Content.extend({
+    name: 'Include',
+    handleToken: function(token) {
+      if (token[0] == ';') this.closed = true;
+    },
+
+    toString: function() {
+      var v = this.validate(/^(include)(\s+)/);
+      return "OO.include(" + v.last.replace(/;$/, ');');
+    }
+    
   });
 
   var StaticMember = Content.extend({
@@ -833,9 +893,8 @@ function mainFunction (arg) {
     handOff: function(token) {
       if (this.started) {
         this.closed = true;
-        var foo = (new Validator(this.tokens.toArray())).getString(2);
         this.semi = (new Validator(this.tokens.toArray())).validate(/^(\s*)([^\s\w$])/, 2) ? '' : ';';
-      }
+      } 
 
       switch (token[0]) {
         case '(': return Braces;
@@ -843,9 +902,50 @@ function mainFunction (arg) {
       }
     },
 
+    parseArgs: function(str) {
+      // (arg1, arg2 with scope1, scope2 binds bindingVar)
+      var m =  str.match(/^\((\s*([\w\$]+)(\s*,\s*[\w\$]+)*)?(\s*with\s+(([\w\$]+)(\s*,\s*[\w\$]+)*))?(\s*binds\s+(.+))?\)/);
+      if (!m) {}  // raise error
+
+      return {
+        braces: '(' + (m[1] || '') + ')',
+        scope:  m[5],
+        binds:  m[9]
+      };
+    },
+
     toString: function() {
-      var v = this.validate(/(#)(Braces)?(\s*)(Block)/);
-      return "function" + (v[2] ? v[2] : "($1,$2,$3)") + v[4] + this.semi;
+      var scopes   = null;
+      var inScopes = null;
+
+      var v    = this.validate(/(#)(Braces)?(\s*)(Block)/);
+      var args = this.parseArgs(v[2] ? v[2].toString() : '($1,$2,$3)');
+      var body = v[4];
+
+      // we need a function within a function
+      if (args.binds || args.scope) {
+        var scope   = args.scope || '';
+        var inScope = scope;
+
+        // need to pass in __self and bind to __self
+        if (args.binds) {
+          var comma = scope == '' ? '' : ',';
+          inScope = scope.replace(/^/, '__self' + comma);
+          scope   = scope.replace(/^/,  args.binds + comma);
+          
+          return '(function(' + inScope + '){' + 'var f = function' + args.braces + body + ';' + ' return function() { return f.apply(__self, arguments)};})(' + scope + ')' + this.semi; 
+        } 
+        
+        // no binding, just use scoping 
+        else {
+          return '(function(' + inScope + '){' + 'return function' + args.braces + body + ';' + '})(' + scope + ')' + this.semi; 
+        }
+      } 
+      
+      // just a normal function
+      else {
+        return "function" + args.braces + body + this.semi;
+      }
     }
   });
 
@@ -1137,6 +1237,7 @@ JS2.Class.extend('Updater', function(KLASS, OO){
     if (! this.fs.isDirectory(dir)) this.fs.mkpath(dir);
 
     if (force || this.fs.mtime(file) > this.fs.mtime(outFile)) {
+      JS2.LOGGER.info(file + ' -> ' + outFile);
       if (funct) {
         this.fs.write(outFile, funct(JS2(this.fs.read(file))));
       } else {
@@ -1148,11 +1249,13 @@ JS2.Class.extend('Updater', function(KLASS, OO){
 
 
 JS2.Class.extend('Config', function(KLASS, OO){
-  OO.addMember("CLI_REGEX",/^-(r|i|f)(=(\w+))$/);
+  OO.addMember("CLI_REGEX",/^-(r|i|f|n|v|m)(=(\w+))?$/);
   OO.addMember("optsLookup",{ 
     'n': 'non-recursive',
     'i': 'interval',
-    'f': 'format'
+    'f': 'format',
+    'v': 'verbose',
+    'm': 'use_mtime'
   });
 
   OO.addMember("initialize",function (fs, argv) {
@@ -1196,8 +1299,10 @@ JS2.Class.extend('Config', function(KLASS, OO){
         this.interval  = config['interval'] ? config['interval'] : this.interval;
         this.sourceDir = config['source-dir'] || this.sourceDir;
         this.outDir    = config['out-dir'] || this.outDir;
+        this.verbose   = ('verbose' in config) ? config['verbose'] : false;
 
         this['non-recursive'] = config['non-recursive'];
+        this['use-mtime']     = config['use-mtime'];
 
         return true;
       } catch(e) {
@@ -1212,29 +1317,31 @@ JS2.Class.extend('Config', function(KLASS, OO){
 
 JS2.Class.extend('Commander', function(KLASS, OO){
   OO.addMember("BANNER","js2 <command> [options] <arguments>\n" +
+    "VERSION: " + JS2.VERSION + "\n" +
     "Commands:\n" +
     "  * run <file>                -- Executes file\n" +
     "  * render <file>             -- Shows JS2 compiled output\n" +
     "  * compile <inDir> [outDir]  -- Compiles a directory and puts js files into outDir.  If outDir is not specified, inDir will be used\n" + 
     "    Options:\n" +
     "      -n                      -- Do NOT traverse directories recursively\n" +
+    "      -v                      -- Verbose \n" +
     "      -f=<format>             -- Compile for different formats: node, ringo, or browser\n" +
     "  * compile <file>            -- Compiles a single js2 file into js\n" +
     "  * watch <inDir> <outDir>    -- Similar to compile, but update will keep looping while watching for modifications\n" +
     "    Options:\n" +
     "      -n                      -- Do NOT traverse directories recursively\n" +
     "      -f=<format>             -- Compile for different formats: node, ringo, or browser\n" +
+    "      -v                      -- Verbose \n" +
     "      -i=<seconds>            -- Interval time in seconds between loops\n");
-
-  OO.addMember("DEFAULT_CONFIG",{
-    compile: { inDir: 'src', outDir: 'lib', recursive: true, decorator: 'Node'  },
-    watch: { inDir: 'src', outDir: 'lib', recursive: true, decorator: 'Node' }
-  });
 
   OO.addMember("initialize",function (argv) {
     this.fs      = JS2.fs;
     this.config  = new JS2.Config(this.fs, argv);
     this.command = this.config.command;
+
+    // HACK for now
+    JS2.VERBOSE = this.config.verbose || false;
+    JS2.LOGGER  = { info: function($1,$2,$3){ if (JS2.VERBOSE) console.log($1) } };
 
     switch(this.config.format) {
       case 'ringo':    JS2.DECORATOR = new JS2.RingoDecorator(); break;
@@ -1252,7 +1359,7 @@ JS2.Class.extend('Commander', function(KLASS, OO){
   });
 
   OO.addMember("render",function () {
-    console.log(js2.render(this.fs.read(this.config.args[0])));
+    JS2.LOGGER.info(js2.render(this.fs.read(this.config.args[0])));
   });
 
   OO.addMember("run",function () {
@@ -1265,7 +1372,8 @@ JS2.Class.extend('Commander', function(KLASS, OO){
 
   OO.addMember("compile",function () {
     var self = this;
-    this.getUpdater().update(true, function($1,$2,$3){ return JS2.DECORATOR.file($1); });
+    var force = this.config['use-mtime'] ? false : true;
+    this.getUpdater().update(force, function($1,$2,$3){ return JS2.DECORATOR.file($1); });
   });
 
   OO.addMember("getUpdater",function () {
@@ -1278,12 +1386,13 @@ JS2.Class.extend('Commander', function(KLASS, OO){
     var updater = this.getUpdater();
     var self = this;
     var interval = this.config.interval || 2;
-    console.log('Input Directory:' + updater.inDir + ' -> Output Directory:' + updater.outDir);
-    if (updater.recursive) console.log('RECURSIVE');
+    JS2.LOGGER.info('Input Directory:' + updater.inDir + ' -> Output Directory:' + updater.outDir);
+    if (updater.recursive) JS2.LOGGER.info('RECURSIVE');
 
     // HACK to get this integrated with ruby
-    updater.update();
-    setInterval(function($1,$2,$3){ console.log('updating'); updater.update(true, function($1,$2,$3){ return JS2.DECORATOR.file($1); }); }, interval * 1000);
+    var decor = function($1,$2,$3){ return JS2.DECORATOR.file($1) };
+    updater.update(true, decor);
+    this.fs.setInterval(function($1,$2,$3){ JS2.LOGGER.info('updating'); updater.update(false, decor); }, interval * 1000);
   });
 
   OO.addMember("showBanner",function () {
@@ -1301,6 +1410,10 @@ JS2.Class.extend('BrowserDecorator', function(KLASS, OO){
   OO.addMember("klass",function (name, par, source) {
     return par+".extend('"+name+"',"+source+");";
   });
+
+  OO.addMember("createModule",function (name, source) {
+    return "JS2.Module.extend('"+name+"',"+source+");";
+  });
 });
 
 JS2.Class.extend('NodeDecorator', function(KLASS, OO){
@@ -1311,6 +1424,10 @@ JS2.Class.extend('NodeDecorator', function(KLASS, OO){
   OO.addMember("klass",function (name, par, source) {
     return "var "+name+"=exports['"+name+"']="+par+".extend("+source+");";
   });
+
+  OO.addMember("createModule",function (name, source) {
+    return "var "+name+"=exports['"+name+"']=JS2.Module.extend("+source+");";
+  });
 });
 
 JS2.Class.extend('RingoDecorator', function(KLASS, OO){
@@ -1320,6 +1437,10 @@ JS2.Class.extend('RingoDecorator', function(KLASS, OO){
 
   OO.addMember("klass",function (name, par, source) {
     return "var "+name+"=exports['"+name+"']="+par+".extend("+source+");";
+  });
+
+  OO.addMember("createModule",function (name, source) {
+    return "var "+name+"=exports['"+name+"']=JS2.Module.extend("+source+");";
   });
 });
 
