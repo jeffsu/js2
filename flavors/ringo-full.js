@@ -16,7 +16,7 @@ function mainFunction (arg) {
 
   var JS2 = root.JS2 = mainFunction;
   var js2 = root.js2 = JS2;
-  js2.VERSION = "0.3.6";
+  js2.VERSION = "0.3.7";
 
   JS2.ROOT = JS2;
   
@@ -847,7 +847,7 @@ function mainFunction (arg) {
   });
 
   var Foreach = Content.extend({
-    cache: { count: 1 },
+    cache: { count: 0 },
     name: 'Foreach',
     handOff: function(token) {
       if (this.started) {
@@ -860,12 +860,15 @@ function mainFunction (arg) {
     },
 
     toString: function() {
+      this.cache.count++;
       var v = this.validate(/(foreach)(\s*)(Braces)(\s*)(Block)/);
-      return "for" + this.getBrace(v[3]) + v[5].toString();
+      var ret =  "for" + this.getBrace(v[3]) + v[5].toString();
+      this.cache.count--;
+      return ret;
     },
 
     getBrace: function(brace) {
-      var n = this.cache.count++;
+      var n = this.cache.count;
       var iteratorName   = "_i" + n;
       var collectionName = "_c" + n;
       var l = "_l" + n;

@@ -290,7 +290,7 @@
   });
 
   var Foreach = Content.extend({
-    cache: { count: 1 },
+    cache: { count: 0 },
     name: 'Foreach',
     handOff: function(token) {
       if (this.started) {
@@ -303,12 +303,15 @@
     },
 
     toString: function() {
+      this.cache.count++;
       var v = this.validate(/(foreach)(\s*)(Braces)(\s*)(Block)/);
-      return "for" + this.getBrace(v[3]) + v[5].toString();
+      var ret =  "for" + this.getBrace(v[3]) + v[5].toString();
+      this.cache.count--;
+      return ret;
     },
 
     getBrace: function(brace) {
-      var n = this.cache.count++;
+      var n = this.cache.count;
       var iteratorName   = "_i" + n;
       var collectionName = "_c" + n;
       var l = "_l" + n;
