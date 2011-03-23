@@ -13,7 +13,7 @@ class Config {
     this.recursive = true;
     this.interval  = 2;
     this.sourceDir = './app/js2';
-    this.outDir    = './public/javascripts';
+    this.targetDir = './public/javascripts';
     this.args      = [];
 
     this.fs = fs;
@@ -48,7 +48,7 @@ class Config {
         this.format    = config.format || this.format;
         this.interval  = config['interval'] ? config['interval'] : this.interval;
         this.sourceDir = config['source-dir'] || this.sourceDir;
-        this.outDir    = config['out-dir'] || this.outDir;
+        this.targetDir = config['target-dir'] || this.targetDir;
         this.verbose   = ('verbose' in config) ? config['verbose'] : false;
 
         this['non-recursive'] = config['non-recursive'];

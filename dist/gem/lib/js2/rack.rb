@@ -7,7 +7,7 @@ module JS2
 
     DEFAULT_CONFIG = {
       'source_dir'  => "#{ROOT}/app/js2",
-      'out_dir'     => "#{ROOT}/public/javascripts",
+      'target_dir'  => "#{ROOT}/public/javascripts",
       'bin'         => (`which js2`.chomp rescue nil),
       'copy_js2'    => true
     }
@@ -18,11 +18,11 @@ module JS2
       config = YAML.load_file(ROOT + '/config/js2.yml') rescue DEFAULT_CONFIG
 
       @source_dir = config['source_dir'] || './app/js2'
-      @out_dir    = config['out_dir'] || './public/javascripts'
+      @target_dir = config['target_dir'] || './public/javascripts'
       @bin        = config['bin'] || 'js2'
       @copy_js2   = config.has_key?('copy_js2') ? config['copy_js2'] : true
 
-      @valid = @source_dir && @out_dir && !@bin.blank?
+      @valid = @source_dir && @target_dir && !@bin.blank?
 
       unless @valid
         puts "JS2 is not configured properly"
@@ -38,7 +38,7 @@ module JS2
         end
       end
 
-      `#{@bin} compile -f=browser -m #{@source_dir} #{@out_dir}` if @valid
+      `#{@bin} compile -f=browser -m #{@source_dir} #{@target_dir}` if @valid
       @app.call(env)
     end
   end

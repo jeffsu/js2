@@ -3,20 +3,20 @@ class Commander {
     "js2 <command> [options] <arguments>\n" +
     "VERSION: " + JS2.VERSION + "\n" +
     "Commands:\n" +
-    "  * run <file>                -- Executes file\n" +
-    "  * render <file>             -- Shows JS2 compiled output\n" +
-    "  * compile <inDir> [outDir]  -- Compiles a directory and puts js files into outDir.  If outDir is not specified, inDir will be used\n" + 
+    "  * run <file>                         -- Executes file\n" +
+    "  * render <file>                      -- Shows JS2 compiled output\n" +
+    "  * compile <source dir> [target dir]  -- Compiles a directory and puts js files into target dir.  If target dir is not specified, source dir will be used\n" + 
     "    Options:\n" +
-    "      -n                      -- Do NOT traverse directories recursively\n" +
-    "      -v                      -- Verbose \n" +
-    "      -f=<format>             -- Compile for different formats: node, ringo, or browser\n" +
-    "  * compile <file>            -- Compiles a single js2 file into js\n" +
-    "  * watch <inDir> <outDir>    -- Similar to compile, but update will keep looping while watching for modifications\n" +
-    "    Options:\n" +
-    "      -n                      -- Do NOT traverse directories recursively\n" +
-    "      -f=<format>             -- Compile for different formats: node, ringo, or browser\n" +
-    "      -v                      -- Verbose \n" +
-    "      -i=<seconds>            -- Interval time in seconds between loops\n";
+    "      -n                               -- Do NOT traverse directories recursively\n" +
+    "      -v                               -- Verbose \n" +
+    "      -f=<format>                      -- Compile for different formats: node, ringo, or browser\n" +
+    "  * compile <file>                     -- Compiles a single js2 file into js\n" +
+    "  * watch <source dir> <target dir>    -- Similar to compile, but update will keep looping while watching for modifications\n" +
+    "    Options:\n" +                      
+    "      -n                               -- Do NOT traverse directories recursively\n" +
+    "      -f=<format>                      -- Compile for different formats: node, ringo, or browser\n" +
+    "      -v                               -- Verbose \n" +
+    "      -i=<seconds>                     -- Interval time in seconds between loops\n";
 
   function initialize (argv) {
     this.fs      = JS2.fs;
@@ -61,16 +61,16 @@ class Commander {
   }
 
   function getUpdater() {
-    var inDir  = this.config.args[0] || this.config.sourceDir || '.';
-    var outDir = this.config.args[1] || this.config.outDir || inDir;
-    return new JS2.Updater(this.fs, inDir, outDir, this.config.recursive);
+    var inDir     = this.config.args[0] || this.config.sourceDir || '.';
+    var targetDir = this.config.args[1] || this.config.outDir || inDir;
+    return new JS2.Updater(this.fs, inDir, targetDir, this.config.recursive);
   }
 
   function watch() {
     var updater = this.getUpdater();
     var self = this;
     var interval = this.config.interval || 2;
-    JS2.LOGGER.info('Input Directory:' + updater.inDir + ' -> Output Directory:' + updater.outDir);
+    JS2.LOGGER.info('Source Directory:' + updater.inDir + ' -> Target Directory:' + updater.targetDir);
     if (updater.recursive) JS2.LOGGER.info('RECURSIVE');
 
     // HACK to get this integrated with ruby
