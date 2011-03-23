@@ -45,6 +45,11 @@ class Config {
       try {
         var config = JSON.parse(this.fs.read(file).replace(/\n\r?/g, ''));
 
+        if (config['out-dir']) {
+          config['target-dir'] = config['target-dir'] || config['out-dir'];
+          console.log("Please use target-dir instead of out-dir");
+        }
+
         this.format    = config.format || this.format;
         this.interval  = config['interval'] ? config['interval'] : this.interval;
         this.sourceDir = config['source-dir'] || this.sourceDir;
