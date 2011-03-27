@@ -14,7 +14,7 @@ function mainFunction (arg) {
 
   var JS2 = root.JS2 = mainFunction;
   var js2 = root.js2 = JS2;
-  js2.VERSION = "0.3.7";
+  js2.VERSION = "0.3.8";
 
   JS2.ROOT = JS2;
   
@@ -1262,7 +1262,7 @@ JS2.Class.extend('Config', function(KLASS, OO){
     this.recursive = true;
     this.interval  = 2;
     this.sourceDir = './app/js2';
-    this.outDir    = './public/javascripts';
+    this.targetDir = './public/javascripts';
     this.args      = [];
 
     this.fs = fs;
@@ -1294,10 +1294,15 @@ JS2.Class.extend('Config', function(KLASS, OO){
       try {
         var config = JSON.parse(this.fs.read(file).replace(/\n\r?/g, ''));
 
+        if (config['out-dir']) {
+          config['target-dir'] = config['target-dir'] || config['out-dir'];
+          console.log("Please use target-dir instead of out-dir");
+        }
+
         this.format    = config.format || this.format;
         this.interval  = config['interval'] ? config['interval'] : this.interval;
         this.sourceDir = config['source-dir'] || this.sourceDir;
-        this.outDir    = config['out-dir'] || this.outDir;
+        this.targetDir = config['target-dir'] || this.targetDir;
         this.verbose   = ('verbose' in config) ? config['verbose'] : false;
 
         this['non-recursive'] = config['non-recursive'];
@@ -1318,20 +1323,20 @@ JS2.Class.extend('Commander', function(KLASS, OO){
   OO.addMember("BANNER","js2 <command> [options] <arguments>\n" +
     "VERSION: " + JS2.VERSION + "\n" +
     "Commands:\n" +
-    "  * run <file>                -- Executes file\n" +
-    "  * render <file>             -- Shows JS2 compiled output\n" +
-    "  * compile <inDir> [outDir]  -- Compiles a directory and puts js files into outDir.  If outDir is not specified, inDir will be used\n" + 
+    "  * run <file>                         -- Executes file\n" +
+    "  * render <file>                      -- Shows JS2 compiled output\n" +
+    "  * compile <source dir> [target dir]  -- Compiles a directory and puts js files into target dir.  If target dir is not specified, source dir will be used\n" + 
     "    Options:\n" +
-    "      -n                      -- Do NOT traverse directories recursively\n" +
-    "      -v                      -- Verbose \n" +
-    "      -f=<format>             -- Compile for different formats: node, ringo, or browser\n" +
-    "  * compile <file>            -- Compiles a single js2 file into js\n" +
-    "  * watch <inDir> <outDir>    -- Similar to compile, but update will keep looping while watching for modifications\n" +
-    "    Options:\n" +
-    "      -n                      -- Do NOT traverse directories recursively\n" +
-    "      -f=<format>             -- Compile for different formats: node, ringo, or browser\n" +
-    "      -v                      -- Verbose \n" +
-    "      -i=<seconds>            -- Interval time in seconds between loops\n");
+    "      -n                               -- Do NOT traverse directories recursively\n" +
+    "      -v                               -- Verbose \n" +
+    "      -f=<format>                      -- Compile for different formats: node, ringo, or browser\n" +
+    "  * compile <file>                     -- Compiles a single js2 file into js\n" +
+    "  * watch <source dir> <target dir>    -- Similar to compile, but update will keep looping while watching for modifications\n" +
+    "    Options:\n" +                      
+    "      -n                               -- Do NOT traverse directories recursively\n" +
+    "      -f=<format>                      -- Compile for different formats: node, ringo, or browser\n" +
+    "      -v                               -- Verbose \n" +
+    "      -i=<seconds>                     -- Interval time in seconds between loops\n");
 
   OO.addMember("initialize",function (argv) {
     this.fs      = JS2.fs;
@@ -1358,7 +1363,7 @@ JS2.Class.extend('Commander', function(KLASS, OO){
   });
 
   OO.addMember("render",function () {
-    JS2.LOGGER.info(js2.render(this.fs.read(this.config.args[0])));
+    console.log(js2.render(this.fs.read(this.config.args[0])));
   });
 
   OO.addMember("run",function () {
@@ -1376,16 +1381,16 @@ JS2.Class.extend('Commander', function(KLASS, OO){
   });
 
   OO.addMember("getUpdater",function () {
-    var inDir  = this.config.args[0] || this.config.sourceDir || '.';
-    var outDir = this.config.args[1] || this.config.outDir || inDir;
-    return new JS2.Updater(this.fs, inDir, outDir, this.config.recursive);
+    var inDir     = this.config.args[0] || this.config.sourceDir || '.';
+    var targetDir = this.config.args[1] || this.config.outDir || inDir;
+    return new JS2.Updater(this.fs, inDir, targetDir, this.config.recursive);
   });
 
   OO.addMember("watch",function () {
     var updater = this.getUpdater();
     var self = this;
     var interval = this.config.interval || 2;
-    JS2.LOGGER.info('Input Directory:' + updater.inDir + ' -> Output Directory:' + updater.outDir);
+    JS2.LOGGER.info('Source Directory:' + updater.inDir + ' -> Target Directory:' + updater.targetDir);
     if (updater.recursive) JS2.LOGGER.info('RECURSIVE');
 
     // HACK to get this integrated with ruby

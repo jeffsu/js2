@@ -43,7 +43,7 @@ class Commander {
   }
 
   function render() {
-    JS2.LOGGER.info(js2.render(this.fs.read(this.config.args[0])));
+    console.log(js2.render(this.fs.read(this.config.args[0])));
   }
 
   function run() {
