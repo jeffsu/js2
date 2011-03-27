@@ -256,9 +256,9 @@
       var mode = 0;
       for (var i=0; i<str.length; i++) {
         if (str.charAt(i) == '*') {
-          mode++;
+          mode = 1;
         } else if (str.charAt(i) == '/' && mode == 1) {
-          mode++;
+          mode = 2;
         } else {
           mode = 0;
         }

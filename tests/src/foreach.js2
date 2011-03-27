@@ -1,0 +1,15 @@
+var foo = [ 'hello', 'world' ];
+var bar = [];
+foreach (var item in foo) {
+  foreach (var item in foo) {
+    bar.push(item);
+  }
+}
+
+foreach (var item in foo) {
+  // do nothing
+}
+
+js2.test(#(assert){
+  assert.eq(bar.length, 4);
+});

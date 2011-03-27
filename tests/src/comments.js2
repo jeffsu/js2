@@ -3,3 +3,12 @@
 /* foo
  *
  * bar */
+
+/***
+ * hello
+ ***/
+
+var foo = [];
+foreach(var item in foo) {
+  
+}
