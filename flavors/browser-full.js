@@ -1484,26 +1484,31 @@ JS2.Class.extend('JSML', function(KLASS, OO){
 
   OO.addMember("initialize",function (txt) {
     var lines = txt.split(/\n/);
-    this.root    = new JSMLElement;
+    this.root    = new JS2.JSMLElement('');
     this.current = this.root;
     this.stack   = [ this.root ];
 
     for(var _i1=0,_c1=lines,_l1=_c1.length,l;l=_c1[_i1]||_i1<_l1;_i1++){
+      if (l.match(/^\s*$/)) continue;
       this.processLine(l);
     }
   });
 
   OO.addMember("processLine",function (line) {
-    var ele  = new JSMLElement(line);
+    console.log(line);
+    var ele  = new JS2.JSMLElement(line);
     var scope = this.getScope();
 
     if (ele.scope == scope) {
+      console.log('same');
       this.stack.pop();
       this.getLast().push(ele);
     } else if (ele.scope == scope+1) {
+      console.log('greater');
       this.getLast().push(ele); 
       this.stack.push(ele);
     } else if (ele.scope < scope) {
+      console.log('less');
       var diff = ele.scope - scope;
       while(diff-- != 0) {
         this.stack.pop();
@@ -1514,23 +1519,13 @@ JS2.Class.extend('JSML', function(KLASS, OO){
 
 
   OO.addMember("getScope",function () {
-    return this.stack.length-1;
+    return this.stack.length;
   });
 
   OO.addMember("getLast",function () {
     return this.root[this.root.length-1];
   });
 
-  OO.addMember("processClasses",function (ele, str) {
-    var self = this;
-    str.replace(this.CLASSES_AND_IDS, function(match, type, name){
-      if (type == '.') {
-        ele.addClass(name);
-      } else if (type == '#') {
-        ele.setID(name);
-      }
-    });
-  });
 });
 
 JS2.Class.extend('JSMLElement', function(KLASS, OO){
@@ -1538,7 +1533,11 @@ JS2.Class.extend('JSMLElement', function(KLASS, OO){
   OO.addMember("CLASSES_AND_IDS",/(#|\.)([\-w]+)/g);
 
   OO.addMember("initialize",function (line) {
-    this.parse(line);
+    this.scope = 0;
+    if (line) {
+      this.parse(line);
+    }
+
     this.children = [];
   });
 
@@ -1547,8 +1546,10 @@ JS2.Class.extend('JSMLElement', function(KLASS, OO){
   });
 
   OO.addMember("parse",function (line) {
-    var m = line.match(FIRST_PASS);
-    this.scope = m[1].length / 2;
+    var m = line.match(this.FIRST_PASS);
+    if (m) {
+      this.scope = m[1].length / 2;
+    }
   });
 });
 
