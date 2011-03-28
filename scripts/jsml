@@ -1,0 +1,4 @@
+#!/usr/bin/env node
+var JS2 = require('../flavors/node').JS2;
+var fs  = require('fs');
+JS2.JSML.process(fs.readFileSync("jsml", 'utf8'));

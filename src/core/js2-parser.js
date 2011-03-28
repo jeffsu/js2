@@ -325,9 +325,9 @@
       return "(var " + iteratorName + "=0," +
               collectionName + "=" + collection + "," +
               l + "=" + collectionName + ".length," +
-              holder + ";" +
-              holder + '=' + collectionName + '[' + iteratorName + ']||' +
-              iteratorName + '<' + l + ';' +
+              holder + ";(" +
+              holder + '=' + collectionName + '[' + iteratorName + '])||(' +
+              iteratorName + '<' + l + ');' +
               iteratorName + '++)';
     }
   });

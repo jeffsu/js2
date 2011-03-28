@@ -902,9 +902,9 @@ function mainFunction (arg) {
       return "(var " + iteratorName + "=0," +
               collectionName + "=" + collection + "," +
               l + "=" + collectionName + ".length," +
-              holder + ";" +
-              holder + '=' + collectionName + '[' + iteratorName + ']||' +
-              iteratorName + '<' + l + ';' +
+              holder + ";(" +
+              holder + '=' + collectionName + '[' + iteratorName + '])||(' +
+              iteratorName + '<' + l + ');' +
               iteratorName + '++)';
     }
   });
@@ -1242,7 +1242,7 @@ JS2.Class.extend('Updater', function(KLASS, OO){
 
   OO.addMember("matchDirs",function (dir) {
     var subs = this.fs.readdir(dir);
-    for(var _i1=0,_c1=subs,_l1=_c1.length,sub;sub=_c1[_i1]||_i1<_l1;_i1++){
+    for(var _i1=0,_c1=subs,_l1=_c1.length,sub;(sub=_c1[_i1])||(_i1<_l1);_i1++){
       var path = dir + '/' + sub;
       if (this.fs.isDirectory(path)) {
         this.fs.mkdir(path.replace(this.inDir, this.outDir));
@@ -1484,7 +1484,7 @@ JS2.Class.extend('JSML', function(KLASS, OO){
     this.current = this.root;
     this.stack   = [ this.root ];
 
-    for(var _i1=0,_c1=lines,_l1=_c1.length,l;l=_c1[_i1]||_i1<_l1;_i1++){
+    for(var _i1=0,_c1=lines,_l1=_c1.length,l;(l=_c1[_i1])||(_i1<_l1);_i1++){
       if (l.match(/^\s*$/)) continue;
       this.processLine(l);
     }
@@ -1519,34 +1519,12 @@ JS2.Class.extend('JSML', function(KLASS, OO){
   });
 
   OO.addMember("getLast",function () {
-    return this.root[this.root.length-1];
+    return this.stack[this.stack.length-1];
   });
 
 });
 
 JS2.Class.extend('JSMLElement', function(KLASS, OO){
-  OO.addMember("FIRST_PASS",/^((?:\s{2})+)(if|foreach|\.|#|\w+)(.*)/);
-  OO.addMember("CLASSES_AND_IDS",/(#|\.)([\-w]+)/g);
-
-  OO.addMember("initialize",function (line) {
-    this.scope = 0;
-    if (line) {
-      this.parse(line);
-    }
-
-    this.children = [];
-  });
-
-  OO.addMember("push",function (ele) {
-    this.children.push(ele);
-  });
-
-  OO.addMember("parse",function (line) {
-    var m = line.match(this.FIRST_PASS);
-    if (m) {
-      this.scope = m[1].length / 2;
-    }
-  });
 });
 
 

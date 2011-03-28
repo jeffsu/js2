@@ -40,36 +40,14 @@ class JSML {
 
 
   function getScope() {
-    return this.stack.length-1;
+    return this.stack.length;
   }
 
   function getLast() {
-    return this.root[this.root.length-1];
+    return this.stack[this.stack.length-1];
   }
 
 }
 
 class JSMLElement {
-  var FIRST_PASS      = /^((?:\s{2})+)(if|foreach|\.|#|\w+)(.*)/;
-  var CLASSES_AND_IDS = /(#|\.)([\-w]+)/g;
-
-  function initialize(line) {
-    this.scope = 0;
-    if (line) {
-      this.parse(line);
-    }
-
-    this.children = [];
-  }
-
-  function push(ele) {
-    this.children.push(ele);
-  }
-
-  function parse(line) {
-    var m = line.match(this.FIRST_PASS);
-    if (m) {
-      this.scope = m[1].length / 2;
-    }
-  }
 }
