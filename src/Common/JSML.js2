@@ -1,37 +1,45 @@
 class JSML {
-  var FIRST_PASS      = /^((?:\s{2})+)(if|foreach|\.|#|\w+)(.*)/;
-  var CLASSES_AND_IDS = /(#|\.)([\-w]+)/g;
-
   static function process(txt) {
     return new KLASS(txt);
   }
 
   function initialize(txt) {
     var lines = txt.split(/\n/);
-    this.scope = 0;
-    this.root  = [];
+    this.root    = new JSMLElement;
+    this.current = this.root;
+    this.stack   = [ this.root ];
+
     foreach (var l in lines) {
       this.processLine(l);
     }
   }
 
   function processLine(line) {
-    var m = line.match(this.FIRST_PASS);
-    var first = m[2];
-    var ele   = new JSMLElement();
+    var ele  = new JSMLElement(line);
+    var scope = this.getScope();
 
-    var currScope = m[2].length / 2;
-    if (currScope > this.scope) {
-     
+    if (ele.scope == scope) {
+      this.stack.pop();
+      this.getLast().push(ele);
+    } else if (ele.scope == scope+1) {
+      this.getLast().push(ele); 
+      this.stack.push(ele);
+    } else if (ele.scope < scope) {
+      var diff = ele.scope - scope;
+      while(diff-- != 0) {
+        this.stack.pop();
+      }
+      this.getLast().push(ele);
     }
+  }
 
-    if (first == 'if') {
-      ele.addIf(m[3]);
-    } else if (first == 'foreach') {
-      ele.addForeach(m[3]);
-    } else {
-      this.processClasses(ele, m[3]); 
-    }
+
+  function getScope() {
+    return this.stack.length-1;
+  }
+
+  function getLast() {
+    return this.root[this.root.length-1];
   }
 
   function processClasses(ele, str) {
@@ -47,5 +55,20 @@ class JSML {
 }
 
 class JSMLElement {
+  var FIRST_PASS      = /^((?:\s{2})+)(if|foreach|\.|#|\w+)(.*)/;
+  var CLASSES_AND_IDS = /(#|\.)([\-w]+)/g;
 
+  function initialize(line) {
+    this.parse(line);
+    this.children = [];
+  }
+
+  function push(ele) {
+    this.children.push(ele);
+  }
+
+  function parse(line) {
+    var m = line.match(FIRST_PASS);
+    this.scope = m[1].length / 2;
+  }
 }

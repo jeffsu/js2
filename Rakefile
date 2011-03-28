@@ -95,7 +95,7 @@ namespace :dist do
       js("core/#{f}")
     end.join("\n");
 
-    common = %W{ Array FileSystem Updater Config Commander Decorators }.collect do |f|
+    common = %W{ Array FileSystem Updater Config Commander Decorators JSML }.collect do |f|
       js("Common/#{f}.js2")
     end.join("\n");
 

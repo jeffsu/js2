@@ -1,0 +1,6 @@
+var text = <<END
+  div
+    .hello
+    .world
+  span Hello world
+END

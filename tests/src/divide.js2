@@ -1,0 +1,7 @@
+// Testing regex vs divide
+
+var foo = 20 / 2;
+
+js2.test(#(assert) {
+  assert.eq(foo, 10);
+});

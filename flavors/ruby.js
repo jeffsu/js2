@@ -14,7 +14,7 @@ function mainFunction (arg) {
 
   var JS2 = root.JS2 = mainFunction;
   var js2 = root.js2 = JS2;
-  js2.VERSION = "0.3.8";
+  js2.VERSION = "0.3.9";
 
   JS2.ROOT = JS2;
   
@@ -236,15 +236,23 @@ function mainFunction (arg) {
       var m = this.tokens.match(PRIMARY_REGEX)
       if (!m) return false;
 
+      if (m[0] == '/' && this.tokens.divideCompatible()) {
+        this.tokens.push([ '/', IDS.OPERATOR ]); // operator
+        this.tokens.chomp(1);
+        return  true;
+      }
+
       for (var i=0,tokenDef;tokenDef=this.TOKENS[i];i++) {
         if (m[0] == m[i+2]) {
           var klass = JS2.Lexer[tokenDef[0]];
+
           if (klass) {
             var lexer = new klass(this.tokens);
             if (lexer.consume()) {
               return true;
             }
           } else {
+            var type = tokenDef[0];
             this.tokens.push([ m[0], i ]);
             this.tokens.chomp(m[0]);
             return true;
@@ -462,6 +470,20 @@ function mainFunction (arg) {
       this.str    = str;
       this.orig   = str;
       this.before = [];
+    },
+
+    divideCompatible: function() {
+      var last = this.lastNonSpace();
+      return (last[0].match(/(\}|\))/) || last[1] == IDS.IDENT);
+    },
+
+    lastNonSpace: function() {
+      var idx   = this.tokens.length - 1;
+      var token = this.tokens[idx];
+      while (token && token[1] == IDS.SPACE) {
+        token = this.tokens[--idx];
+      }
+      return token;
     },
 
     toArray: function() {
@@ -1220,7 +1242,7 @@ JS2.Class.extend('Updater', function(KLASS, OO){
 
   OO.addMember("matchDirs",function (dir) {
     var subs = this.fs.readdir(dir);
-    for(var _i4=0,_c4=subs,_l4=_c4.length,sub;sub=_c4[_i4]||_i4<_l4;_i4++){
+    for(var _i1=0,_c1=subs,_l1=_c1.length,sub;sub=_c1[_i1]||_i1<_l1;_i1++){
       var path = dir + '/' + sub;
       if (this.fs.isDirectory(path)) {
         this.fs.mkdir(path.replace(this.inDir, this.outDir));
@@ -1449,6 +1471,82 @@ JS2.Class.extend('RingoDecorator', function(KLASS, OO){
 });
 
 JS2.DECORATOR = JS2.DECORATOR || new JS2.BrowserDecorator();
+
+
+JS2.Class.extend('JSML', function(KLASS, OO){
+  OO.addStaticMember("process",function (txt) {
+    return new KLASS(txt);
+  });
+
+  OO.addMember("initialize",function (txt) {
+    var lines = txt.split(/\n/);
+    this.root    = new JSMLElement;
+    this.current = this.root;
+    this.stack   = [ this.root ];
+
+    for(var _i1=0,_c1=lines,_l1=_c1.length,l;l=_c1[_i1]||_i1<_l1;_i1++){
+      this.processLine(l);
+    }
+  });
+
+  OO.addMember("processLine",function (line) {
+    var ele  = new JSMLElement(line);
+    var scope = this.getScope();
+
+    if (ele.scope == scope) {
+      this.stack.pop();
+      this.getLast().push(ele);
+    } else if (ele.scope == scope+1) {
+      this.getLast().push(ele); 
+      this.stack.push(ele);
+    } else if (ele.scope < scope) {
+      var diff = ele.scope - scope;
+      while(diff-- != 0) {
+        this.stack.pop();
+      }
+      this.getLast().push(ele);
+    }
+  });
+
+
+  OO.addMember("getScope",function () {
+    return this.stack.length-1;
+  });
+
+  OO.addMember("getLast",function () {
+    return this.root[this.root.length-1];
+  });
+
+  OO.addMember("processClasses",function (ele, str) {
+    var self = this;
+    str.replace(this.CLASSES_AND_IDS, function(match, type, name){
+      if (type == '.') {
+        ele.addClass(name);
+      } else if (type == '#') {
+        ele.setID(name);
+      }
+    });
+  });
+});
+
+JS2.Class.extend('JSMLElement', function(KLASS, OO){
+  OO.addMember("FIRST_PASS",/^((?:\s{2})+)(if|foreach|\.|#|\w+)(.*)/);
+  OO.addMember("CLASSES_AND_IDS",/(#|\.)([\-w]+)/g);
+
+  OO.addMember("initialize",function (line) {
+    this.parse(line);
+    this.children = [];
+  });
+
+  OO.addMember("push",function (ele) {
+    this.children.push(ele);
+  });
+
+  OO.addMember("parse",function (line) {
+    var m = line.match(FIRST_PASS);
+    this.scope = m[1].length / 2;
+  });
+});
 
 
 

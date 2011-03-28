@@ -59,15 +59,23 @@
       var m = this.tokens.match(PRIMARY_REGEX)
       if (!m) return false;
 
+      if (m[0] == '/' && this.tokens.divideCompatible()) {
+        this.tokens.push([ '/', IDS.OPERATOR ]); // operator
+        this.tokens.chomp(1);
+        return  true;
+      }
+
       for (var i=0,tokenDef;tokenDef=this.TOKENS[i];i++) {
         if (m[0] == m[i+2]) {
           var klass = JS2.Lexer[tokenDef[0]];
+
           if (klass) {
             var lexer = new klass(this.tokens);
             if (lexer.consume()) {
               return true;
             }
           } else {
+            var type = tokenDef[0];
             this.tokens.push([ m[0], i ]);
             this.tokens.chomp(m[0]);
             return true;
@@ -285,6 +293,20 @@
       this.str    = str;
       this.orig   = str;
       this.before = [];
+    },
+
+    divideCompatible: function() {
+      var last = this.lastNonSpace();
+      return (last[0].match(/(\}|\))/) || last[1] == IDS.IDENT);
+    },
+
+    lastNonSpace: function() {
+      var idx   = this.tokens.length - 1;
+      var token = this.tokens[idx];
+      while (token && token[1] == IDS.SPACE) {
+        token = this.tokens[--idx];
+      }
+      return token;
     },
 
     toArray: function() {
