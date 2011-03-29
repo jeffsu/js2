@@ -9,7 +9,7 @@ JS2.Class.extend('Foo', function(KLASS, OO){
   });
 
   OO.addMember("sayHi",function () {
-    for(var _i1=0,_c1=this.getStuffs(),_l1=_c1.length,stuff;stuff=_c1[_i1]||_i1<_l1;_i1++){
+    for(var _i1=0,_c1=this.getStuffs(),_l1=_c1.length,stuff;(stuff=_c1[_i1])||(_i1<_l1);_i1++){
       console.log(stuff);
     }
   });

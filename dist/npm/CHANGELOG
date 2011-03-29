@@ -1,3 +1,7 @@
+0.3.10
+  * beta for jsml
+  * fixed foreach boolean
+
 0.3.9
   * fixed regex/divide issue
 

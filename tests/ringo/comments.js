@@ -11,6 +11,6 @@ var JS2 = js2;
  ***/
 
 var foo = [];
-for(var _i1=0,_c1=foo,_l1=_c1.length,item;item=_c1[_i1]||_i1<_l1;_i1++){
+for(var _i1=0,_c1=foo,_l1=_c1.length,item;(item=_c1[_i1])||(_i1<_l1);_i1++){
   
 }

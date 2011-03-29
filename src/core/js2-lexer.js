@@ -15,7 +15,7 @@
     [ 'SSTRING', "'" ],
     [ 'ISTRING', "%\\{" ],
     [ 'HEREDOC', "<<-?\\w+" ],
-    [ 'OPERATOR', "[^\\w]" ]
+    [ 'OPERATOR', "(?:\\+\\+|\\-\\-|[^\\w])" ]
   ];
 
   var IDS = {};
@@ -297,7 +297,7 @@
 
     divideCompatible: function() {
       var last = this.lastNonSpace();
-      return (last[0].match(/(\}|\))/) || last[1] == IDS.IDENT);
+      return (last[0].match(/(\}|\)|\+\+|\-\-)$/) || last[1] == IDS.IDENT);
     },
 
     lastNonSpace: function() {

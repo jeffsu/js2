@@ -14,7 +14,7 @@ function mainFunction (arg) {
 
   var JS2 = root.JS2 = mainFunction;
   var js2 = root.js2 = JS2;
-  js2.VERSION = "0.3.9";
+  js2.VERSION = "0.3.10";
 
   JS2.ROOT = JS2;
   
@@ -192,7 +192,7 @@ function mainFunction (arg) {
     [ 'SSTRING', "'" ],
     [ 'ISTRING', "%\\{" ],
     [ 'HEREDOC', "<<-?\\w+" ],
-    [ 'OPERATOR', "[^\\w]" ]
+    [ 'OPERATOR', "(?:\\+\\+|\\-\\-|[^\\w])" ]
   ];
 
   var IDS = {};
@@ -474,7 +474,7 @@ function mainFunction (arg) {
 
     divideCompatible: function() {
       var last = this.lastNonSpace();
-      return (last[0].match(/(\}|\))/) || last[1] == IDS.IDENT);
+      return (last[0].match(/(\}|\)|\+\+|\-\-)$/) || last[1] == IDS.IDENT);
     },
 
     lastNonSpace: function() {
@@ -1242,7 +1242,7 @@ JS2.Class.extend('Updater', function(KLASS, OO){
 
   OO.addMember("matchDirs",function (dir) {
     var subs = this.fs.readdir(dir);
-    for(var _i1=0,_c1=subs,_l1=_c1.length,sub;(sub=_c1[_i1])||(_i1<_l1);_i1++){
+    for(var _i4=0,_c4=subs,_l4=_c4.length,sub;sub=_c4[_i4]||_i4<_l4;_i4++){
       var path = dir + '/' + sub;
       if (this.fs.isDirectory(path)) {
         this.fs.mkdir(path.replace(this.inDir, this.outDir));
@@ -1484,7 +1484,7 @@ JS2.Class.extend('JSML', function(KLASS, OO){
     this.current = this.root;
     this.stack   = [ this.root ];
 
-    for(var _i1=0,_c1=lines,_l1=_c1.length,l;(l=_c1[_i1])||(_i1<_l1);_i1++){
+    for(var _i4=0,_c4=lines,_l4=_c4.length,l;l=_c4[_i4]||_i4<_l4;_i4++){
       if (l.match(/^\s*$/)) continue;
       this.processLine(l);
     }
