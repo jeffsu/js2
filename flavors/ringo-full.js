@@ -164,7 +164,7 @@ function mainFunction (arg) {
 
   var assert = {
     'eq': function(expected, actual) { if (expected != actual) console.log("Expected "+expected+", but got "+actual+".") },
-    'isFalse': function(val) { if (val) console.log("Expected false, but got "+val+".") },
+    'isFalse': function(val) { if (val) console.log("Expected false, but got "+JSON.stringify(val)+".") },
     'isTrue': function(val) { if (!val) console.log("Expected true, but got " +val+".") }
   };
 
@@ -1244,7 +1244,7 @@ JS2.Class.extend('Updater', function(KLASS, OO){
 
   OO.addMember("matchDirs",function (dir) {
     var subs = this.fs.readdir(dir);
-    for(var _i4=0,_c4=subs,_l4=_c4.length,sub;sub=_c4[_i4]||_i4<_l4;_i4++){
+    for(var _i1=0,_c1=subs,_l1=_c1.length,sub;(sub=_c1[_i1])||(_i1<_l1);_i1++){
       var path = dir + '/' + sub;
       if (this.fs.isDirectory(path)) {
         this.fs.mkdir(path.replace(this.inDir, this.outDir));
@@ -1486,7 +1486,7 @@ JS2.Class.extend('JSML', function(KLASS, OO){
     this.current = this.root;
     this.stack   = [ this.root ];
 
-    for(var _i4=0,_c4=lines,_l4=_c4.length,l;l=_c4[_i4]||_i4<_l4;_i4++){
+    for(var _i1=0,_c1=lines,_l1=_c1.length,l;(l=_c1[_i1])||(_i1<_l1);_i1++){
       if (l.match(/^\s*$/)) continue;
       this.processLine(l);
     }
@@ -1527,6 +1527,16 @@ JS2.Class.extend('JSML', function(KLASS, OO){
 });
 
 JS2.Class.extend('JSMLElement', function(KLASS, OO){
+  OO.addMember("SCOPE_REGEX",/(\s+)(.*)/);
+  OO.addMember("TOKEN_REGEX",/^(?:((?:(?:\.|%|#)(?:[\w-]+))+)|-(.*))$/);
+  OO.addMember("initialize",function (line) {
+    var spaceMatch = line.match(this.SCOPE_REGEX);
+    this.scope = spaceMatch[1].length / 2;
+    this.parse(spaceMatch[2]);
+  });
+
+  OO.addMember("parse",function (line) {
+  });
 });
 
 

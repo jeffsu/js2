@@ -1,7 +1,13 @@
-var foo, bar;
-<<END
+var foo = 'footext', bar = 'bartext';
+var finish = <<END
   hello world
   #{foo} bar
   yo there
-  #{bar}
+    #{bar}
+  this is the end
 END
+
+js2.test(#(assert){
+  assert.eq("hello world\\nfootext bar\\n"+"yo there\\n  bartextthis is the end", finish);
+});
+
