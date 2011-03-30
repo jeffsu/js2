@@ -49,15 +49,4 @@ class JSML {
 
 }
 
-class JSMLElement {
-  var SCOPE_REGEX = /(\s+)(.*)/;
-  var TOKEN_REGEX = /^(?:((?:(?:\.|%|#)(?:[\w-]+))+)|-(.*))$/;
-  function initialize(line) {
-    var spaceMatch = line.match(this.SCOPE_REGEX);
-    this.scope = spaceMatch[1].length / 2;
-    this.parse(spaceMatch[2]);
-  }
 
-  function parse(line) {
-  }
-}

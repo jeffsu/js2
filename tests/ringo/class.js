@@ -1,5 +1,30 @@
 var js2 = require('js2').js2;
 var JS2 = js2;
+var JSML=exports['JSML']=JS2.Class.extend( function(KLASS, OO){
+  OO.addStaticMember("process",function (txt) {
+    return new KLASS(txt);
+  });
+
+  OO.addMember("initialize",function (txt) {
+    var lines = txt.split(/\n/);
+    this.root    = new JS2.JSMLElement('');
+    this.current = this.root;
+    this.stack   = [ this.root ];
+  });
+});
+
+var JSMLElement=exports['JSMLElement']=JS2.Class.extend( function(KLASS, OO){
+
+  OO.addMember("initialize",function (line) {
+    this.nodeID   = null;
+
+    this.parse(spaceMatch[2]);
+  });
+});
+
+
+
+
 var Foo=exports['Foo']=JS2.Class.extend( function(KLASS, OO){
   OO.addMember("member","member");
   OO.addMember("regexMember",/member/);
@@ -18,6 +43,13 @@ var Foo=exports['Foo']=JS2.Class.extend( function(KLASS, OO){
 
   OO.addStaticMember("sayHello",function () {
     return "hello";
+  });
+});
+
+var Bar=exports['Bar']=JS2.Class.extend( function(KLASS, OO){
+  OO.addMember("foo","foo");
+  OO.addMember("initialize",function () {
+    this.foo = 'bar';
   });
 });
 

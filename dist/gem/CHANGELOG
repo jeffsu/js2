@@ -1,7 +1,9 @@
 0.3.10
-  * beta for jsml
   * fixed foreach boolean
   * fixed https://github.com/jeffsu/js2/issues#issue/1
+  * Rack to try and use Rails.root otherwise, use cwd
+  * put boundaries in lexer for js2 keywords
+  * made regex/divide solution more robust
 
 0.3.9
   * fixed regex/divide issue

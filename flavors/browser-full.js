@@ -184,13 +184,13 @@ function mainFunction (arg) {
     [ 'COMMENT', "\\/\\/|/\\*" ],
     [ 'SPACE', "\\s+" ],
     [ 'REGEX', "\\/" ],
-    [ 'CLASS', "class" ],
-    [ 'MODULE', "module" ],
-    [ 'STATIC', "static" ],
-    [ 'include', "include" ],
+    [ 'CLASS', "\\bclass\\b" ],
+    [ 'MODULE', "\\bmodule\\b" ],
+    [ 'STATIC', "\\bstatic\\b" ],
+    [ 'include', "\\binclude\\b" ],
     [ 'SHORT_FUNCT', "#\\{|#\\(" ],
-    [ 'FOREACH', "foreach" ],
-    [ 'CURRY', "curry" ],
+    [ 'FOREACH', "\\bforeach\\b" ],
+    [ 'CURRY', "\\bcurry\\b" ],
     [ 'IDENT', "[\\w$]+" ],
     [ 'DSTRING', '"' ],
     [ 'SSTRING', "'" ],
@@ -347,7 +347,7 @@ function mainFunction (arg) {
 
   JS2.Lexer.ISTRING.extend('Lexer.HEREDOC', {
     REGEX_NEXT: /^((\\#|[^#])*?)(#{|\r?\n)/,
-    REGEX: /^<<\-?(\w+)\r?\n/m,
+    REGEX: /^<<\-?(\w+)(?::(\w+))?\s*\r?\n/m,
     ID: IDS.HEREDOC,
     consume: function() {
       var m = this.tokens.match(this.REGEX);
@@ -380,10 +380,13 @@ function mainFunction (arg) {
 
         var next = this.tokens.match(this.REGEX_NEXT);
         if (next) {
+          var str    = next[1];
+          var ending = next[2];
+
           if (next[1]) {
             this.tokens.chomp(next[1].length);
             this.tokens.push([ (first ? '' : '+') + '"' + this.sanitize(next[1]) + '\\\\n"', IDS.DSTRING ]);
-          } 
+          }
 
           if (next[3] == '#{') {
             this.tokens.chomp(1);
@@ -1528,18 +1531,7 @@ JS2.Class.extend('JSML', function(KLASS, OO){
 
 });
 
-JS2.Class.extend('JSMLElement', function(KLASS, OO){
-  OO.addMember("SCOPE_REGEX",/(\s+)(.*)/);
-  OO.addMember("TOKEN_REGEX",/^(?:((?:(?:\.|%|#)(?:[\w-]+))+)|-(.*))$/);
-  OO.addMember("initialize",function (line) {
-    var spaceMatch = line.match(this.SCOPE_REGEX);
-    this.scope = spaceMatch[1].length / 2;
-    this.parse(spaceMatch[2]);
-  });
 
-  OO.addMember("parse",function (line) {
-  });
-});
 
 
   (function (undefined, JS2) {

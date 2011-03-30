@@ -1,3 +1,28 @@
+JS2.Class.extend('JSML', function(KLASS, OO){
+  OO.addStaticMember("process",function (txt) {
+    return new KLASS(txt);
+  });
+
+  OO.addMember("initialize",function (txt) {
+    var lines = txt.split(/\n/);
+    this.root    = new JS2.JSMLElement('');
+    this.current = this.root;
+    this.stack   = [ this.root ];
+  });
+});
+
+JS2.Class.extend('JSMLElement', function(KLASS, OO){
+
+  OO.addMember("initialize",function (line) {
+    this.nodeID   = null;
+
+    this.parse(spaceMatch[2]);
+  });
+});
+
+
+
+
 JS2.Class.extend('Foo', function(KLASS, OO){
   OO.addMember("member","member");
   OO.addMember("regexMember",/member/);
@@ -16,6 +41,13 @@ JS2.Class.extend('Foo', function(KLASS, OO){
 
   OO.addStaticMember("sayHello",function () {
     return "hello";
+  });
+});
+
+JS2.Class.extend('Bar', function(KLASS, OO){
+  OO.addMember("foo","foo");
+  OO.addMember("initialize",function () {
+    this.foo = 'bar';
   });
 });
 

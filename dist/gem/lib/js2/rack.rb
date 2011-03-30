@@ -3,7 +3,7 @@ require 'yaml'
 module JS2
   # this is a hack for now until I can get v8 stable
   class Rack
-    ROOT = File.expand_path(Dir.getwd)
+    ROOT = Rails.root rescue File.expand_path(Dir.getwd)
 
     DEFAULT_CONFIG = {
       'source_dir'  => "#{ROOT}/app/js2",

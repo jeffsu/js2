@@ -1,3 +1,28 @@
+class JSML {
+  static function process(txt) {
+    return new KLASS(txt);
+  }
+
+  function initialize(txt) {
+    var lines = txt.split(/\n/);
+    this.root    = new JS2.JSMLElement('');
+    this.current = this.root;
+    this.stack   = [ this.root ];
+  }
+}
+
+class JSMLElement {
+
+  function initialize(line) {
+    this.nodeID   = null;
+
+    this.parse(spaceMatch[2]);
+  }
+}
+
+
+
+
 class Foo {
   var member      = "member";
   var regexMember = /member/;
@@ -16,6 +41,13 @@ class Foo {
 
   static function sayHello() {
     return "hello";
+  }
+}
+
+class Bar {
+  var foo = "foo";
+  function initialize() {
+    this.foo = 'bar';
   }
 }
 

@@ -3,13 +3,13 @@
     [ 'COMMENT', "\\/\\/|/\\*" ],
     [ 'SPACE', "\\s+" ],
     [ 'REGEX', "\\/" ],
-    [ 'CLASS', "class" ],
-    [ 'MODULE', "module" ],
-    [ 'STATIC', "static" ],
-    [ 'include', "include" ],
+    [ 'CLASS', "\\bclass\\b" ],
+    [ 'MODULE', "\\bmodule\\b" ],
+    [ 'STATIC', "\\bstatic\\b" ],
+    [ 'include', "\\binclude\\b" ],
     [ 'SHORT_FUNCT', "#\\{|#\\(" ],
-    [ 'FOREACH', "foreach" ],
-    [ 'CURRY', "curry" ],
+    [ 'FOREACH', "\\bforeach\\b" ],
+    [ 'CURRY', "\\bcurry\\b" ],
     [ 'IDENT', "[\\w$]+" ],
     [ 'DSTRING', '"' ],
     [ 'SSTRING', "'" ],
@@ -166,7 +166,7 @@
 
   JS2.Lexer.ISTRING.extend('Lexer.HEREDOC', {
     REGEX_NEXT: /^((\\#|[^#])*?)(#{|\r?\n)/,
-    REGEX: /^<<\-?(\w+)\r?\n/m,
+    REGEX: /^<<\-?(\w+)(?::(\w+))?\s*\r?\n/m,
     ID: IDS.HEREDOC,
     consume: function() {
       var m = this.tokens.match(this.REGEX);
@@ -199,10 +199,13 @@
 
         var next = this.tokens.match(this.REGEX_NEXT);
         if (next) {
+          var str    = next[1];
+          var ending = next[2];
+
           if (next[1]) {
             this.tokens.chomp(next[1].length);
             this.tokens.push([ (first ? '' : '+') + '"' + this.sanitize(next[1]) + '\\\\n"', IDS.DSTRING ]);
-          } 
+          }
 
           if (next[3] == '#{') {
             this.tokens.chomp(1);
