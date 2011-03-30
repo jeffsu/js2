@@ -90,5 +90,6 @@ class JSMLElement {
       this.nodeType = this.nodeType || 'div';
     }
      
+    var tokenMatch = line.match(this.TOKEN_REGEX);
   }
 }
