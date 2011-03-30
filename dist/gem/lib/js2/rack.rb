@@ -3,19 +3,24 @@ require 'yaml'
 module JS2
   # this is a hack for now until I can get v8 stable
   class Rack
-    ROOT = Rails.root rescue File.expand_path(Dir.getwd)
-
-    DEFAULT_CONFIG = {
-      'source_dir'  => "#{ROOT}/app/js2",
-      'target_dir'  => "#{ROOT}/public/javascripts",
-      'bin'         => (`which js2`.chomp rescue nil),
-      'copy_js2'    => true
-    }
+    def get_root 
+      @root ||= defined?(Rails) ? Rails.root : File.expand_path(Dir.getwd)
+      puts "ROOT:#{@root}"
+      return @root
+    end
 
     def initialize(app)
       @app = app
 
-      config = YAML.load_file(ROOT + '/config/js2.yml') rescue DEFAULT_CONFIG
+      default = {
+        'source_dir'  => "#{get_root}/app/js2",
+        'target_dir'  => "#{get_root}/public/javascripts",
+        'bin'         => (`which js2`.chomp rescue nil),
+        'copy_js2'    => true
+      }
+
+
+      config = YAML.load_file(get_root + '/config/js2.yml') rescue default
 
       @source_dir = config['source_dir'] || './app/js2'
       @target_dir = config['target_dir'] || './public/javascripts'
@@ -31,9 +36,11 @@ module JS2
 
     def call(env)
       if @copy_js2
-        to_file = ROOT + '/public/javascripts/js2.js'
+        to_file = "#{get_root}/public/javascripts/js2.js"
         unless File.exists?(to_file) 
           from_file = JS2::ROOT + '/js2/browser.js'
+          puts "--- #{get_root}"
+          puts "#{from_file} #{to_file}"
           File.open(to_file, 'w') { |f| f << File.read(from_file) }
         end
       end

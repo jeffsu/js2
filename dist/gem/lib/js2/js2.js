@@ -14,7 +14,7 @@ function mainFunction (arg) {
 
   var JS2 = root.JS2 = mainFunction;
   var js2 = root.js2 = JS2;
-  js2.VERSION = "0.3.10";
+  js2.VERSION = "0.3.11";
 
   JS2.ROOT = JS2;
   
@@ -1527,7 +1527,43 @@ JS2.Class.extend('JSML', function(KLASS, OO){
 
 });
 
+JS2.Class.extend('JSMLElement', function(KLASS, OO){
+  OO.addMember("SCOPE_REGEX",/(\s+)(.*)/);
+  OO.addMember("TOKEN_REGEX",/^(%|#|\.)([\w-]+)/);
+  OO.addMember("JS_REGEX",/^(-|=)(.*)$/);
 
+  OO.addMember("initialize",function (line) {
+    var spaceMatch = line.match(this.SCOPE_REGEX);
+    this.scope = spaceMatch[1].length / 2;
+
+    this.classes  = [];
+    this.nodeID   = null;
+
+    this.parse(spaceMatch[2]);
+  });
+
+  OO.addMember("parse",function (line) {
+    var self = this;
+    line = line.replace(this.TOKEN_REGEX, function(match, type, name){ 
+      switch(type) {
+        case '%': this.nodeType = name; break;
+        case '#': this.classes.push(name); break;
+        case '.': this.nodeID = name; break;
+      } 
+      return '';
+    });
+
+    line = line.replace(this.JS_OUT_REGEX, function(match, type, content){
+      switch(type) {
+        case '=': this.jsEQ = content; break;
+        case '-': this.jsExec = content; break;
+      }
+      return '';
+    });
+  });
+
+  OO.addMember("undefined",functionundefinedundefined undefined);
+});
 
 
 

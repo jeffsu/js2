@@ -1,3 +1,7 @@
+0.3.11
+  * fixed minor issue finding Rails.root in rack
+  * Yanking 0.3.10
+
 0.3.10
   * fixed foreach boolean
   * fixed https://github.com/jeffsu/js2/issues#issue/1

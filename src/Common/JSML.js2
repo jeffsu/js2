@@ -49,4 +49,46 @@ class JSML {
 
 }
 
+class JSMLElement {
+  var SCOPE_REGEX  = /(\s+)(.*)/;
+  var TOKEN_REGEX  = /^(%|#|\.)([\w-]+)/;
+  var JS_REGEX     = /^(-|=)(.*)$/;
 
+  function initialize(line) {
+    var spaceMatch = line.match(this.SCOPE_REGEX);
+    this.scope = spaceMatch[1].length / 2;
+
+    this.classes  = [];
+    this.nodeID   = null;
+
+    this.parse(spaceMatch[2]);
+  }
+
+  function parse(line) {
+    var self = this;
+    line = line.replace(this.TOKEN_REGEX, #(match, type, name) { 
+      switch(type) {
+        case '%': this.nodeType = name; break;
+        case '#': this.classes.push(name); break;
+        case '.': this.nodeID = name; break;
+      } 
+      return '';
+    });
+
+    line = line.replace(this.JS_OUT_REGEX, #(match, type, content) {
+      switch(type) {
+        case '=': this.jsEQ = content; break;
+        case '-': this.jsExec = content; break;
+      }
+      return '';
+    });
+  }
+
+  function toString() {
+    var out = [];
+    if (this.classes.length || this.nodeID) {
+      this.nodeType = this.nodeType || 'div';
+    }
+     
+  }
+}
