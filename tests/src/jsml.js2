@@ -1,6 +1,9 @@
-var text = <<END
+var text = <<END:jsml
   div
     .hello
     .world
   span Hello world
+  = this.hello
 END
+
+console.log(text.result({ hello:"yo" }));

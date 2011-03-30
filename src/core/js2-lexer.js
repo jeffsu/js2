@@ -172,6 +172,7 @@
       var m = this.tokens.match(this.REGEX);
       if (!m) return false;
 
+      var templateEngine = m[2];
       this.tokens.chomp(m[0].length);
       this.tokens.push([ "\n", IDS.SPACE ]);
 
@@ -182,13 +183,15 @@
 
       var first   = true;
       var noChomp = false;
+      if (templateEngine) {
+        this.tokens.push([ 'JS2.TEMPLATES["' + templateEngine + '"].process(', IDS.IDENT ]);
+      }
 
       while (1) {
         var e = this.tokens.match(ender);
         if (e) {
           this.tokens.chomp(e[0].length);
-          this.tokens.push([ ';', IDS.DSTRING ]);
-          return true;
+          break;
         } 
 
         if (noChomp) {
@@ -220,6 +223,12 @@
         }
         first = false;
       }
+
+      if (templateEngine) {
+        this.tokens.push([ ')', IDS.IDENT ]);
+      }
+
+      this.tokens.push([ ';', IDS.OPERATOR ]);
       return true;
     }
   });

@@ -100,6 +100,7 @@ namespace :dist do
     end.join("\n");
 
     core += common
+    core += js('core/js2-end.js')
 
     Dir["./flavors/*.erb"].each do |file|
       puts "processing: #{file}"

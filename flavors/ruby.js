@@ -349,6 +349,7 @@ function mainFunction (arg) {
       var m = this.tokens.match(this.REGEX);
       if (!m) return false;
 
+      var templateEngine = m[2];
       this.tokens.chomp(m[0].length);
       this.tokens.push([ "\n", IDS.SPACE ]);
 
@@ -359,13 +360,15 @@ function mainFunction (arg) {
 
       var first   = true;
       var noChomp = false;
+      if (templateEngine) {
+        this.tokens.push([ 'JS2.TEMPLATES["' + templateEngine + '"].process(', IDS.IDENT ]);
+      }
 
       while (1) {
         var e = this.tokens.match(ender);
         if (e) {
           this.tokens.chomp(e[0].length);
-          this.tokens.push([ ';', IDS.DSTRING ]);
-          return true;
+          break;
         } 
 
         if (noChomp) {
@@ -397,6 +400,12 @@ function mainFunction (arg) {
         }
         first = false;
       }
+
+      if (templateEngine) {
+        this.tokens.push([ ')', IDS.IDENT ]);
+      }
+
+      this.tokens.push([ ';', IDS.OPERATOR ]);
       return true;
     }
   });
@@ -644,25 +653,17 @@ function mainFunction (arg) {
     },
 
     getTokenString: function(token) {
-      if (token[0] == 'toString') {
-  console.log('hey' + token[1] + ' ' + IDS.IDENT);
-      }
       if (token[1] == IDS.COMMENT) {
         return null;
       } else if (KEYWORDS.hasOwnProperty(token[0])) {
-if (token[0] == 'toString') console.log('key');
         return token[0];
       } else if (token[1] == IDS.SPACE) {
-if (token[0] == 'toString') console.log('space');
         return token[0];
       } else if (token[1] == IDS.IDENT) {
-if (token[0] == 'toString') console.log('II');
         return 'I';
       } else if (typeof token[0] == 'object') {
-if (token[0] == 'toString') console.log('obj');
         return token[0].name;
       } else if (typeof token[0] == 'string') {
-if (token[0] == 'toString') console.log('str');
         return token[0];
       }  
     }
@@ -848,7 +849,6 @@ if (token[0] == 'toString') console.log('str');
     },
 
     toString: function () {
-      console.log((new Validator(this.content)).getString());
       var v  = this.validate(/^(function)(\s+)(I)(\s*)(Braces)(\s*)(Block)/);
       return 'OO.addMember("' + v[3] + '",' + "function" + v[2] + v[5] + ' ' + v[7] + ');';
     }
@@ -1573,6 +1573,7 @@ JS2.Class.extend('JSMLElement', function(KLASS, OO){
 
 });
 
+JS2.TEMPLATES = { jsml: JS2.JSML };
 
 
   JS2.fs = new JS2.FileSystem(JS2_RUBY_FILE_ADAPTER);
