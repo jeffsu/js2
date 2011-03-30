@@ -84,12 +84,4 @@ class JSMLElement {
     });
   }
 
-  function toString() {
-    var out = [];
-    if (this.classes.length || this.nodeID) {
-      this.nodeType = this.nodeType || 'div';
-    }
-     
-    var tokenMatch = line.match(this.TOKEN_REGEX);
-  }
 }

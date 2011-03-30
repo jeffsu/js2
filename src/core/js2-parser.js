@@ -66,7 +66,7 @@
     getTokenString: function(token) {
       if (token[1] == IDS.COMMENT) {
         return null;
-      } else if (token[0] in KEYWORDS) {
+      } else if (KEYWORDS.hasOwnProperty(token[0])) {
         return token[0];
       } else if (token[1] == IDS.SPACE) {
         return token[0];
@@ -260,6 +260,7 @@
     },
 
     toString: function () {
+      console.log((new Validator(this.content)).getString());
       var v  = this.validate(/^(function)(\s+)(I)(\s*)(Braces)(\s*)(Block)/);
       return 'OO.addMember("' + v[3] + '",' + "function" + v[2] + v[5] + ' ' + v[7] + ');';
     }
