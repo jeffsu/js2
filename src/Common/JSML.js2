@@ -6,17 +6,17 @@ class JSML {
   function initialize(txt) {
     var lines = txt.split(/\n/);
     this.root    = new JS2.JSMLElement();
-    this.current = this.root;
     this.stack   = [ this.root ];
 
     foreach (var l in lines) {
       if (l.match(/^\s*$/)) continue;
       this.processLine(l);
     }
+    console.log(this.root);
   }
 
   function result() {
-    return "hello";
+    return this.root.flatten().join('');
   }
 
   function processLine(line) {
@@ -27,7 +27,7 @@ class JSML {
       console.log('same');
       this.stack.pop();
       this.getLast().push(ele);
-    } else if (ele.scope == scope+1) {
+    } else if (ele.scope > scope) {
       console.log('greater');
       this.getLast().push(ele); 
       this.stack.push(ele);
@@ -43,7 +43,7 @@ class JSML {
 
 
   function getScope() {
-    return this.stack.length;
+    return this.stack.length - 1;
   }
 
   function getLast() {
@@ -56,17 +56,18 @@ class JSMLElement {
   var SCOPE_REGEX  = /^(\s*)(.*)$/;
   var TOKEN_REGEX  = /^(\%|\#|\.)([\w-]+)/;
   var JS_REGEX     = /^(-|=)(.*)$/;
+  var SCOPE_OFFSET = 2;
 
   function initialize(line) {
     this.children = [];
 
     if (line == null) {
-      this.scope = 0;
+      this.scope = this.SCOPE_OFFSET;
       return;
     }
 
     var spaceMatch = line.match(this.SCOPE_REGEX);
-    this.scope = spaceMatch[1].length / 2;
+    this.scope = spaceMatch[1].length / 2 + this.SCOPE_OFFSET;
 
     this.classes  = [];
     this.nodeID   = null;
@@ -80,7 +81,6 @@ class JSMLElement {
 
   function parse(line) {
     var self = this;
-    console.log(line);
     line = line.replace(this.TOKEN_REGEX, #(match, type, name) { 
       switch(type) {
         case '%': self.nodeType = name; break;
@@ -97,16 +97,27 @@ class JSMLElement {
       }
       return '';
     });
+
+    if (!this.nodeType && (this.classes.length || this.nodeID)) {
+      this.nodeType = 'div';
+    }
   }
 
-  function toString() {
+  function flatten() {
     var out = [];
+   
     foreach (var c in this.children) {
-      out.push(c.toString());
+      var arr = c.flatten();
+      foreach (var item in arr) {
+        out.push(item);
+      }
     }
 
-    if (this.jsEQ) {
-      
+    if (this.nodeType) {
+      out.unshift(%{<#{this.nodeType}>});
+      out.push(%{</#{this.nodeType}>});
     }
+
+    return out;
   }
 }

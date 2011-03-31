@@ -1495,17 +1495,17 @@ JS2.Class.extend('JSML', function(KLASS, OO){
   OO.addMember("initialize",function (txt) {
     var lines = txt.split(/\n/);
     this.root    = new JS2.JSMLElement();
-    this.current = this.root;
     this.stack   = [ this.root ];
 
     for(var _i1=0,_c1=lines,_l1=_c1.length,l;(l=_c1[_i1])||(_i1<_l1);_i1++){
       if (l.match(/^\s*$/)) continue;
       this.processLine(l);
     }
+    console.log(this.root);
   });
 
   OO.addMember("result",function () {
-    return "hello";
+    return this.root.flatten().join('');
   });
 
   OO.addMember("processLine",function (line) {
@@ -1516,14 +1516,14 @@ JS2.Class.extend('JSML', function(KLASS, OO){
       console.log('same');
       this.stack.pop();
       this.getLast().push(ele);
-    } else if (ele.scope == scope+1) {
+    } else if (ele.scope > scope) {
       console.log('greater');
       this.getLast().push(ele); 
       this.stack.push(ele);
     } else if (ele.scope < scope) {
       console.log('less');
       var diff = scope - ele.scope;
-      while(diff-- != 0) {
+      while(diff-- > 0) {
         this.stack.pop();
       }
       this.getLast().push(ele);
@@ -1532,7 +1532,7 @@ JS2.Class.extend('JSML', function(KLASS, OO){
 
 
   OO.addMember("getScope",function () {
-    return this.stack.length;
+    return this.stack.length - 1;
   });
 
   OO.addMember("getLast",function () {
@@ -1545,17 +1545,18 @@ JS2.Class.extend('JSMLElement', function(KLASS, OO){
   OO.addMember("SCOPE_REGEX",/^(\s*)(.*)$/);
   OO.addMember("TOKEN_REGEX",/^(\%|\#|\.)([\w-]+)/);
   OO.addMember("JS_REGEX",/^(-|=)(.*)$/);
+  OO.addMember("SCOPE_OFFSET",2);
 
   OO.addMember("initialize",function (line) {
     this.children = [];
 
     if (line == null) {
-      this.scope = 0;
+      this.scope = this.SCOPE_OFFSET;
       return;
     }
 
     var spaceMatch = line.match(this.SCOPE_REGEX);
-    this.scope = spaceMatch[1].length / 2;
+    this.scope = spaceMatch[1].length / 2 + this.SCOPE_OFFSET;
 
     this.classes  = [];
     this.nodeID   = null;
@@ -1569,7 +1570,6 @@ JS2.Class.extend('JSMLElement', function(KLASS, OO){
 
   OO.addMember("parse",function (line) {
     var self = this;
-    console.log(line);
     line = line.replace(this.TOKEN_REGEX, function(match, type, name){ 
       switch(type) {
         case '%': self.nodeType = name; break;
@@ -1586,17 +1586,28 @@ JS2.Class.extend('JSMLElement', function(KLASS, OO){
       }
       return '';
     });
+
+    if (!this.nodeType && (this.classes.length || this.nodeID)) {
+      this.nodeType = 'div';
+    }
   });
 
-  OO.addMember("toString",function () {
+  OO.addMember("flatten",function () {
     var out = [];
+   
     for(var _i1=0,_c1=this.children,_l1=_c1.length,c;(c=_c1[_i1])||(_i1<_l1);_i1++){
-      out.push(c.toString());
+      var arr = c.flatten();
+      for(var _i2=0,_c2=arr,_l2=_c2.length,item;(item=_c2[_i2])||(_i2<_l2);_i2++){
+        out.push(item);
+      }
     }
 
-    if (this.jsEQ) {
-      
+    if (this.nodeType) {
+      out.unshift("<"+(this.nodeType)+">");
+      out.push("</"+(this.nodeType)+">");
     }
+
+    return out;
   });
 });
 
