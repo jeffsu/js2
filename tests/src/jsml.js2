@@ -1,8 +1,9 @@
+console.log('hi');
 var text = <<END:jsml
-  div
+  %div
     .hello
     .world
-  span Hello world
+  %span Hello world
   = this.hello
 END
 

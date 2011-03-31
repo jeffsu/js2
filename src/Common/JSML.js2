@@ -5,19 +5,24 @@ class JSML {
 
   function initialize(txt) {
     var lines = txt.split(/\n/);
-    this.root    = new JS2.JSMLElement('');
+    this.root    = new JS2.JSMLElement();
     this.current = this.root;
     this.stack   = [ this.root ];
 
     foreach (var l in lines) {
+      console.log(l);
       if (l.match(/^\s*$/)) continue;
       this.processLine(l);
     }
   }
 
+  function result() {
+    return "hello";
+  }
+
   function processLine(line) {
-    console.log(line);
     var ele  = new JS2.JSMLElement(line);
+    return;
     var scope = this.getScope();
 
     if (ele.scope == scope) {
@@ -50,11 +55,18 @@ class JSML {
 }
 
 class JSMLElement {
-  var SCOPE_REGEX  = /(\s+)(.*)/;
+  var SCOPE_REGEX  = /^(\s*)(.*)$/;
   var TOKEN_REGEX  = /^(%|#|\.)([\w-]+)/;
   var JS_REGEX     = /^(-|=)(.*)$/;
 
   function initialize(line) {
+    this.children = [];
+
+    if (line == null) {
+      this.scope = 0;
+      return;
+    }
+
     var spaceMatch = line.match(this.SCOPE_REGEX);
     this.scope = spaceMatch[1].length / 2;
 
@@ -64,9 +76,15 @@ class JSMLElement {
     this.parse(spaceMatch[2]);
   }
 
+  function push(child) {
+    this.children.push(child);
+  }
+
   function parse(line) {
     var self = this;
+    console.log(line);
     line = line.replace(this.TOKEN_REGEX, #(match, type, name) { 
+      console.log(name);
       switch(type) {
         case '%': this.nodeType = name; break;
         case '#': this.classes.push(name); break;
@@ -75,6 +93,7 @@ class JSMLElement {
       return '';
     });
 
+    console.log(line);
     line = line.replace(this.JS_OUT_REGEX, #(match, type, content) {
       switch(type) {
         case '=': this.jsEQ = content; break;

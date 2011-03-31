@@ -386,7 +386,7 @@ function mainFunction (arg) {
 
           if (next[1]) {
             this.tokens.chomp(next[1].length);
-            this.tokens.push([ (first ? '' : '+') + '"' + this.sanitize(next[1]) + '\\\\n"', IDS.DSTRING ]);
+            this.tokens.push([ (first ? '' : '+') + '"' + this.sanitize(next[1]) + '\\n"', IDS.DSTRING ]);
           }
 
           if (next[3] == '#{') {
@@ -1494,19 +1494,24 @@ JS2.Class.extend('JSML', function(KLASS, OO){
 
   OO.addMember("initialize",function (txt) {
     var lines = txt.split(/\n/);
-    this.root    = new JS2.JSMLElement('');
+    this.root    = new JS2.JSMLElement();
     this.current = this.root;
     this.stack   = [ this.root ];
 
     for(var _i1=0,_c1=lines,_l1=_c1.length,l;(l=_c1[_i1])||(_i1<_l1);_i1++){
+      console.log(l);
       if (l.match(/^\s*$/)) continue;
       this.processLine(l);
     }
   });
 
+  OO.addMember("result",function () {
+    return "hello";
+  });
+
   OO.addMember("processLine",function (line) {
-    console.log(line);
     var ele  = new JS2.JSMLElement(line);
+    return;
     var scope = this.getScope();
 
     if (ele.scope == scope) {
@@ -1539,11 +1544,18 @@ JS2.Class.extend('JSML', function(KLASS, OO){
 });
 
 JS2.Class.extend('JSMLElement', function(KLASS, OO){
-  OO.addMember("SCOPE_REGEX",/(\s+)(.*)/);
+  OO.addMember("SCOPE_REGEX",/^(\s*)(.*)$/);
   OO.addMember("TOKEN_REGEX",/^(%|#|\.)([\w-]+)/);
   OO.addMember("JS_REGEX",/^(-|=)(.*)$/);
 
   OO.addMember("initialize",function (line) {
+    this.children = [];
+
+    if (line == null) {
+      this.scope = 0;
+      return;
+    }
+
     var spaceMatch = line.match(this.SCOPE_REGEX);
     this.scope = spaceMatch[1].length / 2;
 
@@ -1553,9 +1565,15 @@ JS2.Class.extend('JSMLElement', function(KLASS, OO){
     this.parse(spaceMatch[2]);
   });
 
+  OO.addMember("push",function (child) {
+    this.children.push(child);
+  });
+
   OO.addMember("parse",function (line) {
     var self = this;
+    console.log(line);
     line = line.replace(this.TOKEN_REGEX, function(match, type, name){ 
+      console.log(name);
       switch(type) {
         case '%': this.nodeType = name; break;
         case '#': this.classes.push(name); break;
@@ -1564,6 +1582,7 @@ JS2.Class.extend('JSMLElement', function(KLASS, OO){
       return '';
     });
 
+    console.log(line);
     line = line.replace(this.JS_OUT_REGEX, function(match, type, content){
       switch(type) {
         case '=': this.jsEQ = content; break;

@@ -207,7 +207,7 @@
 
           if (next[1]) {
             this.tokens.chomp(next[1].length);
-            this.tokens.push([ (first ? '' : '+') + '"' + this.sanitize(next[1]) + '\\\\n"', IDS.DSTRING ]);
+            this.tokens.push([ (first ? '' : '+') + '"' + this.sanitize(next[1]) + '\\n"', IDS.DSTRING ]);
           }
 
           if (next[3] == '#{') {
