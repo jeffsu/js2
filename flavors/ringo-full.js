@@ -1499,7 +1499,6 @@ JS2.Class.extend('JSML', function(KLASS, OO){
     this.stack   = [ this.root ];
 
     for(var _i1=0,_c1=lines,_l1=_c1.length,l;(l=_c1[_i1])||(_i1<_l1);_i1++){
-      console.log(l);
       if (l.match(/^\s*$/)) continue;
       this.processLine(l);
     }
@@ -1510,9 +1509,9 @@ JS2.Class.extend('JSML', function(KLASS, OO){
   });
 
   OO.addMember("processLine",function (line) {
-    var ele  = new JS2.JSMLElement(line);
-    return;
+    var ele   = new JS2.JSMLElement(line);
     var scope = this.getScope();
+return;
 
     if (ele.scope == scope) {
       console.log('same');
@@ -1545,7 +1544,7 @@ JS2.Class.extend('JSML', function(KLASS, OO){
 
 JS2.Class.extend('JSMLElement', function(KLASS, OO){
   OO.addMember("SCOPE_REGEX",/^(\s*)(.*)$/);
-  OO.addMember("TOKEN_REGEX",/^(%|#|\.)([\w-]+)/);
+  OO.addMember("TOKEN_REGEX",/^(\%|\#|\.)([\w-]+)/);
   OO.addMember("JS_REGEX",/^(-|=)(.*)$/);
 
   OO.addMember("initialize",function (line) {
@@ -1571,27 +1570,24 @@ JS2.Class.extend('JSMLElement', function(KLASS, OO){
 
   OO.addMember("parse",function (line) {
     var self = this;
-    console.log(line);
     line = line.replace(this.TOKEN_REGEX, function(match, type, name){ 
-      console.log(name);
       switch(type) {
-        case '%': this.nodeType = name; break;
-        case '#': this.classes.push(name); break;
-        case '.': this.nodeID = name; break;
+        case '%': self.nodeType = name; break;
+        case '.': self.classes.push(name); break;
+        case '#': self.nodeID = name; break;
       } 
       return '';
     });
 
-    console.log(line);
-    line = line.replace(this.JS_OUT_REGEX, function(match, type, content){
+    line = line.replace(this.JS_REGEX, function(match, type, content){
       switch(type) {
-        case '=': this.jsEQ = content; break;
-        case '-': this.jsExec = content; break;
+        case '=': self.jsEQ = content; break;
+        case '-': self.jsExec = content; break;
       }
       return '';
     });
+    console.log(this);
   });
-
 });
 
 JS2.TEMPLATES = { jsml: JS2.JSML };
