@@ -22,7 +22,6 @@ class JSML {
   function processLine(line) {
     var ele   = new JS2.JSMLElement(line);
     var scope = this.getScope();
-return;
 
     if (ele.scope == scope) {
       console.log('same');
@@ -34,8 +33,8 @@ return;
       this.stack.push(ele);
     } else if (ele.scope < scope) {
       console.log('less');
-      var diff = ele.scope - scope;
-      while(diff-- != 0) {
+      var diff = scope - ele.scope;
+      while(diff-- > 0) {
         this.stack.pop();
       }
       this.getLast().push(ele);
@@ -81,6 +80,7 @@ class JSMLElement {
 
   function parse(line) {
     var self = this;
+    console.log(line);
     line = line.replace(this.TOKEN_REGEX, #(match, type, name) { 
       switch(type) {
         case '%': self.nodeType = name; break;
@@ -97,7 +97,6 @@ class JSMLElement {
       }
       return '';
     });
-    console.log(this);
   }
 
   function toString() {

@@ -1513,7 +1513,6 @@ JS2.Class.extend('JSML', function(KLASS, OO){
   OO.addMember("processLine",function (line) {
     var ele   = new JS2.JSMLElement(line);
     var scope = this.getScope();
-return;
 
     if (ele.scope == scope) {
       console.log('same');
@@ -1525,7 +1524,7 @@ return;
       this.stack.push(ele);
     } else if (ele.scope < scope) {
       console.log('less');
-      var diff = ele.scope - scope;
+      var diff = scope - ele.scope;
       while(diff-- != 0) {
         this.stack.pop();
       }
@@ -1572,6 +1571,7 @@ JS2.Class.extend('JSMLElement', function(KLASS, OO){
 
   OO.addMember("parse",function (line) {
     var self = this;
+    console.log(line);
     line = line.replace(this.TOKEN_REGEX, function(match, type, name){ 
       switch(type) {
         case '%': self.nodeType = name; break;
@@ -1588,7 +1588,17 @@ JS2.Class.extend('JSMLElement', function(KLASS, OO){
       }
       return '';
     });
-    console.log(this);
+  });
+
+  OO.addMember("toString",function () {
+    var out = [];
+    for(var _i1=0,_c1=this.children,_l1=_c1.length,c;(c=_c1[_i1])||(_i1<_l1);_i1++){
+      out.push(c.toString());
+    }
+
+    if (this.jsEQ) {
+      
+    }
   });
 });
 

@@ -5,6 +5,10 @@ class String
   end
 end
 
+task :test_install => :dist do
+  sh "cd ./dist/npm/; npm install;"
+end
+
 namespace :publish do
   task :gem do
     sh "cd ./dist/gem/; rm *.gem; gem build js2.gemspec; gem push js2*.gem"
