@@ -260,7 +260,6 @@
     },
 
     toString: function () {
-      console.log((new Validator(this.content)).getString());
       var v  = this.validate(/^(function)(\s+)(I)(\s*)(Braces)(\s*)(Block)/);
       return 'OO.addMember("' + v[3] + '",' + "function" + v[2] + v[5] + ' ' + v[7] + ');';
     }

@@ -644,25 +644,17 @@ function mainFunction (arg) {
     },
 
     getTokenString: function(token) {
-      if (token[0] == 'toString') {
-  console.log('hey' + token[1] + ' ' + IDS.IDENT);
-      }
       if (token[1] == IDS.COMMENT) {
         return null;
       } else if (KEYWORDS.hasOwnProperty(token[0])) {
-if (token[0] == 'toString') console.log('key');
         return token[0];
       } else if (token[1] == IDS.SPACE) {
-if (token[0] == 'toString') console.log('space');
         return token[0];
       } else if (token[1] == IDS.IDENT) {
-if (token[0] == 'toString') console.log('II');
         return 'I';
       } else if (typeof token[0] == 'object') {
-if (token[0] == 'toString') console.log('obj');
         return token[0].name;
       } else if (typeof token[0] == 'string') {
-if (token[0] == 'toString') console.log('str');
         return token[0];
       }  
     }
