@@ -1,5 +1,11 @@
+<<<<<<< Updated upstream
 0.3.13
   * fixed problem that doesn't allow toString methods
+=======
+0.3.12
+  * fixed parse error in JSMLElement
+  * Yanking 0.3.11
+>>>>>>> Stashed changes
 
 0.3.11
   * fixed minor issue finding Rails.root in rack

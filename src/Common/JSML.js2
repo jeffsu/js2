@@ -66,7 +66,7 @@ class JSMLElement {
 
   function parse(line) {
     var self = this;
-    line = line.replace(this.TOKEN_REGEX, #(match, type, name) { 
+    line = line.replace(this.TOKEN_REGEX, #(match, type, name){ 
       switch(type) {
         case '%': this.nodeType = name; break;
         case '#': this.classes.push(name); break;
@@ -75,7 +75,7 @@ class JSMLElement {
       return '';
     });
 
-    line = line.replace(this.JS_OUT_REGEX, #(match, type, content) {
+    line = line.replace(this.JS_OUT_REGEX, #(match, type, content){
       switch(type) {
         case '=': this.jsEQ = content; break;
         case '-': this.jsExec = content; break;
@@ -83,5 +83,4 @@ class JSMLElement {
       return '';
     });
   }
-
 }

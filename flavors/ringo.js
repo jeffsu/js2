@@ -18,7 +18,7 @@ function mainFunction (arg) {
   var JS2 = root.JS2 = mainFunction;
   var js2 = root.js2 = JS2;
   js2.ROOT = JS2;
-  js2.VERSION = "0.3.11";
+  js2.VERSION = "0.3.12";
 
   
 // CLASS HELPERS
@@ -265,7 +265,6 @@ JS2.Array.prototype.empty = function() {
 JS2.Array.prototype.any = function() {
   return this.length > 0;
 };
-
 
 
   js2.ROOT = root;
