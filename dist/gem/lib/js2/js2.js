@@ -1500,13 +1500,17 @@ JS2.Class.extend('JSML', function(KLASS, OO){
       this.processLine(l);
     }
 
-    var toEval = 'function process() { var out = [];\n' + this.root.flatten().join('') + '\n return out.join("");\n}';
+    var toEval = 'function process() { var out = [];\n' + this.flatten().join('') + '\n return out.join("");\n}';
     eval(toEval);
 
     this.result = function(hash) {
       return process.call(hash);
     };
+  });
 
+  OO.addMember("flatten",function () {
+    console.log(this.root);
+    return this.root.flatten();
   });
 
   OO.addMember("processLine",function (line) {
@@ -1570,6 +1574,7 @@ JS2.Class.extend('JSMLElement', function(KLASS, OO){
   });
 
   OO.addMember("parse",function (line) {
+    this.attributes = {};
     var self = this;
     line = line.replace(this.TOKEN_REGEX, function(match, type, name){ 
       switch(type) {
@@ -1605,7 +1610,7 @@ JS2.Class.extend('JSMLElement', function(KLASS, OO){
 
     if (this.nodeType) {
       this.handleJsEQ(out);
-      out.unshift('out.push(' + JSON.stringify("<"+(this.nodeType)+">") + ');\n');
+      out.unshift('out.push(' + JSON.stringify("<"+(this.nodeType)+""+(this.getAttributes())+">") + ');\n');
       out.push('out.push(' + JSON.stringify("</"+(this.nodeType)+">") + ');\n');
     } else {
       this.handleJsExec(out);
@@ -1630,6 +1635,23 @@ JS2.Class.extend('JSMLElement', function(KLASS, OO){
         out.push('}');
       }
     }
+  });
+
+  OO.addMember("getAttributes",function () {
+    if (!this.attributes) return '';
+
+    var out = [];
+    var attrs = this.attributes;
+
+    if (attrs['class']) this.classes.push(attrs['class']);
+    if (this.classes.length) attrs['class'] = this.classes.join(' ');
+
+    for (var k in attrs) {
+      if (attrs.hasOwnProperty(k)) {
+        out.push(k + '=' + JSON.stringify(attrs[k]));
+      }
+    } 
+    return (out.length ? ' ' : '') + out.join(' ');
   });
 });
 
