@@ -2,10 +2,10 @@ console.log('hi');
 var text = <<END:jsml
   - if (this.hello) {
     %div
-      .hello
+      .hello= this.bar
       .world
     %span Hello world
     = this.hello
 END
 
-console.log(text.result({ hello:"yo" }));
+console.log(text.result({ hello:"yo", bar:"foo" }));

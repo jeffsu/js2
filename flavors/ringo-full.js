@@ -1126,6 +1126,7 @@ JS2.Array.prototype.any = function() {
   return this.length > 0;
 };
 
+
 JS2.Class.extend('FileSystem', function(KLASS, OO){
   OO.addMember("initialize",function (adapter) {
     this.adapter = adapter;
@@ -1235,6 +1236,7 @@ JS2.Class.extend('FileSystem', function(KLASS, OO){
   });
 });
 
+
 JS2.Class.extend('Updater', function(KLASS, OO){
   OO.addMember("initialize",function (fs, inDir, outDir, recursive) {
     this.recursive = recursive;
@@ -1279,6 +1281,7 @@ JS2.Class.extend('Updater', function(KLASS, OO){
     }
   });
 });
+
 
 JS2.Class.extend('Config', function(KLASS, OO){
   OO.addMember("CLI_REGEX",/^-(r|i|f|n|v|m)(=(\w+))?$/);
@@ -1350,6 +1353,7 @@ JS2.Class.extend('Config', function(KLASS, OO){
   });
 
 });
+
 
 JS2.Class.extend('Commander', function(KLASS, OO){
   OO.addMember("BANNER","js2 <command> [options] <arguments>\n" +
@@ -1437,6 +1441,7 @@ JS2.Class.extend('Commander', function(KLASS, OO){
 });
 
 
+
 JS2.Class.extend('BrowserDecorator', function(KLASS, OO){
   OO.addMember("file",function (code) {
     return code;
@@ -1481,6 +1486,7 @@ JS2.Class.extend('RingoDecorator', function(KLASS, OO){
 
 JS2.DECORATOR = JS2.DECORATOR || new JS2.BrowserDecorator();
 
+
 JS2.Class.extend('JSML', function(KLASS, OO){
   OO.addStaticMember("process",function (txt) {
     return new KLASS(txt);
@@ -1495,11 +1501,14 @@ JS2.Class.extend('JSML', function(KLASS, OO){
       if (l.match(/^\s*$/)) continue;
       this.processLine(l);
     }
-    console.log(this.root);
-  });
 
-  OO.addMember("result",function () {
-    return this.root.flatten().join('');
+    var toEval = 'function process() { var out = [];\n' + this.root.flatten().join('') + '\n return out.join("");\n}';
+    eval(toEval);
+
+    this.result = function(hash) {
+      return process.call(hash);
+    };
+
   });
 
   OO.addMember("processLine",function (line) {
@@ -1597,10 +1606,25 @@ JS2.Class.extend('JSMLElement', function(KLASS, OO){
     }
 
     if (this.nodeType) {
-      out.unshift("<"+(this.nodeType)+">");
-      out.push("</"+(this.nodeType)+">");
-    } 
+      this.handleJsEQ(out);
+      out.unshift('out.push(' + JSON.stringify("<"+(this.nodeType)+">") + ');\n');
+      out.push('out.push(' + JSON.stringify("</"+(this.nodeType)+">") + ');\n');
+    } else {
+      this.handleJsExec(out);
+      this.handleJsEQ(out);
+    }
 
+    return out;
+  });
+
+  OO.addMember("handleJsEQ",function (out) {
+    if (this.jsEQ) {
+      out.unshift('out.push(' + this.jsEQ + ');\n');
+    }
+  });
+
+
+  OO.addMember("handleJsExec",function (out) {
     if (this.jsExec) {
       out.unshift(this.jsExec);
     
@@ -1608,11 +1632,9 @@ JS2.Class.extend('JSMLElement', function(KLASS, OO){
         out.push('}');
       }
     }
-
-
-    return out;
   });
 });
+
 JS2.TEMPLATES = { jsml: JS2.JSML };
 
 
@@ -1667,6 +1689,7 @@ JS2.TEMPLATES = { jsml: JS2.JSML };
     }
   });
 });
+
 
   JS2.fs = new FileSystem(new RingoFileAdapter());
 

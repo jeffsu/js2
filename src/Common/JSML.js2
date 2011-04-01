@@ -12,11 +12,14 @@ class JSML {
       if (l.match(/^\s*$/)) continue;
       this.processLine(l);
     }
-    console.log(this.root);
-  }
 
-  function result() {
-    return this.root.flatten().join('');
+    var toEval = 'function process() { var out = [];\n' + this.root.flatten().join('') + '\n return out.join("");\n}';
+    eval(toEval);
+
+    this.result = function(hash) {
+      return process.call(hash);
+    };
+
   }
 
   function processLine(line) {
@@ -114,10 +117,25 @@ class JSMLElement {
     }
 
     if (this.nodeType) {
-      out.unshift(%{<#{this.nodeType}>});
-      out.push(%{</#{this.nodeType}>});
-    } 
+      this.handleJsEQ(out);
+      out.unshift('out.push(' + JSON.stringify(%{<#{this.nodeType}>}) + ');\n');
+      out.push('out.push(' + JSON.stringify(%{</#{this.nodeType}>}) + ');\n');
+    } else {
+      this.handleJsExec(out);
+      this.handleJsEQ(out);
+    }
 
+    return out;
+  }
+
+  function handleJsEQ(out) {
+    if (this.jsEQ) {
+      out.unshift('out.push(' + this.jsEQ + ');\n');
+    }
+  }
+
+
+  function handleJsExec(out) {
     if (this.jsExec) {
       out.unshift(this.jsExec);
     
@@ -125,8 +143,5 @@ class JSMLElement {
         out.push('}');
       }
     }
-
-
-    return out;
   }
 }
