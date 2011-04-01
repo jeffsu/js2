@@ -116,7 +116,16 @@ class JSMLElement {
     if (this.nodeType) {
       out.unshift(%{<#{this.nodeType}>});
       out.push(%{</#{this.nodeType}>});
+    } 
+
+    if (this.jsExec) {
+      out.unshift(this.jsExec);
+    
+      if (this.jsExec.match(/\{\s*$/)) {
+        out.push('}');
+      }
     }
+
 
     return out;
   }
