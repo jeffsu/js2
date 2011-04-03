@@ -19,7 +19,7 @@ function mainFunction (arg) {
 
   var JS2 = root.JS2 = mainFunction;
   var js2 = root.js2 = JS2;
-  js2.VERSION = "0.3.11";
+  js2.VERSION = "0.3.12";
 
   JS2.ROOT = JS2;
 

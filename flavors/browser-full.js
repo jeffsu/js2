@@ -18,7 +18,7 @@ function mainFunction (arg) {
 
   var JS2 = root.JS2 = mainFunction;
   var js2 = root.js2 = JS2;
-  js2.VERSION = "0.3.11";
+  js2.VERSION = "0.3.12";
 
   JS2.ROOT = JS2;
   
@@ -1580,9 +1580,13 @@ JS2.Class.extend('JSMLElement', function(KLASS, OO){
     this.attributes = {};
     this.line = line;
     var self = this;
+<<<<<<< HEAD
     var splitted = line.match(this.SPLIT_REGEX);
 
     splitted[1].replace(this.TOKEN_REGEX, function(match, type, name){ 
+=======
+    line = line.replace(this.TOKEN_REGEX, function(match, type, name){ 
+>>>>>>> bed239574b501453ee0f22330c71562aff44ce0b
       switch(type) {
         case '%': self.nodeType = name; break;
         case '.': self.classes.push(name); break;
@@ -1591,6 +1595,7 @@ JS2.Class.extend('JSMLElement', function(KLASS, OO){
       return '';
     });
 
+<<<<<<< HEAD
     if (splitted[2] == '=') {
       this.jsEQ = splitted[3];
     } else if (splitted[2] == '-') {
@@ -1602,17 +1607,23 @@ JS2.Class.extend('JSMLElement', function(KLASS, OO){
     if (!this.nodeType && (this.classes.length || this.nodeID)) {
       this.nodeType = 'div';
     }
-  });
+  };
 
-  OO.addMember("flatten",function () {
+  function flatten() {
     var out = [];
    
     for(var _i1=0,_c1=this.children,_l1=_c1.length,c;(c=_c1[_i1])||(_i1<_l1);_i1++){
       var arr = c.flatten();
       for(var _i2=0,_c2=arr,_l2=_c2.length,item;(item=_c2[_i2])||(_i2<_l2);_i2++){
         out.push(item);
+=======
+    line = line.replace(this.JS_OUT_REGEX, function(match, type, content){
+      switch(type) {
+        case '=': this.jsEQ = content; break;
+        case '-': this.jsExec = content; break;
+>>>>>>> bed239574b501453ee0f22330c71562aff44ce0b
       }
-    }
+    };
 
     if (this.nodeType) {
       this.handleJsEQ(out);
@@ -1626,32 +1637,33 @@ JS2.Class.extend('JSMLElement', function(KLASS, OO){
     }
 
     return out;
-  });
+  }
 
-  OO.addMember("handleJsEQ",function (out) {
+  function handleJsEQ(out) {
     if (this.jsEQ) {
       this.jsEQ = this.jsEQ.replace(/;\s*$/, '');
       out.unshift('out.push(' + this.jsEQ + ');\n');
     }
-  });
+  }
 
-  OO.addMember("handleContent",function (out) {
+  function handleContent(out) {
     if (this.content != null && this.content.length > 0) {
       out.unshift('out.push(' + JSON.stringify(this.content) + ');\n');
     }
-  });
+  }
 
 
-  OO.addMember("handleJsExec",function (out) {
+  function handleJsExec(out) {
     if (this.jsExec) {
       out.unshift(this.jsExec);
       if (this.jsExec.match(/\{\s*$/)) {
         out.push("}\n");
       }
     }
-  });
+  }
+<<<<<<< HEAD
 
-  OO.addMember("getAttributes",function () {
+  function getAttributes() {
     if (!this.attributes) return '';
 
     var out = [];
@@ -1667,9 +1679,11 @@ JS2.Class.extend('JSMLElement', function(KLASS, OO){
     } 
 
     return (out.length ? ' ' : '') + out.join(' ');
-  });
-});
-
+  }
+=======
+>>>>>>> bed239574b501453ee0f22330c71562aff44ce0b
+}
+););
 JS2.TEMPLATES = { jsml: JS2.JSML };
 
   (function (undefined, JS2) {
