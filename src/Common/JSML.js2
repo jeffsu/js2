@@ -22,7 +22,6 @@ class JSML {
   }
 
   function flatten() {
-    console.log(this.root);
     return this.root.flatten();
   }
 
@@ -31,20 +30,19 @@ class JSML {
     var scope = this.getScope();
 
     if (ele.scope == scope) {
-      console.log('same');
       this.stack.pop();
       this.getLast().push(ele);
+      this.stack.push(ele);
     } else if (ele.scope > scope) {
-      console.log('greater');
       this.getLast().push(ele); 
       this.stack.push(ele);
     } else if (ele.scope < scope) {
-      console.log('less');
-      var diff = scope - ele.scope;
+      var diff = scope - ele.scope + 1;
       while(diff-- > 0) {
         this.stack.pop();
       }
       this.getLast().push(ele);
+      this.stack.push(ele);
     }
   }
 
@@ -61,9 +59,10 @@ class JSML {
 
 class JSMLElement {
   var SCOPE_REGEX  = /^(\s*)(.*)$/;
-  var TOKEN_REGEX  = /^(\%|\#|\.)([\w-]+)/;
-  var JS_REGEX     = /^(-|=)(.*)$/;
-  var SCOPE_OFFSET = 2;
+  var SPLIT_REGEX  = /^([^=-\s]*)(=|-)?(?:\s*)(.*)$/;
+  var TOKEN_REGEX  = /(\%|\#|\.)([\w-]+)/g;
+  var JS_REGEX     = /^(-|=)(.*)$/g;
+  var SCOPE_OFFSET = 1;
 
   function initialize(line) {
     this.children = [];
@@ -88,8 +87,11 @@ class JSMLElement {
 
   function parse(line) {
     this.attributes = {};
+    this.line = line;
     var self = this;
-    line = line.replace(this.TOKEN_REGEX, #(match, type, name) { 
+    var splitted = line.match(this.SPLIT_REGEX);
+
+    splitted[1].replace(this.TOKEN_REGEX, #(match, type, name) { 
       switch(type) {
         case '%': self.nodeType = name; break;
         case '.': self.classes.push(name); break;
@@ -98,13 +100,13 @@ class JSMLElement {
       return '';
     });
 
-    line = line.replace(this.JS_REGEX, #(match, type, content) {
-      switch(type) {
-        case '=': self.jsEQ = content; break;
-        case '-': self.jsExec = content; break;
-      }
-      return '';
-    });
+    if (splitted[2] == '=') {
+      this.jsEQ = splitted[3];
+    } else if (splitted[2] == '-') {
+      this.jsExec = splitted[3];
+    } else {
+      this.content = splitted[3];
+    }
 
     if (!this.nodeType && (this.classes.length || this.nodeID)) {
       this.nodeType = 'div';
@@ -123,11 +125,13 @@ class JSMLElement {
 
     if (this.nodeType) {
       this.handleJsEQ(out);
+      this.handleContent(out);
       out.unshift('out.push(' + JSON.stringify(%{<#{this.nodeType}#{this.getAttributes()}>}) + ');\n');
       out.push('out.push(' + JSON.stringify(%{</#{this.nodeType}>}) + ');\n');
     } else {
       this.handleJsExec(out);
       this.handleJsEQ(out);
+      this.handleContent(out);
     }
 
     return out;
@@ -135,7 +139,14 @@ class JSMLElement {
 
   function handleJsEQ(out) {
     if (this.jsEQ) {
+      this.jsEQ = this.jsEQ.replace(/;\s*$/, '');
       out.unshift('out.push(' + this.jsEQ + ');\n');
+    }
+  }
+
+  function handleContent(out) {
+    if (this.content != null && this.content.length > 0) {
+      out.unshift('out.push(' + JSON.stringify(this.content) + ');\n');
     }
   }
 
@@ -143,9 +154,8 @@ class JSMLElement {
   function handleJsExec(out) {
     if (this.jsExec) {
       out.unshift(this.jsExec);
-    
       if (this.jsExec.match(/\{\s*$/)) {
-        out.push('}');
+        out.push("}\n");
       }
     }
   }
@@ -164,6 +174,7 @@ class JSMLElement {
         out.push(k + '=' + JSON.stringify(attrs[k]));
       }
     } 
+
     return (out.length ? ' ' : '') + out.join(' ');
   }
 }

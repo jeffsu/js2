@@ -1,11 +1,15 @@
 console.log('hi');
 var text = <<END:jsml
+  - for (var i=0; i<this.yo.length; i++) {
+    %div= this.yo[i];
   - if (this.hello) {
-    %div
+    %div.yo
       .hello= this.bar
+      .world
+      .world
       .world
     %span Hello world
     = this.hello
 END
 
-console.log(text.result({ hello:"yo", bar:"foo" }));
+console.log(text.result({ hello:"yo", bar:"foo", yo:['hello', 'world'] }));

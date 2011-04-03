@@ -1513,7 +1513,6 @@ JS2.Class.extend('JSML', function(KLASS, OO){
   });
 
   OO.addMember("flatten",function () {
-    console.log(this.root);
     return this.root.flatten();
   });
 
@@ -1522,20 +1521,19 @@ JS2.Class.extend('JSML', function(KLASS, OO){
     var scope = this.getScope();
 
     if (ele.scope == scope) {
-      console.log('same');
       this.stack.pop();
       this.getLast().push(ele);
+      this.stack.push(ele);
     } else if (ele.scope > scope) {
-      console.log('greater');
       this.getLast().push(ele); 
       this.stack.push(ele);
     } else if (ele.scope < scope) {
-      console.log('less');
-      var diff = scope - ele.scope;
+      var diff = scope - ele.scope + 1;
       while(diff-- > 0) {
         this.stack.pop();
       }
       this.getLast().push(ele);
+      this.stack.push(ele);
     }
   });
 
@@ -1552,9 +1550,10 @@ JS2.Class.extend('JSML', function(KLASS, OO){
 
 JS2.Class.extend('JSMLElement', function(KLASS, OO){
   OO.addMember("SCOPE_REGEX",/^(\s*)(.*)$/);
-  OO.addMember("TOKEN_REGEX",/^(\%|\#|\.)([\w-]+)/);
-  OO.addMember("JS_REGEX",/^(-|=)(.*)$/);
-  OO.addMember("SCOPE_OFFSET",2);
+  OO.addMember("SPLIT_REGEX",/^([^=-\s]*)(=|-)?(?:\s*)(.*)$/);
+  OO.addMember("TOKEN_REGEX",/(\%|\#|\.)([\w-]+)/g);
+  OO.addMember("JS_REGEX",/^(-|=)(.*)$/g);
+  OO.addMember("SCOPE_OFFSET",1);
 
   OO.addMember("initialize",function (line) {
     this.children = [];
@@ -1579,8 +1578,11 @@ JS2.Class.extend('JSMLElement', function(KLASS, OO){
 
   OO.addMember("parse",function (line) {
     this.attributes = {};
+    this.line = line;
     var self = this;
-    line = line.replace(this.TOKEN_REGEX, function(match, type, name){ 
+    var splitted = line.match(this.SPLIT_REGEX);
+
+    splitted[1].replace(this.TOKEN_REGEX, function(match, type, name){ 
       switch(type) {
         case '%': self.nodeType = name; break;
         case '.': self.classes.push(name); break;
@@ -1589,13 +1591,13 @@ JS2.Class.extend('JSMLElement', function(KLASS, OO){
       return '';
     });
 
-    line = line.replace(this.JS_REGEX, function(match, type, content){
-      switch(type) {
-        case '=': self.jsEQ = content; break;
-        case '-': self.jsExec = content; break;
-      }
-      return '';
-    });
+    if (splitted[2] == '=') {
+      this.jsEQ = splitted[3];
+    } else if (splitted[2] == '-') {
+      this.jsExec = splitted[3];
+    } else {
+      this.content = splitted[3];
+    }
 
     if (!this.nodeType && (this.classes.length || this.nodeID)) {
       this.nodeType = 'div';
@@ -1614,11 +1616,13 @@ JS2.Class.extend('JSMLElement', function(KLASS, OO){
 
     if (this.nodeType) {
       this.handleJsEQ(out);
+      this.handleContent(out);
       out.unshift('out.push(' + JSON.stringify("<"+(this.nodeType)+""+(this.getAttributes())+">") + ');\n');
       out.push('out.push(' + JSON.stringify("</"+(this.nodeType)+">") + ');\n');
     } else {
       this.handleJsExec(out);
       this.handleJsEQ(out);
+      this.handleContent(out);
     }
 
     return out;
@@ -1626,7 +1630,14 @@ JS2.Class.extend('JSMLElement', function(KLASS, OO){
 
   OO.addMember("handleJsEQ",function (out) {
     if (this.jsEQ) {
+      this.jsEQ = this.jsEQ.replace(/;\s*$/, '');
       out.unshift('out.push(' + this.jsEQ + ');\n');
+    }
+  });
+
+  OO.addMember("handleContent",function (out) {
+    if (this.content != null && this.content.length > 0) {
+      out.unshift('out.push(' + JSON.stringify(this.content) + ');\n');
     }
   });
 
@@ -1634,9 +1645,8 @@ JS2.Class.extend('JSMLElement', function(KLASS, OO){
   OO.addMember("handleJsExec",function (out) {
     if (this.jsExec) {
       out.unshift(this.jsExec);
-    
       if (this.jsExec.match(/\{\s*$/)) {
-        out.push('}');
+        out.push("}\n");
       }
     }
   });
@@ -1655,6 +1665,7 @@ JS2.Class.extend('JSMLElement', function(KLASS, OO){
         out.push(k + '=' + JSON.stringify(attrs[k]));
       }
     } 
+
     return (out.length ? ' ' : '') + out.join(' ');
   });
 });
