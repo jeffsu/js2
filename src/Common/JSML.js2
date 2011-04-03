@@ -59,7 +59,7 @@ class JSML {
 
 class JSMLElement {
   var SCOPE_REGEX  = /^(\s*)(.*)$/;
-  var SPLIT_REGEX  = /^([^=-\s]*)(=|-)?(?:\s*)(.*)$/;
+  var SPLIT_REGEX  = /^([^=-\s\{]*)(\{.*\})?(=|-)?(?:\s*)(.*)$/;
   var TOKEN_REGEX  = /(\%|\#|\.)([\w-]+)/g;
   var JS_REGEX     = /^(-|=)(.*)$/g;
   var SCOPE_OFFSET = 1;
@@ -89,13 +89,14 @@ class JSMLElement {
     this.attributes = {};
     this.line = line;
     var self = this;
-<<<<<<< HEAD
-    var splitted = line.match(this.SPLIT_REGEX);
 
-    splitted[1].replace(this.TOKEN_REGEX, #(match, type, name) { 
-=======
-    line = line.replace(this.TOKEN_REGEX, #(match, type, name){ 
->>>>>>> bed239574b501453ee0f22330c71562aff44ce0b
+    var splitted = line.match(this.SPLIT_REGEX);
+    var tokens   = splitted[1];
+    var attrs    = splitted[2];
+    var jsType   = splitted[3];
+    var content  = splitted[4];
+
+    tokens.replace(this.TOKEN_REGEX, #(match, type, name) { 
       switch(type) {
         case '%': self.nodeType = name; break;
         case '.': self.classes.push(name); break;
@@ -104,13 +105,16 @@ class JSMLElement {
       return '';
     });
 
-<<<<<<< HEAD
-    if (splitted[2] == '=') {
-      this.jsEQ = splitted[3];
-    } else if (splitted[2] == '-') {
-      this.jsExec = splitted[3];
+    if (jsType == '=') {
+      this.jsEQ = content;
+    } else if (jsType == '-') {
+      this.jsExec = content;
     } else {
-      this.content = splitted[3];
+      this.content = content;
+    }
+
+    if (attrs) {
+      eval('this.attributes = ' + attrs + ';');
     }
 
     if (!this.nodeType && (this.classes.length || this.nodeID)) {
@@ -125,12 +129,6 @@ class JSMLElement {
       var arr = c.flatten();
       foreach (var item in arr) {
         out.push(item);
-=======
-    line = line.replace(this.JS_OUT_REGEX, #(match, type, content){
-      switch(type) {
-        case '=': this.jsEQ = content; break;
-        case '-': this.jsExec = content; break;
->>>>>>> bed239574b501453ee0f22330c71562aff44ce0b
       }
     }
 
@@ -170,7 +168,6 @@ class JSMLElement {
       }
     }
   }
-<<<<<<< HEAD
 
   function getAttributes() {
     if (!this.attributes) return '';
@@ -189,6 +186,4 @@ class JSMLElement {
 
     return (out.length ? ' ' : '') + out.join(' ');
   }
-=======
->>>>>>> bed239574b501453ee0f22330c71562aff44ce0b
 }

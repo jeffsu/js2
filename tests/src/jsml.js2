@@ -8,7 +8,7 @@ var text = <<END:jsml
       .world
       .world
       .world
-    %span Hello world
+    %span{ class: 'hello' } Hello world
     = this.hello
 END
 

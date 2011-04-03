@@ -1,11 +1,10 @@
-<<<<<<< Updated upstream
 0.3.13
   * fixed problem that doesn't allow toString methods
-=======
+  * JSML POC 
+
 0.3.12
   * fixed parse error in JSMLElement
   * Yanking 0.3.11
->>>>>>> Stashed changes
 
 0.3.11
   * fixed minor issue finding Rails.root in rack
@@ -24,7 +23,7 @@
 0.3.8
   * fied "render"
   * fixed comment block bug
-	* using target-dir instead of out-dir
+  * using target-dir instead of out-dir
 
 0.3.7
   * fixed foreach counter
@@ -36,7 +35,7 @@
 
 0.3.5
   * Added scope and binding support to shorthand functions
-	* Added support for modules
+  * Added support for modules
 
 0.3.4
   * coded reduce to clojure spec
