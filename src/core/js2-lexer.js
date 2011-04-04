@@ -131,7 +131,7 @@
     REGEX: /^%\{/,
     ID: IDS.ISTRING,
     sanitize: function(str) {
-      return str.replace('"', '\\"');
+      return JSON.stringify(str);
     },
     consume: function() {
       var m = this.tokens.match(this.REGEX);
@@ -145,14 +145,14 @@
         if (m) {
           var matched = m[1];
           if (m[3] == '#{') {
-            this.tokens.push([ '"' + this.sanitize(matched) + '"+(', this.ID ]);
+            this.tokens.push([ this.sanitize(matched) + '+(', this.ID ]);
             this.tokens.chomp(m[0].length-1);
             var block = new JS2.Lexer.Block(this.tokens);
             block.tokenize();
             this.tokens.push([ ')+', this.ID ]);
             toEnd = true;
           } else if (m[3] == '}' || m[0] == '}') {
-            this.tokens.push([ '"' + this.sanitize(matched) + '"', this.ID ]);
+            this.tokens.push([ this.sanitize(matched), this.ID ]);
             this.tokens.chomp(m[0].length);
             break;
           }
@@ -207,7 +207,7 @@
 
           if (next[1]) {
             this.tokens.chomp(next[1].length);
-            this.tokens.push([ (first ? '' : '+') + '"' + this.sanitize(next[1]) + '\\n"', IDS.DSTRING ]);
+            this.tokens.push([ (first ? '' : '+') + this.sanitize(next[1]).replace(/"$/, '\\n"') , IDS.DSTRING ]);
           }
 
           if (next[3] == '#{') {
