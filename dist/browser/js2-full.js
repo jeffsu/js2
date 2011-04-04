@@ -1550,7 +1550,7 @@ JS2.Class.extend('JSML', function(KLASS, OO){
 
 JS2.Class.extend('JSMLElement', function(KLASS, OO){
   OO.addMember("SCOPE_REGEX",/^(\s*)(.*)$/);
-  OO.addMember("SPLIT_REGEX",/^([^=-\s\{]*)(\{.*\})?(=|-)?(?:\s*)(.*)$/);
+  OO.addMember("SPLIT_REGEX",/^((?:\.|\#|\%)[^=-\s\{]*)?(\{.*\})?(=|-)?(?:\s*)(.*)$/);
   OO.addMember("TOKEN_REGEX",/(\%|\#|\.)([\w-]+)/g);
   OO.addMember("JS_REGEX",/^(-|=)(.*)$/g);
   OO.addMember("SCOPE_OFFSET",1);
@@ -1587,14 +1587,16 @@ JS2.Class.extend('JSMLElement', function(KLASS, OO){
     var jsType   = splitted[3];
     var content  = splitted[4];
 
-    tokens.replace(this.TOKEN_REGEX, function(match, type, name){ 
-      switch(type) {
-        case '%': self.nodeType = name; break;
-        case '.': self.classes.push(name); break;
-        case '#': self.nodeID = name; break;
-      } 
-      return '';
-    });
+    if (tokens) {
+      tokens.replace(this.TOKEN_REGEX, function(match, type, name){ 
+        switch(type) {
+          case '%': self.nodeType = name; break;
+          case '.': self.classes.push(name); break;
+          case '#': self.nodeID = name; break;
+        } 
+        return '';
+      });
+    }
 
     if (jsType == '=') {
       this.jsEQ = content;

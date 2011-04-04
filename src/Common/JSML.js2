@@ -16,8 +16,9 @@ class JSML {
     var toEval = 'function process() { var out = [];\n' + this.flatten().join('') + '\n return out.join("");\n}';
     eval(toEval);
 
-    this.result = function(hash) {
-      return process.call(hash);
+    this.result = function(bound) {
+      bound = bound || {};
+      return process.call(bound);
     };
   }
 
@@ -59,7 +60,7 @@ class JSML {
 
 class JSMLElement {
   var SCOPE_REGEX  = /^(\s*)(.*)$/;
-  var SPLIT_REGEX  = /^([^=-\s\{]*)(\{.*\})?(=|-)?(?:\s*)(.*)$/;
+  var SPLIT_REGEX  = /^((?:\.|\#|\%)[^=-\s\{]*)?(\{.*\})?(=|-)?(?:\s*)(.*)$/;
   var TOKEN_REGEX  = /(\%|\#|\.)([\w-]+)/g;
   var JS_REGEX     = /^(-|=)(.*)$/g;
   var SCOPE_OFFSET = 1;
@@ -96,14 +97,16 @@ class JSMLElement {
     var jsType   = splitted[3];
     var content  = splitted[4];
 
-    tokens.replace(this.TOKEN_REGEX, #(match, type, name) { 
-      switch(type) {
-        case '%': self.nodeType = name; break;
-        case '.': self.classes.push(name); break;
-        case '#': self.nodeID = name; break;
-      } 
-      return '';
-    });
+    if (tokens) {
+      tokens.replace(this.TOKEN_REGEX, #(match, type, name) { 
+        switch(type) {
+          case '%': self.nodeType = name; break;
+          case '.': self.classes.push(name); break;
+          case '#': self.nodeID = name; break;
+        } 
+        return '';
+      });
+    }
 
     if (jsType == '=') {
       this.jsEQ = content;
