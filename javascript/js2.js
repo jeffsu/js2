@@ -19,7 +19,7 @@ function mainFunction (arg) {
 
   var JS2 = root.JS2 = mainFunction;
   var js2 = root.js2 = JS2;
-  js2.VERSION = "0.3.6";
+  js2.VERSION = "0.3.13";
 
   JS2.ROOT = JS2;
 
@@ -168,7 +168,7 @@ function mainFunction (arg) {
 
   var assert = {
     'eq': function(expected, actual) { if (expected != actual) console.log("Expected "+expected+", but got "+actual+".") },
-    'isFalse': function(val) { if (val) console.log("Expected false, but got "+val+".") },
+    'isFalse': function(val) { if (val) console.log("Expected false, but got "+JSON.stringify(val)+".") },
     'isTrue': function(val) { if (!val) console.log("Expected true, but got " +val+".") }
   };
 

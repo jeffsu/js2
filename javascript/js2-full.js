@@ -18,7 +18,7 @@ function mainFunction (arg) {
 
   var JS2 = root.JS2 = mainFunction;
   var js2 = root.js2 = JS2;
-  js2.VERSION = "0.3.6";
+  js2.VERSION = "0.3.13";
 
   JS2.ROOT = JS2;
   
@@ -166,7 +166,7 @@ function mainFunction (arg) {
 
   var assert = {
     'eq': function(expected, actual) { if (expected != actual) console.log("Expected "+expected+", but got "+actual+".") },
-    'isFalse': function(val) { if (val) console.log("Expected false, but got "+val+".") },
+    'isFalse': function(val) { if (val) console.log("Expected false, but got "+JSON.stringify(val)+".") },
     'isTrue': function(val) { if (!val) console.log("Expected true, but got " +val+".") }
   };
 
@@ -184,19 +184,19 @@ function mainFunction (arg) {
     [ 'COMMENT', "\\/\\/|/\\*" ],
     [ 'SPACE', "\\s+" ],
     [ 'REGEX', "\\/" ],
-    [ 'CLASS', "class" ],
-    [ 'MODULE', "module" ],
-    [ 'STATIC', "static" ],
-    [ 'include', "include" ],
+    [ 'CLASS', "\\bclass\\b" ],
+    [ 'MODULE', "\\bmodule\\b" ],
+    [ 'STATIC', "\\bstatic\\b" ],
+    [ 'include', "\\binclude\\b" ],
     [ 'SHORT_FUNCT', "#\\{|#\\(" ],
-    [ 'FOREACH', "foreach" ],
-    [ 'CURRY', "curry" ],
+    [ 'FOREACH', "\\bforeach\\b" ],
+    [ 'CURRY', "\\bcurry\\b" ],
     [ 'IDENT', "[\\w$]+" ],
     [ 'DSTRING', '"' ],
     [ 'SSTRING', "'" ],
     [ 'ISTRING', "%\\{" ],
     [ 'HEREDOC', "<<-?\\w+" ],
-    [ 'OPERATOR', "[^\\w]" ]
+    [ 'OPERATOR', "(?:\\+\\+|\\-\\-|[^\\w])" ]
   ];
 
   var IDS = {};
@@ -240,15 +240,23 @@ function mainFunction (arg) {
       var m = this.tokens.match(PRIMARY_REGEX)
       if (!m) return false;
 
+      if (m[0] == '/' && this.tokens.divideCompatible()) {
+        this.tokens.push([ '/', IDS.OPERATOR ]); // operator
+        this.tokens.chomp(1);
+        return  true;
+      }
+
       for (var i=0,tokenDef;tokenDef=this.TOKENS[i];i++) {
         if (m[0] == m[i+2]) {
           var klass = JS2.Lexer[tokenDef[0]];
+
           if (klass) {
             var lexer = new klass(this.tokens);
             if (lexer.consume()) {
               return true;
             }
           } else {
+            var type = tokenDef[0];
             this.tokens.push([ m[0], i ]);
             this.tokens.chomp(m[0]);
             return true;
@@ -304,7 +312,7 @@ function mainFunction (arg) {
     REGEX: /^%\{/,
     ID: IDS.ISTRING,
     sanitize: function(str) {
-      return str.replace('"', '\\"');
+      return JSON.stringify(str);
     },
     consume: function() {
       var m = this.tokens.match(this.REGEX);
@@ -318,14 +326,14 @@ function mainFunction (arg) {
         if (m) {
           var matched = m[1];
           if (m[3] == '#{') {
-            this.tokens.push([ '"' + this.sanitize(matched) + '"+(', this.ID ]);
+            this.tokens.push([ this.sanitize(matched) + '+(', this.ID ]);
             this.tokens.chomp(m[0].length-1);
             var block = new JS2.Lexer.Block(this.tokens);
             block.tokenize();
             this.tokens.push([ ')+', this.ID ]);
             toEnd = true;
           } else if (m[3] == '}' || m[0] == '}') {
-            this.tokens.push([ '"' + this.sanitize(matched) + '"', this.ID ]);
+            this.tokens.push([ this.sanitize(matched), this.ID ]);
             this.tokens.chomp(m[0].length);
             break;
           }
@@ -339,12 +347,13 @@ function mainFunction (arg) {
 
   JS2.Lexer.ISTRING.extend('Lexer.HEREDOC', {
     REGEX_NEXT: /^((\\#|[^#])*?)(#{|\r?\n)/,
-    REGEX: /^<<\-?(\w+)\r?\n/m,
+    REGEX: /^<<\-?(\w+)(?::(\w+))?\s*\r?\n/m,
     ID: IDS.HEREDOC,
     consume: function() {
       var m = this.tokens.match(this.REGEX);
       if (!m) return false;
 
+      var templateEngine = m[2];
       this.tokens.chomp(m[0].length);
       this.tokens.push([ "\n", IDS.SPACE ]);
 
@@ -355,13 +364,15 @@ function mainFunction (arg) {
 
       var first   = true;
       var noChomp = false;
+      if (templateEngine) {
+        this.tokens.push([ 'JS2.TEMPLATES["' + templateEngine + '"].process(', IDS.IDENT ]);
+      }
 
       while (1) {
         var e = this.tokens.match(ender);
         if (e) {
           this.tokens.chomp(e[0].length);
-          this.tokens.push([ ';', IDS.DSTRING ]);
-          return true;
+          break;
         } 
 
         if (noChomp) {
@@ -372,10 +383,13 @@ function mainFunction (arg) {
 
         var next = this.tokens.match(this.REGEX_NEXT);
         if (next) {
+          var str    = next[1];
+          var ending = next[2];
+
           if (next[1]) {
             this.tokens.chomp(next[1].length);
-            this.tokens.push([ (first ? '' : '+') + '"' + this.sanitize(next[1]) + '\\\\n"', IDS.DSTRING ]);
-          } 
+            this.tokens.push([ (first ? '' : '+') + this.sanitize(next[1]).replace(/"$/, '\\n"') , IDS.DSTRING ]);
+          }
 
           if (next[3] == '#{') {
             this.tokens.chomp(1);
@@ -390,6 +404,12 @@ function mainFunction (arg) {
         }
         first = false;
       }
+
+      if (templateEngine) {
+        this.tokens.push([ ')', IDS.IDENT ]);
+      }
+
+      this.tokens.push([ ';', IDS.OPERATOR ]);
       return true;
     }
   });
@@ -437,9 +457,9 @@ function mainFunction (arg) {
       var mode = 0;
       for (var i=0; i<str.length; i++) {
         if (str.charAt(i) == '*') {
-          mode++;
+          mode = 1;
         } else if (str.charAt(i) == '/' && mode == 1) {
-          mode++;
+          mode = 2;
         } else {
           mode = 0;
         }
@@ -466,6 +486,20 @@ function mainFunction (arg) {
       this.str    = str;
       this.orig   = str;
       this.before = [];
+    },
+
+    divideCompatible: function() {
+      var last = this.lastNonSpace();
+      return (last[0].match(/(\}|\)|\+\+|\-\-)$/) || last[1] == IDS.IDENT);
+    },
+
+    lastNonSpace: function() {
+      var idx   = this.tokens.length - 1;
+      var token = this.tokens[idx];
+      while (token && token[1] == IDS.SPACE) {
+        token = this.tokens[--idx];
+      }
+      return token;
     },
 
     toArray: function() {
@@ -625,7 +659,7 @@ function mainFunction (arg) {
     getTokenString: function(token) {
       if (token[1] == IDS.COMMENT) {
         return null;
-      } else if (token[0] in KEYWORDS) {
+      } else if (KEYWORDS.hasOwnProperty(token[0])) {
         return token[0];
       } else if (token[1] == IDS.SPACE) {
         return token[0];
@@ -849,7 +883,7 @@ function mainFunction (arg) {
   });
 
   var Foreach = Content.extend({
-    cache: { count: 1 },
+    cache: { count: 0 },
     name: 'Foreach',
     handOff: function(token) {
       if (this.started) {
@@ -862,12 +896,15 @@ function mainFunction (arg) {
     },
 
     toString: function() {
+      this.cache.count++;
       var v = this.validate(/(foreach)(\s*)(Braces)(\s*)(Block)/);
-      return "for" + this.getBrace(v[3]) + v[5].toString();
+      var ret =  "for" + this.getBrace(v[3]) + v[5].toString();
+      this.cache.count--;
+      return ret;
     },
 
     getBrace: function(brace) {
-      var n = this.cache.count++;
+      var n = this.cache.count;
       var iteratorName   = "_i" + n;
       var collectionName = "_c" + n;
       var l = "_l" + n;
@@ -881,9 +918,9 @@ function mainFunction (arg) {
       return "(var " + iteratorName + "=0," +
               collectionName + "=" + collection + "," +
               l + "=" + collectionName + ".length," +
-              holder + ";" +
-              holder + '=' + collectionName + '[' + iteratorName + ']||' +
-              iteratorName + '<' + l + ';' +
+              holder + ";(" +
+              holder + '=' + collectionName + '[' + iteratorName + '])||(' +
+              iteratorName + '<' + l + ');' +
               iteratorName + '++)';
     }
   });
@@ -1221,7 +1258,7 @@ JS2.Class.extend('Updater', function(KLASS, OO){
 
   OO.addMember("matchDirs",function (dir) {
     var subs = this.fs.readdir(dir);
-    for(var _i4=0,_c4=subs,_l4=_c4.length,sub;sub=_c4[_i4]||_i4<_l4;_i4++){
+    for(var _i1=0,_c1=subs,_l1=_c1.length,sub;(sub=_c1[_i1])||(_i1<_l1);_i1++){
       var path = dir + '/' + sub;
       if (this.fs.isDirectory(path)) {
         this.fs.mkdir(path.replace(this.inDir, this.outDir));
@@ -1263,7 +1300,7 @@ JS2.Class.extend('Config', function(KLASS, OO){
     this.recursive = true;
     this.interval  = 2;
     this.sourceDir = './app/js2';
-    this.outDir    = './public/javascripts';
+    this.targetDir = './public/javascripts';
     this.args      = [];
 
     this.fs = fs;
@@ -1295,10 +1332,15 @@ JS2.Class.extend('Config', function(KLASS, OO){
       try {
         var config = JSON.parse(this.fs.read(file).replace(/\n\r?/g, ''));
 
+        if (config['out-dir']) {
+          config['target-dir'] = config['target-dir'] || config['out-dir'];
+          console.log("Please use target-dir instead of out-dir");
+        }
+
         this.format    = config.format || this.format;
         this.interval  = config['interval'] ? config['interval'] : this.interval;
         this.sourceDir = config['source-dir'] || this.sourceDir;
-        this.outDir    = config['out-dir'] || this.outDir;
+        this.targetDir = config['target-dir'] || this.targetDir;
         this.verbose   = ('verbose' in config) ? config['verbose'] : false;
 
         this['non-recursive'] = config['non-recursive'];
@@ -1319,20 +1361,20 @@ JS2.Class.extend('Commander', function(KLASS, OO){
   OO.addMember("BANNER","js2 <command> [options] <arguments>\n" +
     "VERSION: " + JS2.VERSION + "\n" +
     "Commands:\n" +
-    "  * run <file>                -- Executes file\n" +
-    "  * render <file>             -- Shows JS2 compiled output\n" +
-    "  * compile <inDir> [outDir]  -- Compiles a directory and puts js files into outDir.  If outDir is not specified, inDir will be used\n" + 
+    "  * run <file>                         -- Executes file\n" +
+    "  * render <file>                      -- Shows JS2 compiled output\n" +
+    "  * compile <source dir> [target dir]  -- Compiles a directory and puts js files into target dir.  If target dir is not specified, source dir will be used\n" + 
     "    Options:\n" +
-    "      -n                      -- Do NOT traverse directories recursively\n" +
-    "      -v                      -- Verbose \n" +
-    "      -f=<format>             -- Compile for different formats: node, ringo, or browser\n" +
-    "  * compile <file>            -- Compiles a single js2 file into js\n" +
-    "  * watch <inDir> <outDir>    -- Similar to compile, but update will keep looping while watching for modifications\n" +
-    "    Options:\n" +
-    "      -n                      -- Do NOT traverse directories recursively\n" +
-    "      -f=<format>             -- Compile for different formats: node, ringo, or browser\n" +
-    "      -v                      -- Verbose \n" +
-    "      -i=<seconds>            -- Interval time in seconds between loops\n");
+    "      -n                               -- Do NOT traverse directories recursively\n" +
+    "      -v                               -- Verbose \n" +
+    "      -f=<format>                      -- Compile for different formats: node, ringo, or browser\n" +
+    "  * compile <file>                     -- Compiles a single js2 file into js\n" +
+    "  * watch <source dir> <target dir>    -- Similar to compile, but update will keep looping while watching for modifications\n" +
+    "    Options:\n" +                      
+    "      -n                               -- Do NOT traverse directories recursively\n" +
+    "      -f=<format>                      -- Compile for different formats: node, ringo, or browser\n" +
+    "      -v                               -- Verbose \n" +
+    "      -i=<seconds>                     -- Interval time in seconds between loops\n");
 
   OO.addMember("initialize",function (argv) {
     this.fs      = JS2.fs;
@@ -1359,7 +1401,7 @@ JS2.Class.extend('Commander', function(KLASS, OO){
   });
 
   OO.addMember("render",function () {
-    JS2.LOGGER.info(js2.render(this.fs.read(this.config.args[0])));
+    console.log(js2.render(this.fs.read(this.config.args[0])));
   });
 
   OO.addMember("run",function () {
@@ -1377,16 +1419,16 @@ JS2.Class.extend('Commander', function(KLASS, OO){
   });
 
   OO.addMember("getUpdater",function () {
-    var inDir  = this.config.args[0] || this.config.sourceDir || '.';
-    var outDir = this.config.args[1] || this.config.outDir || inDir;
-    return new JS2.Updater(this.fs, inDir, outDir, this.config.recursive);
+    var inDir     = this.config.args[0] || this.config.sourceDir || '.';
+    var targetDir = this.config.args[1] || this.config.outDir || inDir;
+    return new JS2.Updater(this.fs, inDir, targetDir, this.config.recursive);
   });
 
   OO.addMember("watch",function () {
     var updater = this.getUpdater();
     var self = this;
     var interval = this.config.interval || 2;
-    JS2.LOGGER.info('Input Directory:' + updater.inDir + ' -> Output Directory:' + updater.outDir);
+    JS2.LOGGER.info('Source Directory:' + updater.inDir + ' -> Target Directory:' + updater.targetDir);
     if (updater.recursive) JS2.LOGGER.info('RECURSIVE');
 
     // HACK to get this integrated with ruby
@@ -1446,6 +1488,198 @@ JS2.Class.extend('RingoDecorator', function(KLASS, OO){
 
 JS2.DECORATOR = JS2.DECORATOR || new JS2.BrowserDecorator();
 
+
+JS2.Class.extend('JSML', function(KLASS, OO){
+  OO.addStaticMember("process",function (txt) {
+    return new KLASS(txt);
+  });
+
+  OO.addMember("initialize",function (txt) {
+    var lines = txt.split(/\n/);
+    this.root    = new JS2.JSMLElement();
+    this.stack   = [ this.root ];
+
+    for(var _i1=0,_c1=lines,_l1=_c1.length,l;(l=_c1[_i1])||(_i1<_l1);_i1++){
+      if (l.match(/^\s*$/)) continue;
+      this.processLine(l);
+    }
+
+    var toEval = 'function process() { var out = [];\n' + this.flatten().join('') + '\n return out.join("");\n}';
+    eval(toEval);
+
+    this.result = function(hash) {
+      return process.call(hash);
+    };
+  });
+
+  OO.addMember("flatten",function () {
+    return this.root.flatten();
+  });
+
+  OO.addMember("processLine",function (line) {
+    var ele   = new JS2.JSMLElement(line);
+    var scope = this.getScope();
+
+    if (ele.scope == scope) {
+      this.stack.pop();
+      this.getLast().push(ele);
+      this.stack.push(ele);
+    } else if (ele.scope > scope) {
+      this.getLast().push(ele); 
+      this.stack.push(ele);
+    } else if (ele.scope < scope) {
+      var diff = scope - ele.scope + 1;
+      while(diff-- > 0) {
+        this.stack.pop();
+      }
+      this.getLast().push(ele);
+      this.stack.push(ele);
+    }
+  });
+
+
+  OO.addMember("getScope",function () {
+    return this.stack.length - 1;
+  });
+
+  OO.addMember("getLast",function () {
+    return this.stack[this.stack.length-1];
+  });
+
+});
+
+JS2.Class.extend('JSMLElement', function(KLASS, OO){
+  OO.addMember("SCOPE_REGEX",/^(\s*)(.*)$/);
+  OO.addMember("SPLIT_REGEX",/^([^=-\s\{]*)(\{.*\})?(=|-)?(?:\s*)(.*)$/);
+  OO.addMember("TOKEN_REGEX",/(\%|\#|\.)([\w-]+)/g);
+  OO.addMember("JS_REGEX",/^(-|=)(.*)$/g);
+  OO.addMember("SCOPE_OFFSET",1);
+
+  OO.addMember("initialize",function (line) {
+    this.children = [];
+
+    if (line == null) {
+      this.scope = this.SCOPE_OFFSET;
+      return;
+    }
+
+    var spaceMatch = line.match(this.SCOPE_REGEX);
+    this.scope = spaceMatch[1].length / 2 + this.SCOPE_OFFSET;
+
+    this.classes  = [];
+    this.nodeID   = null;
+
+    this.parse(spaceMatch[2]);
+  });
+
+  OO.addMember("push",function (child) {
+    this.children.push(child);
+  });
+
+  OO.addMember("parse",function (line) {
+    this.attributes = {};
+    this.line = line;
+    var self = this;
+
+    var splitted = line.match(this.SPLIT_REGEX);
+    var tokens   = splitted[1];
+    var attrs    = splitted[2];
+    var jsType   = splitted[3];
+    var content  = splitted[4];
+
+    tokens.replace(this.TOKEN_REGEX, function(match, type, name){ 
+      switch(type) {
+        case '%': self.nodeType = name; break;
+        case '.': self.classes.push(name); break;
+        case '#': self.nodeID = name; break;
+      } 
+      return '';
+    });
+
+    if (jsType == '=') {
+      this.jsEQ = content;
+    } else if (jsType == '-') {
+      this.jsExec = content;
+    } else {
+      this.content = content;
+    }
+
+    if (attrs) {
+      eval('this.attributes = ' + attrs + ';');
+    }
+
+    if (!this.nodeType && (this.classes.length || this.nodeID)) {
+      this.nodeType = 'div';
+    }
+  });
+
+  OO.addMember("flatten",function () {
+    var out = [];
+   
+    for(var _i1=0,_c1=this.children,_l1=_c1.length,c;(c=_c1[_i1])||(_i1<_l1);_i1++){
+      var arr = c.flatten();
+      for(var _i2=0,_c2=arr,_l2=_c2.length,item;(item=_c2[_i2])||(_i2<_l2);_i2++){
+        out.push(item);
+      }
+    }
+
+    if (this.nodeType) {
+      this.handleJsEQ(out);
+      this.handleContent(out);
+      out.unshift('out.push(' + JSON.stringify("<"+(this.nodeType)+""+(this.getAttributes())+">") + ');\n');
+      out.push('out.push(' + JSON.stringify("</"+(this.nodeType)+">") + ');\n');
+    } else {
+      this.handleJsExec(out);
+      this.handleJsEQ(out);
+      this.handleContent(out);
+    }
+
+    return out;
+  });
+
+  OO.addMember("handleJsEQ",function (out) {
+    if (this.jsEQ) {
+      this.jsEQ = this.jsEQ.replace(/;\s*$/, '');
+      out.unshift('out.push(' + this.jsEQ + ');\n');
+    }
+  });
+
+  OO.addMember("handleContent",function (out) {
+    if (this.content != null && this.content.length > 0) {
+      out.unshift('out.push(' + JSON.stringify(this.content) + ');\n');
+    }
+  });
+
+
+  OO.addMember("handleJsExec",function (out) {
+    if (this.jsExec) {
+      out.unshift(this.jsExec);
+      if (this.jsExec.match(/\{\s*$/)) {
+        out.push("}\n");
+      }
+    }
+  });
+
+  OO.addMember("getAttributes",function () {
+    if (!this.attributes) return '';
+
+    var out = [];
+    var attrs = this.attributes;
+
+    if (attrs['class']) this.classes.push(attrs['class']);
+    if (this.classes.length) attrs['class'] = this.classes.join(' ');
+
+    for (var k in attrs) {
+      if (attrs.hasOwnProperty(k)) {
+        out.push(k + '=' + JSON.stringify(attrs[k]));
+      }
+    } 
+
+    return (out.length ? ' ' : '') + out.join(' ');
+  });
+});
+
+JS2.TEMPLATES = { jsml: JS2.JSML };
 
   (function (undefined, JS2) {
   JS2.require = function(file, callback) {
