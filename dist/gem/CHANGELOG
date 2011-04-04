@@ -1,5 +1,6 @@
 0.3.13
   * fixed problem that doesn't allow toString methods
+  * fixed string sanitizer problem with double quotes
   * JSML POC 
 
 0.3.12
