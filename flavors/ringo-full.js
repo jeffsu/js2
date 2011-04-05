@@ -16,7 +16,7 @@ function mainFunction (arg) {
 
   var JS2 = root.JS2 = mainFunction;
   var js2 = root.js2 = JS2;
-  js2.VERSION = "0.3.13";
+  js2.VERSION = "0.3.14";
 
   JS2.ROOT = JS2;
   
@@ -1505,8 +1505,9 @@ JS2.Class.extend('JSML', function(KLASS, OO){
     var toEval = 'function process() { var out = [];\n' + this.flatten().join('') + '\n return out.join("");\n}';
     eval(toEval);
 
-    this.result = function(hash) {
-      return process.call(hash);
+    this.result = function(bound) {
+      bound = bound || {};
+      return process.call(bound);
     };
   });
 

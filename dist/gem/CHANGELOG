@@ -1,3 +1,6 @@
+0.3.14
+  * JSML: added plain content children
+
 0.3.13
   * fixed problem that doesn't allow toString methods
   * fixed string sanitizer problem with double quotes
@@ -22,7 +25,7 @@
   * fixed regex/divide issue
 
 0.3.8
-  * fied "render"
+  * fixed "render"
   * fixed comment block bug
   * using target-dir instead of out-dir
 
