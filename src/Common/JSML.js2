@@ -87,7 +87,7 @@ class JSMLElement {
   }
 
   function parse(line) {
-    this.attributes = {};
+    this.attributes;
     this.line = line;
     var self = this;
 
@@ -117,7 +117,7 @@ class JSMLElement {
     }
 
     if (attrs) {
-      eval('this.attributes = ' + attrs + ';');
+      this.attributes = attrs;
     }
 
     if (!this.nodeType && (this.classes.length || this.nodeID)) {
@@ -138,7 +138,7 @@ class JSMLElement {
     if (this.nodeType) {
       this.handleJsEQ(out);
       this.handleContent(out);
-      out.unshift('out.push(' + JSON.stringify(%{<#{this.nodeType}#{this.getAttributes()}>}) + ');\n');
+      out.unshift('out.push("<' + this.nodeType + '"+JS2.JSMLElement.parseAttributes(' + (this.attributes || "{}") + ', ' + JSON.stringify(this.classes || []) + ', ' + JSON.stringify(this.id || null) + ')+">");\n');
       out.push('out.push(' + JSON.stringify(%{</#{this.nodeType}>}) + ');\n');
     } else {
       this.handleJsExec(out);
@@ -172,21 +172,17 @@ class JSMLElement {
     }
   }
 
-  function getAttributes() {
-    if (!this.attributes) return '';
-
+  static function parseAttributes(hash, classes, id) {
     var out = [];
-    var attrs = this.attributes;
+    classes = classes || [];
+    if (hash['class']) classes.push(hash['class']);
+    if (classes.length) hash['class'] = classes.join(" ");
 
-    if (attrs['class']) this.classes.push(attrs['class']);
-    if (this.classes.length) attrs['class'] = this.classes.join(' ');
-
-    for (var k in attrs) {
-      if (attrs.hasOwnProperty(k)) {
-        out.push(k + '=' + JSON.stringify(attrs[k]));
+    for (var k in hash) {
+      if (hash.hasOwnProperty(k)) {
+        out.push(k + '=' + JSON.stringify(hash[k]));
       }
-    } 
-
+    }
     return (out.length ? ' ' : '') + out.join(' ');
   }
 }

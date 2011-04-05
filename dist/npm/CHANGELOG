@@ -1,3 +1,7 @@
+0.3.15
+  * JSML: added "eval'd" attribute handling
+  * JSML: fixed browser js2 file
+
 0.3.14
   * JSML: added plain content children
 

@@ -14,7 +14,7 @@ function mainFunction (arg) {
 
   var JS2 = root.JS2 = mainFunction;
   var js2 = root.js2 = JS2;
-  js2.VERSION = "0.3.14";
+  js2.VERSION = "0.3.15";
 
   JS2.ROOT = JS2;
   
@@ -1547,7 +1547,7 @@ JS2.Class.extend('JSML', function(KLASS, OO){
 
 JS2.Class.extend('JSMLElement', function(KLASS, OO){
   OO.addMember("SCOPE_REGEX",/^(\s*)(.*)$/);
-  OO.addMember("SPLIT_REGEX",/^((?:\.|\#|\%)[^=-\s\{]*)?(\{.*\})?(=|-)?(?:\s*)(.*)$/);
+  OO.addMember("SPLIT_REGEX",/^((?:\.|\#|\%)[^=\-\s\{]*)?(\{.*\})?(=|-)?(?:\s*)(.*)$/);
   OO.addMember("TOKEN_REGEX",/(\%|\#|\.)([\w-]+)/g);
   OO.addMember("JS_REGEX",/^(-|=)(.*)$/g);
   OO.addMember("SCOPE_OFFSET",1);
@@ -1574,7 +1574,7 @@ JS2.Class.extend('JSMLElement', function(KLASS, OO){
   });
 
   OO.addMember("parse",function (line) {
-    this.attributes = {};
+    this.attributes;
     this.line = line;
     var self = this;
 
@@ -1604,7 +1604,7 @@ JS2.Class.extend('JSMLElement', function(KLASS, OO){
     }
 
     if (attrs) {
-      eval('this.attributes = ' + attrs + ';');
+      this.attributes = attrs;
     }
 
     if (!this.nodeType && (this.classes.length || this.nodeID)) {
@@ -1625,7 +1625,7 @@ JS2.Class.extend('JSMLElement', function(KLASS, OO){
     if (this.nodeType) {
       this.handleJsEQ(out);
       this.handleContent(out);
-      out.unshift('out.push(' + JSON.stringify("<"+(this.nodeType)+""+(this.getAttributes())+">") + ');\n');
+      out.unshift('out.push("<' + this.nodeType + '"+JS2.JSMLElement.parseAttributes(' + (this.attributes || "{}") + ', ' + JSON.stringify(this.classes || []) + ', ' + JSON.stringify(this.id || null) + ')+">");\n');
       out.push('out.push(' + JSON.stringify("</"+(this.nodeType)+">") + ');\n');
     } else {
       this.handleJsExec(out);
@@ -1659,21 +1659,17 @@ JS2.Class.extend('JSMLElement', function(KLASS, OO){
     }
   });
 
-  OO.addMember("getAttributes",function () {
-    if (!this.attributes) return '';
-
+  OO.addStaticMember("parseAttributes",function (hash, classes, id) {
     var out = [];
-    var attrs = this.attributes;
+    classes = classes || [];
+    if (hash['class']) classes.push(hash['class']);
+    if (classes.length) hash['class'] = classes.join(" ");
 
-    if (attrs['class']) this.classes.push(attrs['class']);
-    if (this.classes.length) attrs['class'] = this.classes.join(' ');
-
-    for (var k in attrs) {
-      if (attrs.hasOwnProperty(k)) {
-        out.push(k + '=' + JSON.stringify(attrs[k]));
+    for (var k in hash) {
+      if (hash.hasOwnProperty(k)) {
+        out.push(k + '=' + JSON.stringify(hash[k]));
       }
-    } 
-
+    }
     return (out.length ? ' ' : '') + out.join(' ');
   });
 });
