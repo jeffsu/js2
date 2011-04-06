@@ -1,4 +1,4 @@
-[JS2](http://jeffsu.github.com/js2) - Javascript Syntactic Sugar
+[JS2](http://jeffsu.github.com/js2) - Javascript Sugar
 ======================================================================
   * [Home](http://jeffsu.github.com/js2)
   * [Wiki](http://github.com/jeffsu/js2/wiki)
