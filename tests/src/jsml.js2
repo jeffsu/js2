@@ -10,7 +10,7 @@ var text = <<END:jsml
 END
 
 var text2 = <<END:jsml
-  %div
+  %div.hello-world
     hello
     world
 END
@@ -20,6 +20,6 @@ js2.test(#(assert) {
   var result   = text.result({ hello:"yo", bar:"foo", yo:['hello', 'world'] });
   var expected = '<div>hello</div><div>world</div><div class="yo"><div class="hello">foo</div><div class="world"></div></div><span class="yo" href="/">Hello world</span>yo'
   assert.eq(expected, result);
-  assert.eq('<div>helloworld</div>', text2.result());
+  assert.eq('<div class="hello-world">helloworld</div>', text2.result());
 });
 

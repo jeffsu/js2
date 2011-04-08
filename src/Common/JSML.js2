@@ -60,8 +60,8 @@ class JSML {
 
 class JSMLElement {
   var SCOPE_REGEX  = /^(\s*)(.*)$/;
-  var SPLIT_REGEX  = /^((?:\.|\#|\%)[^=\-\s\{]*)?(\{.*\})?(=|-)?(?:\s*)(.*)$/;
-  var TOKEN_REGEX  = /(\%|\#|\.)([\w-]+)/g;
+  var SPLIT_REGEX  = /^((?:\.|\#|\%)[^=\s\{]*)?(\{.*\})?(=|-)?(?:\s*)(.*)$/;
+  var TOKEN_REGEX  = /(\%|\#|\.)([\w][\w\-]*)/g;
   var JS_REGEX     = /^(-|=)(.*)$/g;
   var SCOPE_OFFSET = 1;
 

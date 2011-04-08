@@ -5,7 +5,6 @@ module JS2
   class Rack
     def get_root 
       @root ||= defined?(Rails) ? Rails.root : File.expand_path(Dir.getwd)
-      puts "ROOT:#{@root}"
       return @root
     end
 

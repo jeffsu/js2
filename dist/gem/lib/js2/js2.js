@@ -1124,7 +1124,6 @@ JS2.Array.prototype.any = function() {
   return this.length > 0;
 };
 
-
 JS2.Class.extend('FileSystem', function(KLASS, OO){
   OO.addMember("initialize",function (adapter) {
     this.adapter = adapter;
@@ -1234,7 +1233,6 @@ JS2.Class.extend('FileSystem', function(KLASS, OO){
   });
 });
 
-
 JS2.Class.extend('Updater', function(KLASS, OO){
   OO.addMember("initialize",function (fs, inDir, outDir, recursive) {
     this.recursive = recursive;
@@ -1279,7 +1277,6 @@ JS2.Class.extend('Updater', function(KLASS, OO){
     }
   });
 });
-
 
 JS2.Class.extend('Config', function(KLASS, OO){
   OO.addMember("CLI_REGEX",/^-(r|i|f|n|v|m)(=(\w+))?$/);
@@ -1351,7 +1348,6 @@ JS2.Class.extend('Config', function(KLASS, OO){
   });
 
 });
-
 
 JS2.Class.extend('Commander', function(KLASS, OO){
   OO.addMember("BANNER","js2 <command> [options] <arguments>\n" +
@@ -1439,7 +1435,6 @@ JS2.Class.extend('Commander', function(KLASS, OO){
 });
 
 
-
 JS2.Class.extend('BrowserDecorator', function(KLASS, OO){
   OO.addMember("file",function (code) {
     return code;
@@ -1483,7 +1478,6 @@ JS2.Class.extend('RingoDecorator', function(KLASS, OO){
 });
 
 JS2.DECORATOR = JS2.DECORATOR || new JS2.BrowserDecorator();
-
 
 JS2.Class.extend('JSML', function(KLASS, OO){
   OO.addStaticMember("process",function (txt) {
@@ -1547,8 +1541,8 @@ JS2.Class.extend('JSML', function(KLASS, OO){
 
 JS2.Class.extend('JSMLElement', function(KLASS, OO){
   OO.addMember("SCOPE_REGEX",/^(\s*)(.*)$/);
-  OO.addMember("SPLIT_REGEX",/^((?:\.|\#|\%)[^=\-\s\{]*)?(\{.*\})?(=|-)?(?:\s*)(.*)$/);
-  OO.addMember("TOKEN_REGEX",/(\%|\#|\.)([\w-]+)/g);
+  OO.addMember("SPLIT_REGEX",/^((?:\.|\#|\%)[^=\s\{]*)?(\{.*\})?(=|-)?(?:\s*)(.*)$/);
+  OO.addMember("TOKEN_REGEX",/(\%|\#|\.)([\w][\w\-]*)/g);
   OO.addMember("JS_REGEX",/^(-|=)(.*)$/g);
   OO.addMember("SCOPE_OFFSET",1);
 
@@ -1673,7 +1667,6 @@ JS2.Class.extend('JSMLElement', function(KLASS, OO){
     return (out.length ? ' ' : '') + out.join(' ');
   });
 });
-
 JS2.TEMPLATES = { jsml: JS2.JSML };
 
 
