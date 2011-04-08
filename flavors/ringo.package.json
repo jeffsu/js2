@@ -1,8 +1,8 @@
 {
     "name": "js2-ringo",
     "version": "0.3.16",
-    "description": "Javascript Syntactic Sugar",
-    "keywords": ["rhino", "ringo", "js2", "object oriented programming" ],
+    "description": "Javascript Sugar",
+    "keywords": ["rhino", "ringo", "js2", "javascript", "object oriented programming" ],
     "author": "Jeff Su (http://jeffsu.com/) <me@jeffsu.com>",
     "contributors": [],
     "jars": []
