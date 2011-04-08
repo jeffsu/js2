@@ -1,3 +1,7 @@
+0.3.16
+  * JSML: Support dashes in classes and id
+  * GEM: Took out debug info in rack.rb
+
 0.3.15
   * JSML: added "eval'd" attribute handling
   * JSML: fixed browser js2 file
@@ -52,5 +56,3 @@
 0.3.3
   * using closure for classes instead of hashes
   * adding static methods
-
-
