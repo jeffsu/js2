@@ -10,6 +10,12 @@ foreach (var item in foo) {
   // do nothing
 }
 
+var k = 0;
+foreach (var item:i in foo) {
+  k = i;
+}
+
 js2.test(#(assert){
   assert.eq(bar.length, 4);
+  assert.eq(1, k);
 });

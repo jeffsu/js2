@@ -16,7 +16,7 @@ function mainFunction (arg) {
 
   var JS2 = root.JS2 = mainFunction;
   var js2 = root.js2 = JS2;
-  js2.VERSION = "0.3.16";
+  js2.VERSION = "0.3.17";
 
   JS2.ROOT = JS2;
   
@@ -903,12 +903,14 @@ function mainFunction (arg) {
 
     getBrace: function(brace) {
       var n = this.cache.count;
-      var iteratorName   = "_i" + n;
       var collectionName = "_c" + n;
       var l = "_l" + n;
 
-      var v = brace.validate(/(\()(\s*)(var)(\s+)(I)(\s+)(in)(\s+)/);
+      console.log(brace.getValidateString());
+      var v = brace.validate(/(\()(\s*)(var)(\s+)(I)(\s*\:\s*(I))?(\s+)(in)(\s+)/);
       if (!v) return '';
+      console.log(v[7], v[5], v[4], '<<');
+      var iteratorName   = v[7] || "_i" + n;
 
       var holder = v[5];
       var collection = v.last.replace(/\)$/, '');
