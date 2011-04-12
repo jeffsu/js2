@@ -906,7 +906,6 @@ function mainFunction (arg) {
       var collectionName = "_c" + n;
       var l = "_l" + n;
 
-      console.log(brace.getValidateString());
       var v = brace.validate(/(\()(\s*)(var)(\s+)(I)(\s*\:\s*(I))?(\s+)(in)(\s+)/);
       if (!v) return '';
       console.log(v[7], v[5], v[4], '<<');
@@ -1420,7 +1419,7 @@ JS2.Class.extend('Commander', function(KLASS, OO){
 
   OO.addMember("getUpdater",function () {
     var inDir     = this.config.args[0] || this.config.sourceDir || '.';
-    var targetDir = this.config.args[1] || this.config.outDir || inDir;
+    var targetDir = this.config.args[1] || this.config.targetDir || inDir;
     return new JS2.Updater(this.fs, inDir, targetDir, this.config.recursive);
   });
 

@@ -1,5 +1,6 @@
 0.3.17
   * CORE: Adding counter to foreach "foreach (var item:i in items) { }"
+  * COMMAND: Fixing compile to use targetDir instead of outDir
 
 0.3.16
   * JSML: Support dashes in classes and id

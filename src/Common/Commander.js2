@@ -62,7 +62,7 @@ class Commander {
 
   function getUpdater() {
     var inDir     = this.config.args[0] || this.config.sourceDir || '.';
-    var targetDir = this.config.args[1] || this.config.outDir || inDir;
+    var targetDir = this.config.args[1] || this.config.targetDir || inDir;
     return new JS2.Updater(this.fs, inDir, targetDir, this.config.recursive);
   }
 
