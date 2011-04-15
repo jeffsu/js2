@@ -296,6 +296,8 @@ JS2.Array.prototype.any = function() {
   });
 
   OO.addMember("processLine",function (line) {
+    if (line.match(/^\s*$/)) return;
+
     var ele   = new JS2.JSMLElement(line);
     var scope = this.getScope();
 
@@ -333,6 +335,7 @@ JS2.Class.extend('JSMLElement', function(KLASS, OO){
   OO.addMember("TOKEN_REGEX",/(\%|\#|\.)([\w][\w\-]*)/g);
   OO.addMember("JS_REGEX",/^(-|=)(.*)$/g);
   OO.addMember("SCOPE_OFFSET",1);
+  OO.addMember("SELF_CLOSING",{ area: null, basefont: null, br: null, hr: null, input: null, img: null, link: null, meta: null });
 
   OO.addMember("initialize",function (line) {
     this.children = [];
@@ -392,6 +395,12 @@ JS2.Class.extend('JSMLElement', function(KLASS, OO){
     if (!this.nodeType && (this.classes.length || this.nodeID)) {
       this.nodeType = 'div';
     }
+
+    if (this.SELF_CLOSING.hasOwnProperty(this.nodeType) && this.children.length == 0) {
+      this.selfClose = '/';
+    } else {
+      this.selfClose = '';
+    }
   });
 
   OO.addMember("flatten",function () {
@@ -407,8 +416,10 @@ JS2.Class.extend('JSMLElement', function(KLASS, OO){
     if (this.nodeType) {
       this.handleJsEQ(out);
       this.handleContent(out);
-      out.unshift('out.push("<' + this.nodeType + '"+JS2.JSMLElement.parseAttributes(' + (this.attributes || "{}") + ', ' + JSON.stringify(this.classes || []) + ', ' + JSON.stringify(this.id || null) + ')+">");\n');
-      out.push('out.push(' + JSON.stringify("</"+(this.nodeType)+">") + ');\n');
+      out.unshift('out.push("<' + this.nodeType + '"+JS2.JSMLElement.parseAttributes(' + (this.attributes || "{}") + ', ' + JSON.stringify(this.classes || []) + ', ' + JSON.stringify(this.id || null) + ')+"' + this.selfClose + '>");\n');
+      if (this.selfClose == '') {
+        out.push('out.push(' + JSON.stringify("</"+(this.nodeType)+">") + ');\n');
+      }
     } else {
       this.handleJsExec(out);
       this.handleJsEQ(out);

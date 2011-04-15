@@ -1242,9 +1242,9 @@ JS2.Class.extend('FileSystem', function(KLASS, OO){
 JS2.Class.extend('Updater', function(KLASS, OO){
   OO.addMember("initialize",function (fs, inDir, outDir, recursive) {
     this.recursive = recursive;
-    this.fs      = fs; 
-    this.inDir   = this.fs.canonical(inDir);
-    this.outDir  = this.fs.canonical(outDir);
+    this.fs        = fs; 
+    this.inDir     = this.fs.canonical(inDir);
+    this.targetDir = this.fs.canonical(outDir);
     this.verbose = true;
   });
 
@@ -1261,14 +1261,14 @@ JS2.Class.extend('Updater', function(KLASS, OO){
     for(var _i1=0,_c1=subs,_l1=_c1.length,sub;(sub=_c1[_i1])||(_i1<_l1);_i1++){
       var path = dir + '/' + sub;
       if (this.fs.isDirectory(path)) {
-        this.fs.mkdir(path.replace(this.inDir, this.outDir));
+        this.fs.mkdir(path.replace(this.inDir, this.targetDir));
         this.matchDirs(path);
       }
     }
   });
 
   OO.addMember("tryUpdate",function (file, force, funct) {
-    var outFile = file.replace(this.inDir, this.outDir).replace(/\.js2$/, '.js');
+    var outFile = file.replace(this.inDir, this.targetDir).replace(/\.js2$/, '.js');
 
     var dir = this.fs.dirname(file);
     if (! this.fs.isDirectory(dir)) this.fs.mkpath(dir);
@@ -1518,6 +1518,8 @@ JS2.Class.extend('JSML', function(KLASS, OO){
   });
 
   OO.addMember("processLine",function (line) {
+    if (line.match(/^\s*$/)) return;
+
     var ele   = new JS2.JSMLElement(line);
     var scope = this.getScope();
 
@@ -1555,6 +1557,7 @@ JS2.Class.extend('JSMLElement', function(KLASS, OO){
   OO.addMember("TOKEN_REGEX",/(\%|\#|\.)([\w][\w\-]*)/g);
   OO.addMember("JS_REGEX",/^(-|=)(.*)$/g);
   OO.addMember("SCOPE_OFFSET",1);
+  OO.addMember("SELF_CLOSING",{ area: null, basefont: null, br: null, hr: null, input: null, img: null, link: null, meta: null });
 
   OO.addMember("initialize",function (line) {
     this.children = [];
@@ -1614,6 +1617,12 @@ JS2.Class.extend('JSMLElement', function(KLASS, OO){
     if (!this.nodeType && (this.classes.length || this.nodeID)) {
       this.nodeType = 'div';
     }
+
+    if (this.SELF_CLOSING.hasOwnProperty(this.nodeType) && this.children.length == 0) {
+      this.selfClose = '/';
+    } else {
+      this.selfClose = '';
+    }
   });
 
   OO.addMember("flatten",function () {
@@ -1629,8 +1638,10 @@ JS2.Class.extend('JSMLElement', function(KLASS, OO){
     if (this.nodeType) {
       this.handleJsEQ(out);
       this.handleContent(out);
-      out.unshift('out.push("<' + this.nodeType + '"+JS2.JSMLElement.parseAttributes(' + (this.attributes || "{}") + ', ' + JSON.stringify(this.classes || []) + ', ' + JSON.stringify(this.id || null) + ')+">");\n');
-      out.push('out.push(' + JSON.stringify("</"+(this.nodeType)+">") + ');\n');
+      out.unshift('out.push("<' + this.nodeType + '"+JS2.JSMLElement.parseAttributes(' + (this.attributes || "{}") + ', ' + JSON.stringify(this.classes || []) + ', ' + JSON.stringify(this.id || null) + ')+"' + this.selfClose + '>");\n');
+      if (this.selfClose == '') {
+        out.push('out.push(' + JSON.stringify("</"+(this.nodeType)+">") + ');\n');
+      }
     } else {
       this.handleJsExec(out);
       this.handleJsEQ(out);

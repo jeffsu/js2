@@ -1,3 +1,8 @@
+0.3.18
+  * COMMAND: updaters should be using targetDir instead of outDir
+  * JSML: fixed empty space problem
+  * JSML: support for self-closing tags: area, base, basefont, br, hr, input, img, link, meta
+
 0.3.17
   * CORE: Adding counter to foreach "foreach (var item:i in items) { }"
   * COMMAND: Fixing compile to use targetDir instead of outDir

@@ -1,9 +1,9 @@
 class Updater {
   function initialize(fs, inDir, outDir, recursive) {
     this.recursive = recursive;
-    this.fs      = fs; 
-    this.inDir   = this.fs.canonical(inDir);
-    this.outDir  = this.fs.canonical(outDir);
+    this.fs        = fs; 
+    this.inDir     = this.fs.canonical(inDir);
+    this.targetDir = this.fs.canonical(outDir);
     this.verbose = true;
   }
 
@@ -20,14 +20,14 @@ class Updater {
     foreach (var sub in subs) {
       var path = dir + '/' + sub;
       if (this.fs.isDirectory(path)) {
-        this.fs.mkdir(path.replace(this.inDir, this.outDir));
+        this.fs.mkdir(path.replace(this.inDir, this.targetDir));
         this.matchDirs(path);
       }
     }
   }
 
   function tryUpdate(file, force, funct) {
-    var outFile = file.replace(this.inDir, this.outDir).replace(/\.js2$/, '.js');
+    var outFile = file.replace(this.inDir, this.targetDir).replace(/\.js2$/, '.js');
 
     var dir = this.fs.dirname(file);
     if (! this.fs.isDirectory(dir)) this.fs.mkpath(dir);

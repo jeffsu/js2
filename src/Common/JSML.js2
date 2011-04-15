@@ -27,6 +27,8 @@ class JSML {
   }
 
   function processLine(line) {
+    if (line.match(/^\s*$/)) return;
+
     var ele   = new JS2.JSMLElement(line);
     var scope = this.getScope();
 
@@ -64,6 +66,7 @@ class JSMLElement {
   var TOKEN_REGEX  = /(\%|\#|\.)([\w][\w\-]*)/g;
   var JS_REGEX     = /^(-|=)(.*)$/g;
   var SCOPE_OFFSET = 1;
+  var SELF_CLOSING = { area: null, basefont: null, br: null, hr: null, input: null, img: null, link: null, meta: null };
 
   function initialize(line) {
     this.children = [];
@@ -123,6 +126,12 @@ class JSMLElement {
     if (!this.nodeType && (this.classes.length || this.nodeID)) {
       this.nodeType = 'div';
     }
+
+    if (this.SELF_CLOSING.hasOwnProperty(this.nodeType) && this.children.length == 0) {
+      this.selfClose = '/';
+    } else {
+      this.selfClose = '';
+    }
   }
 
   function flatten() {
@@ -138,8 +147,10 @@ class JSMLElement {
     if (this.nodeType) {
       this.handleJsEQ(out);
       this.handleContent(out);
-      out.unshift('out.push("<' + this.nodeType + '"+JS2.JSMLElement.parseAttributes(' + (this.attributes || "{}") + ', ' + JSON.stringify(this.classes || []) + ', ' + JSON.stringify(this.id || null) + ')+">");\n');
-      out.push('out.push(' + JSON.stringify(%{</#{this.nodeType}>}) + ');\n');
+      out.unshift('out.push("<' + this.nodeType + '"+JS2.JSMLElement.parseAttributes(' + (this.attributes || "{}") + ', ' + JSON.stringify(this.classes || []) + ', ' + JSON.stringify(this.id || null) + ')+"' + this.selfClose + '>");\n');
+      if (this.selfClose == '') {
+        out.push('out.push(' + JSON.stringify(%{</#{this.nodeType}>}) + ');\n');
+      }
     } else {
       this.handleJsExec(out);
       this.handleJsEQ(out);
