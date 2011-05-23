@@ -18,7 +18,7 @@ function mainFunction (arg) {
 
   var JS2 = root.JS2 = mainFunction;
   var js2 = root.js2 = JS2;
-  js2.VERSION = "0.3.13";
+  js2.VERSION = "0.3.18";
 
   JS2.ROOT = JS2;
   
@@ -905,12 +905,12 @@ function mainFunction (arg) {
 
     getBrace: function(brace) {
       var n = this.cache.count;
-      var iteratorName   = "_i" + n;
       var collectionName = "_c" + n;
       var l = "_l" + n;
 
-      var v = brace.validate(/(\()(\s*)(var)(\s+)(I)(\s+)(in)(\s+)/);
+      var v = brace.validate(/(\()(\s*)(var)(\s+)(I)(\s*\:\s*(I))?(\s+)(in)(\s+)/);
       if (!v) return '';
+      var iteratorName   = v[7] || "_i" + n;
 
       var holder = v[5];
       var collection = v.last.replace(/\)$/, '');
@@ -1128,7 +1128,6 @@ JS2.Array.prototype.any = function() {
   return this.length > 0;
 };
 
-
 JS2.Class.extend('FileSystem', function(KLASS, OO){
   OO.addMember("initialize",function (adapter) {
     this.adapter = adapter;
@@ -1238,13 +1237,12 @@ JS2.Class.extend('FileSystem', function(KLASS, OO){
   });
 });
 
-
 JS2.Class.extend('Updater', function(KLASS, OO){
   OO.addMember("initialize",function (fs, inDir, outDir, recursive) {
     this.recursive = recursive;
-    this.fs      = fs; 
-    this.inDir   = this.fs.canonical(inDir);
-    this.outDir  = this.fs.canonical(outDir);
+    this.fs        = fs; 
+    this.inDir     = this.fs.canonical(inDir);
+    this.targetDir = this.fs.canonical(outDir);
     this.verbose = true;
   });
 
@@ -1261,14 +1259,14 @@ JS2.Class.extend('Updater', function(KLASS, OO){
     for(var _i1=0,_c1=subs,_l1=_c1.length,sub;(sub=_c1[_i1])||(_i1<_l1);_i1++){
       var path = dir + '/' + sub;
       if (this.fs.isDirectory(path)) {
-        this.fs.mkdir(path.replace(this.inDir, this.outDir));
+        this.fs.mkdir(path.replace(this.inDir, this.targetDir));
         this.matchDirs(path);
       }
     }
   });
 
   OO.addMember("tryUpdate",function (file, force, funct) {
-    var outFile = file.replace(this.inDir, this.outDir).replace(/\.js2$/, '.js');
+    var outFile = file.replace(this.inDir, this.targetDir).replace(/\.js2$/, '.js');
 
     var dir = this.fs.dirname(file);
     if (! this.fs.isDirectory(dir)) this.fs.mkpath(dir);
@@ -1283,7 +1281,6 @@ JS2.Class.extend('Updater', function(KLASS, OO){
     }
   });
 });
-
 
 JS2.Class.extend('Config', function(KLASS, OO){
   OO.addMember("CLI_REGEX",/^-(r|i|f|n|v|m)(=(\w+))?$/);
@@ -1356,7 +1353,6 @@ JS2.Class.extend('Config', function(KLASS, OO){
 
 });
 
-
 JS2.Class.extend('Commander', function(KLASS, OO){
   OO.addMember("BANNER","js2 <command> [options] <arguments>\n" +
     "VERSION: " + JS2.VERSION + "\n" +
@@ -1420,7 +1416,7 @@ JS2.Class.extend('Commander', function(KLASS, OO){
 
   OO.addMember("getUpdater",function () {
     var inDir     = this.config.args[0] || this.config.sourceDir || '.';
-    var targetDir = this.config.args[1] || this.config.outDir || inDir;
+    var targetDir = this.config.args[1] || this.config.targetDir || inDir;
     return new JS2.Updater(this.fs, inDir, targetDir, this.config.recursive);
   });
 
@@ -1441,7 +1437,6 @@ JS2.Class.extend('Commander', function(KLASS, OO){
     console.log(this.BANNER);
   });
 });
-
 
 
 JS2.Class.extend('BrowserDecorator', function(KLASS, OO){
@@ -1488,7 +1483,6 @@ JS2.Class.extend('RingoDecorator', function(KLASS, OO){
 
 JS2.DECORATOR = JS2.DECORATOR || new JS2.BrowserDecorator();
 
-
 JS2.Class.extend('JSML', function(KLASS, OO){
   OO.addStaticMember("process",function (txt) {
     return new KLASS(txt);
@@ -1507,8 +1501,9 @@ JS2.Class.extend('JSML', function(KLASS, OO){
     var toEval = 'function process() { var out = [];\n' + this.flatten().join('') + '\n return out.join("");\n}';
     eval(toEval);
 
-    this.result = function(hash) {
-      return process.call(hash);
+    this.result = function(bound) {
+      bound = bound || {};
+      return process.call(bound);
     };
   });
 
@@ -1517,6 +1512,8 @@ JS2.Class.extend('JSML', function(KLASS, OO){
   });
 
   OO.addMember("processLine",function (line) {
+    if (line.match(/^\s*$/)) return;
+
     var ele   = new JS2.JSMLElement(line);
     var scope = this.getScope();
 
@@ -1550,10 +1547,11 @@ JS2.Class.extend('JSML', function(KLASS, OO){
 
 JS2.Class.extend('JSMLElement', function(KLASS, OO){
   OO.addMember("SCOPE_REGEX",/^(\s*)(.*)$/);
-  OO.addMember("SPLIT_REGEX",/^([^=-\s\{]*)(\{.*\})?(=|-)?(?:\s*)(.*)$/);
-  OO.addMember("TOKEN_REGEX",/(\%|\#|\.)([\w-]+)/g);
+  OO.addMember("SPLIT_REGEX",/^((?:\.|\#|\%)[^=\s\{]*)?(\{.*\})?(=|-)?(?:\s*)(.*)$/);
+  OO.addMember("TOKEN_REGEX",/(\%|\#|\.)([\w][\w\-]*)/g);
   OO.addMember("JS_REGEX",/^(-|=)(.*)$/g);
   OO.addMember("SCOPE_OFFSET",1);
+  OO.addMember("SELF_CLOSING",{ area: null, basefont: null, br: null, hr: null, input: null, img: null, link: null, meta: null });
 
   OO.addMember("initialize",function (line) {
     this.children = [];
@@ -1577,7 +1575,7 @@ JS2.Class.extend('JSMLElement', function(KLASS, OO){
   });
 
   OO.addMember("parse",function (line) {
-    this.attributes = {};
+    this.attributes;
     this.line = line;
     var self = this;
 
@@ -1587,14 +1585,16 @@ JS2.Class.extend('JSMLElement', function(KLASS, OO){
     var jsType   = splitted[3];
     var content  = splitted[4];
 
-    tokens.replace(this.TOKEN_REGEX, function(match, type, name){ 
-      switch(type) {
-        case '%': self.nodeType = name; break;
-        case '.': self.classes.push(name); break;
-        case '#': self.nodeID = name; break;
-      } 
-      return '';
-    });
+    if (tokens) {
+      tokens.replace(this.TOKEN_REGEX, function(match, type, name){ 
+        switch(type) {
+          case '%': self.nodeType = name; break;
+          case '.': self.classes.push(name); break;
+          case '#': self.nodeID = name; break;
+        } 
+        return '';
+      });
+    }
 
     if (jsType == '=') {
       this.jsEQ = content;
@@ -1605,11 +1605,17 @@ JS2.Class.extend('JSMLElement', function(KLASS, OO){
     }
 
     if (attrs) {
-      eval('this.attributes = ' + attrs + ';');
+      this.attributes = attrs;
     }
 
     if (!this.nodeType && (this.classes.length || this.nodeID)) {
       this.nodeType = 'div';
+    }
+
+    if (this.SELF_CLOSING.hasOwnProperty(this.nodeType) && this.children.length == 0) {
+      this.selfClose = '/';
+    } else {
+      this.selfClose = '';
     }
   });
 
@@ -1626,8 +1632,10 @@ JS2.Class.extend('JSMLElement', function(KLASS, OO){
     if (this.nodeType) {
       this.handleJsEQ(out);
       this.handleContent(out);
-      out.unshift('out.push(' + JSON.stringify("<"+(this.nodeType)+""+(this.getAttributes())+">") + ');\n');
-      out.push('out.push(' + JSON.stringify("</"+(this.nodeType)+">") + ');\n');
+      out.unshift('out.push("<' + this.nodeType + '"+JS2.JSMLElement.parseAttributes(' + (this.attributes || "{}") + ', ' + JSON.stringify(this.classes || []) + ', ' + JSON.stringify(this.id || null) + ')+"' + this.selfClose + '>");\n');
+      if (this.selfClose == '') {
+        out.push('out.push(' + JSON.stringify("</"+(this.nodeType)+">") + ');\n');
+      }
     } else {
       this.handleJsExec(out);
       this.handleJsEQ(out);
@@ -1660,25 +1668,20 @@ JS2.Class.extend('JSMLElement', function(KLASS, OO){
     }
   });
 
-  OO.addMember("getAttributes",function () {
-    if (!this.attributes) return '';
-
+  OO.addStaticMember("parseAttributes",function (hash, classes, id) {
     var out = [];
-    var attrs = this.attributes;
+    classes = classes || [];
+    if (hash['class']) classes.push(hash['class']);
+    if (classes.length) hash['class'] = classes.join(" ");
 
-    if (attrs['class']) this.classes.push(attrs['class']);
-    if (this.classes.length) attrs['class'] = this.classes.join(' ');
-
-    for (var k in attrs) {
-      if (attrs.hasOwnProperty(k)) {
-        out.push(k + '=' + JSON.stringify(attrs[k]));
+    for (var k in hash) {
+      if (hash.hasOwnProperty(k)) {
+        out.push(k + '=' + JSON.stringify(hash[k]));
       }
-    } 
-
+    }
     return (out.length ? ' ' : '') + out.join(' ');
   });
 });
-
 JS2.TEMPLATES = { jsml: JS2.JSML };
 
   (function (undefined, JS2) {
