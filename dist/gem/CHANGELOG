@@ -1,3 +1,6 @@
+0.3.19
+  * SYNTAX: added private closure block support "private { var foo = 'bar' }" within classes
+
 0.3.18
   * COMMAND: updaters should be using targetDir instead of outDir
   * JSML: fixed empty space problem

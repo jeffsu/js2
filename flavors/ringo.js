@@ -266,6 +266,7 @@ JS2.Array.prototype.any = function() {
   return this.length > 0;
 };
 
+
   JS2.Class.extend('JSML', function(KLASS, OO){
   OO.addStaticMember("process",function (txt) {
     return new KLASS(txt);
@@ -465,6 +466,7 @@ JS2.Class.extend('JSMLElement', function(KLASS, OO){
     return (out.length ? ' ' : '') + out.join(' ');
   });
 });
+
 
   JS2.TEMPLATES = { jsml: JS2.JSML };
 

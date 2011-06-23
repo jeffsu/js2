@@ -12,7 +12,7 @@
     }
   };
 
-  var KEYWORDS = { 'var': null, 'class': null, 'function': null, 'in': null, 'with': null, 'curry': null, 'static': null, 'module':null };
+  var KEYWORDS = { 'var': null, 'class': null, 'function': null, 'in': null, 'with': null, 'curry': null, 'static': null, 'module':null, 'private':null };
   var IDS = JS2.Lexer.IDS;
   IDS['NODE'] = -1;
 
@@ -189,8 +189,25 @@
       if (this.tokens.isBalancedCurly(this) && token[0] == '}') {
         this.closed = true;
       }
-    } 
+    }
   });
+
+  var Private = Content.extend({
+    name: 'Private',
+    handOff: function(token) {
+      if (this.started) this.closed = true;
+      switch (token[0]) {
+        case '{': this.started = true; return Block;
+      }
+    }, 
+
+    toString: function() {
+      var v  = this.validate(/(private)(\s+)/);
+      var last = v.last;
+      return "// private closure\n" + last.replace(/^\{/, '').replace(/\}$/, '');
+    }
+  });
+
 
   var KlassBlock = Block.extend({
     name: 'KlassBlock',
@@ -200,6 +217,7 @@
         case 'function': return Method;
         case 'static': return StaticMember;
         case 'include': return Include;
+        case 'private': return Private;
       }
     },
 

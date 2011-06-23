@@ -1,0 +1,14 @@
+class Foo {
+  private {
+    var hello = "hello";
+  }
+
+  function getHello() {
+    return hello;
+  }
+}
+
+js2.test(#(assert){
+  var foo = new Foo();
+  assert.eq(foo.getHello(), 'hello');
+});
