@@ -12,7 +12,7 @@
     }
   };
 
-  var KEYWORDS = { 'var': null, 'class': null, 'function': null, 'in': null, 'with': null, 'curry': null, 'static': null, 'module':null, 'private':null };
+  var KEYWORDS = { 'var': null, 'class': null, 'function': null, 'in': null, 'with': null, 'curry': null, 'static': null, '{module}':null, 'private':null };
   var IDS = JS2.Lexer.IDS;
   IDS['NODE'] = -1;
 
@@ -169,7 +169,7 @@
   var Module = Klass.extend({
     name: 'Module',
     toString: function() {
-      var v    = this.validate(/(module)(\s+)/);
+      var v    = this.validate(/(\{module\})(\s+)/);
       var last = v.last;
       var m = last.match(/^([\w$]+(\.[\w$]+)*)/);
       if (m) {

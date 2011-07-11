@@ -65,6 +65,17 @@
         return  true;
       }
 
+      // module hack
+      if (m[0] == 'module') {
+        if (this.tokens.match(/^module\s+\w/)) {
+          this.tokens.push([ '{module}', this.IDS.MODULE ]);
+        } else {
+          this.tokens.push([ 'module', this.IDS.IDENT ]);
+        }
+        this.tokens.chomp(6);
+        return true;
+      }
+
       for (var i=0,tokenDef;tokenDef=this.TOKENS[i];i++) {
         if (m[0] == m[i+2]) {
           var klass = JS2.Lexer[tokenDef[0]];

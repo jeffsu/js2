@@ -246,6 +246,17 @@ function mainFunction (arg) {
         return  true;
       }
 
+      // module hack
+      if (m[0] == 'module') {
+        if (this.tokens.match(/^module\s+\w/)) {
+          this.tokens.push([ '{module}', this.IDS.MODULE ]);
+        } else {
+          this.tokens.push([ 'module', this.IDS.IDENT ]);
+        }
+        this.tokens.chomp(6);
+        return true;
+      }
+
       for (var i=0,tokenDef;tokenDef=this.TOKENS[i];i++) {
         if (m[0] == m[i+2]) {
           var klass = JS2.Lexer[tokenDef[0]];
@@ -605,7 +616,7 @@ function mainFunction (arg) {
     }
   };
 
-  var KEYWORDS = { 'var': null, 'class': null, 'function': null, 'in': null, 'with': null, 'curry': null, 'static': null, 'module':null, 'private':null };
+  var KEYWORDS = { 'var': null, 'class': null, 'function': null, 'in': null, 'with': null, 'curry': null, 'static': null, '{module}':null, 'private':null };
   var IDS = JS2.Lexer.IDS;
   IDS['NODE'] = -1;
 
@@ -762,7 +773,7 @@ function mainFunction (arg) {
   var Module = Klass.extend({
     name: 'Module',
     toString: function() {
-      var v    = this.validate(/(module)(\s+)/);
+      var v    = this.validate(/(\{module\})(\s+)/);
       var last = v.last;
       var m = last.match(/^([\w$]+(\.[\w$]+)*)/);
       if (m) {

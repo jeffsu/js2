@@ -12,8 +12,11 @@ class MyClass {
   include MyModule;
 }
 
+var module = "bar";
+
 var obj = new MyClass();
 js2.test(#(assert){
   assert.eq(obj.bar(), 'bar');
   assert.eq(MyClass.bar(), 'static bar');
+  assert.eq(module, "bar");
 });
