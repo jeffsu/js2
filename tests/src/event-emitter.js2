@@ -1,0 +1,19 @@
+class Foo {
+  include JS2.EventEmitter;
+}
+
+JS2.test(#(assert) {
+  var foo = new Foo();
+  var bar = null;
+  var args = [];
+
+  foo.on("testEmit", function () { bar = "bar" });
+  foo.emit("testEmit");
+
+  foo.on("testArgs", function () { args[0] = arguments[0]; args[1] = arguments[1]; });
+  foo.emit("testArgs", 0, 1);
+
+  assert.eq(bar, "bar");
+  assert.eq(args[0], 0);
+  assert.eq(args[1], 1);
+});

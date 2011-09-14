@@ -18,7 +18,7 @@ function mainFunction (arg) {
   var JS2 = root.JS2 = mainFunction;
   var js2 = root.js2 = JS2;
   js2.ROOT = JS2;
-  js2.VERSION = "0.3.20";
+  js2.VERSION = "0.3.21";
 
   
 // CLASS HELPERS
@@ -173,6 +173,32 @@ function mainFunction (arg) {
     if (!callback) callback = message;
     callback(assert);
   };
+
+  function addListener(type, listener) {
+    var events = this.__$events || (this.__$events = {});
+    this.emit('newListener', type, listener);
+    if (!events[type]) events[type] = [];
+    events[type].push(listener);
+  }
+
+  JS2.EventEmitter = JS2.Module.extend({
+    emit: function () {
+      // TODO optimize
+      var type     = arguments[0];
+      var events   = this.__$events || (this.__$events = {});
+      var handlers = events[type];
+
+      if (!handlers) return false;
+
+      var args = [];
+      for (var i=1,len=arguments.length; i<len; i++) args[i-1] = arguments[i];
+      for (var i=0,len=handlers.length; i<len; i++) handlers[i].apply(this, args);
+    },
+
+    addListener: addListener,
+    on: addListener
+  });
+
 
 
   return JS2;
