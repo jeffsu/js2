@@ -18,7 +18,7 @@ function mainFunction (arg) {
 
   var JS2 = root.JS2 = mainFunction;
   var js2 = root.js2 = JS2;
-  js2.VERSION = "0.3.19";
+  js2.VERSION = "0.3.21";
 
   JS2.ROOT = JS2;
   
@@ -175,6 +175,32 @@ function mainFunction (arg) {
     callback(assert);
   };
 
+  function addListener(type, listener) {
+    var events = this.__$events || (this.__$events = {});
+    this.emit('newListener', type, listener);
+    if (!events[type]) events[type] = [];
+    events[type].push(listener);
+  }
+
+  JS2.EventEmitter = JS2.Module.extend({
+    emit: function () {
+      // TODO optimize
+      var type     = arguments[0];
+      var events   = this.__$events || (this.__$events = {});
+      var handlers = events[type];
+
+      if (!handlers) return false;
+
+      var args = [];
+      for (var i=1,len=arguments.length; i<len; i++) args[i-1] = arguments[i];
+      for (var i=0,len=handlers.length; i<len; i++) handlers[i].apply(this, args);
+    },
+
+    addListener: addListener,
+    on: addListener
+  });
+
+
 
   return JS2;
 })(undefined, JS2);
@@ -244,6 +270,17 @@ function mainFunction (arg) {
         this.tokens.push([ '/', IDS.OPERATOR ]); // operator
         this.tokens.chomp(1);
         return  true;
+      }
+
+      // module hack
+      if (m[0] == 'module') {
+        if (this.tokens.match(/^module\s+\w/)) {
+          this.tokens.push([ '{module}', this.IDS.MODULE ]);
+        } else {
+          this.tokens.push([ 'module', this.IDS.IDENT ]);
+        }
+        this.tokens.chomp(6);
+        return true;
       }
 
       for (var i=0,tokenDef;tokenDef=this.TOKENS[i];i++) {
@@ -605,7 +642,7 @@ function mainFunction (arg) {
     }
   };
 
-  var KEYWORDS = { 'var': null, 'class': null, 'function': null, 'in': null, 'with': null, 'curry': null, 'static': null, 'module':null, 'private':null };
+  var KEYWORDS = { 'var': null, 'class': null, 'function': null, 'in': null, 'with': null, 'curry': null, 'static': null, '{module}':null, 'private':null };
   var IDS = JS2.Lexer.IDS;
   IDS['NODE'] = -1;
 
@@ -762,7 +799,7 @@ function mainFunction (arg) {
   var Module = Klass.extend({
     name: 'Module',
     toString: function() {
-      var v    = this.validate(/(module)(\s+)/);
+      var v    = this.validate(/(\{module\})(\s+)/);
       var last = v.last;
       var m = last.match(/^([\w$]+(\.[\w$]+)*)/);
       if (m) {
