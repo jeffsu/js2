@@ -12,10 +12,10 @@ module JS2
       @app = app
 
       default = {
-        'source_dir'  => "#{get_root}/app/js2",
-        'target_dir'  => "#{get_root}/public/javascripts",
-        'bin'         => (`which js2`.chomp rescue nil),
-        'copy_js2'    => true
+        'source_dir' => "#{get_root}/app/js2",
+        'target_dir' => "#{get_root}/public/javascripts",
+        'bin'        => (`which js2`.chomp rescue nil),
+        'copy_js2'   => true
       }
 
 
