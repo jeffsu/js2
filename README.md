@@ -1,3 +1,6 @@
+This project has moved to [Mochiscript](https://github.com/jeffsu/mochiscript)
+==============================================================================
+
 [JS2](http://jeffsu.github.com/js2) - JavaScript Sugar
 ======================================================================
   * [Home](http://jeffsu.github.com/js2)
